@@ -5,10 +5,10 @@
 //+------------------------------------------------------------------+
 #property copyright "Frederico Benevides"
 #property link      "fredbene@gmail.com"
-#property version   "1.00"
+#property version   "1.10"
 #property indicator_chart_window
-#property indicator_buffers 11
-#property indicator_plots   8
+#property indicator_buffers 13
+#property indicator_plots   10
 //--- plot Continuous High
 #property indicator_label1  "Continuous High HiLo (Sell)"
 #property indicator_type1   DRAW_LINE
@@ -33,46 +33,54 @@
 #property indicator_color4  clrLimeGreen
 #property indicator_style4  STYLE_SOLID
 #property indicator_width4  3
-//--- plot Current High
-#property indicator_label5  "Current High HiLo (Sell)"
+//--- plot Second High
+#property indicator_label5  "First Second HiLo (Sell)"
 #property indicator_type5   DRAW_ARROW
-#property indicator_color5  clrDarkGray
+#property indicator_color5  clrChocolate
 #property indicator_style5  STYLE_SOLID
 #property indicator_width5  3
-//--- plot Current Low
-#property indicator_label6  "Current Low HiLo (Buy)"
+//--- plot Second Low
+#property indicator_label6  "First Second HiLo (Buy)"
 #property indicator_type6   DRAW_ARROW
-#property indicator_color6  clrDarkGray
+#property indicator_color6  clrDarkGreen
 #property indicator_style6  STYLE_SOLID
 #property indicator_width6  3
+//--- plot Current High
+#property indicator_label7  "Current High HiLo (Sell)"
+#property indicator_type7   DRAW_ARROW
+#property indicator_color7  clrDarkGray
+#property indicator_style7  STYLE_SOLID
+#property indicator_width7  3
+//--- plot Current Low
+#property indicator_label8  "Current Low HiLo (Buy)"
+#property indicator_type8   DRAW_ARROW
+#property indicator_color8  clrDarkGray
+#property indicator_style8  STYLE_SOLID
+#property indicator_width8  3
 //--- plot Continuous High
-#property indicator_label7  "Continuous High No Line for HiLo (Sell)"
-#property indicator_type7   DRAW_NONE
+#property indicator_label9  "Continuous High No Line for HiLo (Sell)"
+#property indicator_type9   DRAW_NONE
 //--- plot Continuous Low
-#property indicator_label8  "Continuous Low HiLo No Line for HiLo (Buy)"
-#property indicator_type8   DRAW_NONE
+#property indicator_label10  "Continuous Low HiLo No Line for HiLo (Buy)"
+#property indicator_type10   DRAW_NONE
 
 
 //--- input parameters
 input string         InpHiLoData="------------------------------";    // --------------- HiLo ---------------
-input int            InpPeriod=3;                                     // Period
+input int            InpPeriod=1;                                     // Period
 input ENUM_MA_METHOD InpMaMethod=MODE_SMMA;                           // Method
-input bool           InpArrowInFirstHiLo=true;                        // Add an arrow to the first HiLo
+input bool           InpArrowInFirstHiLo=false;                       // Add an arrow to the first HiLo
+input bool           InpArrowInSecondHiLo=true;                       // Add an arrow to the second HiLo
 input bool           InpArrowInCurrentCandle=true;                    // Add an arrow to the current candle
 input bool           InpShowHiLoLine=false;                           // Show the line of HiLo
-
-//--- input parameters for Sounds
-input string         InpSoundData="------------------------------"; // --------------- Sounds ---------------
-input bool           InpSetSoundInFirstHighHilo=false;              // Set Sound on the first High(sell) HiLo
-input bool           InpSetSoundInFirstLowHilo=false;               // Set Sound on the first Low(buy) HiLo
-input string         InpHighSoundsName="dinkdink";                  // The Sound's name of the High(sell) HiLo
-input string         InpLowSoundsName="dingdong";                   // The Sound's name of the Low(buy) HiLo
 
 //--- indicator buffers
 double HiLoHighBuffer[];
 double HiLoLowBuffer[];
 double HiLoFirstHighBuffer[];
 double HiLoFirstLowBuffer[];
+double HiLoSecondHighBuffer[];
+double HiLoSecondLowBuffer[];
 double HiLoCurrentHighBuffer[];
 double HiLoCurrentLowBuffer[];
 double HiLoHighNoLineBuffer[];
@@ -86,40 +94,41 @@ int MaHighHandle;
 int MaLowHandle;
 int Period;
 int MinRatesTotal;
-
-//--- global vars for Sound
-bool PlayHighSound=false;
-bool PlayLowSound=false;
-datetime LasTimeCandleSoundPlayed;
 //+------------------------------------------------------------------+
 //| Custom indicator initialization function                         |
 //+------------------------------------------------------------------+
 int OnInit()
   {
-//--- indicator buffers mapping   
+//--- indicator buffers mapping
    SetIndexBuffer(0,HiLoHighBuffer,INDICATOR_DATA);
    SetIndexBuffer(1,HiLoLowBuffer,INDICATOR_DATA);
    SetIndexBuffer(2,HiLoFirstHighBuffer,INDICATOR_DATA);
    SetIndexBuffer(3,HiLoFirstLowBuffer,INDICATOR_DATA);
-   SetIndexBuffer(4,HiLoCurrentHighBuffer,INDICATOR_DATA);
-   SetIndexBuffer(5,HiLoCurrentLowBuffer,INDICATOR_DATA);
-   SetIndexBuffer(6,HiLoHighNoLineBuffer,INDICATOR_DATA);
-   SetIndexBuffer(7,HiLoLowNoLineBuffer,INDICATOR_DATA);
-   SetIndexBuffer(8,MaHighBuffer,INDICATOR_CALCULATIONS);
-   SetIndexBuffer(9,MaLowBuffer,INDICATOR_CALCULATIONS);
-   SetIndexBuffer(10,TrendBuffer,INDICATOR_CALCULATIONS);
+   SetIndexBuffer(4,HiLoSecondHighBuffer,INDICATOR_DATA);
+   SetIndexBuffer(5,HiLoSecondLowBuffer,INDICATOR_DATA);
+   SetIndexBuffer(6,HiLoCurrentHighBuffer,INDICATOR_DATA);
+   SetIndexBuffer(7,HiLoCurrentLowBuffer,INDICATOR_DATA);
+   SetIndexBuffer(8,HiLoHighNoLineBuffer,INDICATOR_DATA);
+   SetIndexBuffer(9,HiLoLowNoLineBuffer,INDICATOR_DATA);
+   SetIndexBuffer(10,MaHighBuffer,INDICATOR_CALCULATIONS);
+   SetIndexBuffer(11,MaLowBuffer,INDICATOR_CALCULATIONS);
+   SetIndexBuffer(12,TrendBuffer,INDICATOR_CALCULATIONS);
 
 //--- set the type of arrow
    PlotIndexSetInteger(2,PLOT_ARROW,167); // First High
    PlotIndexSetInteger(3,PLOT_ARROW,167); // First Low
-   PlotIndexSetInteger(4,PLOT_ARROW,167); // Current High
-   PlotIndexSetInteger(5,PLOT_ARROW,167); // Current Low
+   PlotIndexSetInteger(4,PLOT_ARROW,167); // Second High
+   PlotIndexSetInteger(5,PLOT_ARROW,167); // Second Low
+   PlotIndexSetInteger(6,PLOT_ARROW,167); // Current High
+   PlotIndexSetInteger(7,PLOT_ARROW,167); // Current Low
 
-//--- set direction   
+//--- set direction
    ArraySetAsSeries(HiLoHighBuffer,true);
    ArraySetAsSeries(HiLoLowBuffer,true);
    ArraySetAsSeries(HiLoFirstHighBuffer,true);
    ArraySetAsSeries(HiLoFirstLowBuffer,true);
+   ArraySetAsSeries(HiLoSecondHighBuffer,true);
+   ArraySetAsSeries(HiLoSecondLowBuffer,true);
    ArraySetAsSeries(HiLoCurrentHighBuffer,true);
    ArraySetAsSeries(HiLoCurrentLowBuffer,true);
    ArraySetAsSeries(HiLoHighNoLineBuffer,true);
@@ -159,9 +168,9 @@ int OnCalculate(const int rates_total,
   {
 //---
 // 14 MinRates
-// -> If MinRates has more than the rates to calculate, stop! 
+// -> If MinRates has more than the rates to calculate, stop!
 // It's not possible to calculate the HiLo if doesn't have enough candle
-// -> If the bars calculated using the Handle has more than the rates total, stop! 
+// -> If the bars calculated using the Handle has more than the rates total, stop!
    int t=BarsCalculated(MaHighHandle);
    if(MinRatesTotal>rates_total
       || BarsCalculated(MaHighHandle)>rates_total
@@ -176,11 +185,11 @@ int OnCalculate(const int rates_total,
    int limit=0;
    if(prev_calculated>rates_total || prev_calculated<=0)
      {
-      // Set the limit to calculate. 
+      // Set the limit to calculate.
       // 100 candles
       // 13 Period
       // 14 MinRatesTotal
-      // = 85 Index array  
+      // = 85 Index array
       limit=rates_total-MinRatesTotal-1;
      }
    else
@@ -189,7 +198,7 @@ int OnCalculate(const int rates_total,
      }
 
 // Copy all the 87 elements less than candles that
-// will not be part of the hilo. 
+// will not be part of the hilo.
 // 85 limit
 // 2 plus candles
 // = 87 (13 candles of Period away)
@@ -208,9 +217,8 @@ int OnCalculate(const int rates_total,
       showHighHiLo(i);
       showLowHiLo(i);
 
-      int firstHilo=calculateFirstHiLo(i);
-      includeArrowInFirstHilo(firstHilo,i);
-      setAlarmFirstHilo(firstHilo,time[i]);
+      includeArrowInFirstHilo(i);
+      includeArrowInSecondHilo(i);
      }
 
 //--- return value of prev_calculated for next call
@@ -225,6 +233,8 @@ void cleanAllBuffers(int index)
    HiLoLowBuffer[index]=EMPTY_VALUE;
    HiLoFirstHighBuffer[index]=EMPTY_VALUE;
    HiLoFirstLowBuffer[index]=EMPTY_VALUE;
+   HiLoSecondHighBuffer[index]=EMPTY_VALUE;
+   HiLoSecondLowBuffer[index]=EMPTY_VALUE;
    HiLoCurrentHighBuffer[index]=EMPTY_VALUE;
    HiLoCurrentLowBuffer[index]=EMPTY_VALUE;
    HiLoHighNoLineBuffer[index]=EMPTY_VALUE;
@@ -254,7 +264,7 @@ void calculateTrendBuffer(double closeCandleIndex,int index)
      }
   }
 //+------------------------------------------------------------------+
-//| Clean the last current HiLo in the Last Candle.                                                                  |
+//| Clean the last current HiLo in the Last Candle.
 //+------------------------------------------------------------------+
 void cleanLastCurrentHiLo(int index)
   {
@@ -300,161 +310,77 @@ void showLowHiLo(int index)
      }
   }
 //+------------------------------------------------------------------+
-//| Calculate the First HiLo
-//| First  HiLo is when changing the direction of a sell/buy to buy/sell.   
-//| Return:
-//|  1: First High HiLo                                                
-//|  0: No HiLo
-//| -1: First Low HiLo
+//| Include the arrow in the first HiLo if HiLo is changing the direction
+//| of a sell/buy to buy/sell.
 //+------------------------------------------------------------------+
-int calculateFirstHiLo(int index)
-  {
-   int firstHiLo=0;
-
-   if(HiLoHighNoLineBuffer[index+1]==EMPTY_VALUE && HiLoHighNoLineBuffer[index]!=EMPTY_VALUE)
-      firstHiLo=1;
-
-   if(HiLoLowNoLineBuffer[index+1]==EMPTY_VALUE && HiLoLowNoLineBuffer[index]!=EMPTY_VALUE)
-      firstHiLo=-1;
-
-   return firstHiLo;
-  }
-//+------------------------------------------------------------------+
-//| Include the arrow in the first HiLo if HiLo is changing the direction 
-//| of a sell/buy to buy/sell.                                                                |
-//+------------------------------------------------------------------+
-void includeArrowInFirstHilo(int firstHilo,int index)
+void includeArrowInFirstHilo(int index)
   {
    if(!InpArrowInFirstHiLo)
       return;
 
-   if(firstHilo==0)
+   if(!isFirstHighHilo(index) && !isFirstLowHilo(index))
       return;
-   else if(firstHilo==1)
+   else if(isFirstHighHilo(index))
       HiLoFirstHighBuffer[index]=HiLoHighNoLineBuffer[index];
    else
       HiLoFirstLowBuffer[index]=HiLoLowNoLineBuffer[index];
   }
 //+------------------------------------------------------------------+
-//| Set an alarm for the first HiLo                                                                |
+//| Include the arrow in the second HiLo if there is a First HiLo
 //+------------------------------------------------------------------+
-void setAlarmFirstHilo(int firstHilo,datetime timeCandle)
+void includeArrowInSecondHilo(int index)
   {
-   if(!InpSetSoundInFirstHighHilo || !InpSetSoundInFirstLowHilo)
+   if(!InpArrowInSecondHiLo)
       return;
 
-   if(!isOnCurrentCandle(timeCandle))
-      return;
+   if(isSecondHighHilo(index))
+      HiLoSecondHighBuffer[index]=HiLoHighNoLineBuffer[index];
 
-   if(firstHilo==1 && InpSetSoundInFirstHighHilo)
-     {
-      activatePlayHighSound();
-      disablePlayLowSound();
-     }
-
-   if(firstHilo==-1 && InpSetSoundInFirstLowHilo)
-     {
-      activatePlayLowSound();
-      disablePlayHighSound();
-     }
-
-   if(!isCurrentCandleAlreadyHadSoundPlayed(timeCandle))
-     {
-      bool soundPlayed=false;
-      if(isHighSoundActivated())
-        {
-         PlaySound(InpHighSoundsName);
-         soundPlayed=true;
-        }
-      else if(isLowSoundActivated())
-        {
-         PlaySound(InpLowSoundsName);
-         soundPlayed=true;
-        }
-
-      if(soundPlayed)
-         updateLastTimeCandleSoundPlayed(timeCandle);
-     }
-
-   disablePlayHighSound();
-   disablePlayLowSound();
-   resetLastTimeCandleSoundPlayed(firstHilo);
+   if(isSecondLowHilo(index))
+      HiLoSecondLowBuffer[index]=HiLoLowNoLineBuffer[index];
   }
 //+------------------------------------------------------------------+
-//| Activate the High Sound                                                                 |
+//| Verify if the current index is the First High HiLo (Sell)                                                                 |
 //+------------------------------------------------------------------+
-void activatePlayHighSound()
+bool isFirstHighHilo(int index)
   {
-   PlayHighSound=true;
-  }
-//+------------------------------------------------------------------+
-//| Activate the Low Sound                                                                  |
-//+------------------------------------------------------------------+
-void activatePlayLowSound()
-  {
-   PlayLowSound=true;
-  }
-//+------------------------------------------------------------------+
-//| Disable the High Sound                                                                 |
-//+------------------------------------------------------------------+
-void disablePlayHighSound()
-  {
-   PlayHighSound=false;
-  }
-//+------------------------------------------------------------------+
-//| Disable the Low Sound                                                                 |
-//+------------------------------------------------------------------+
-void disablePlayLowSound()
-  {
-   PlayLowSound=false;
-  }
-//+------------------------------------------------------------------+
-//| Verify if the High Sound is Activated                                                                |
-//+------------------------------------------------------------------+
-bool isHighSoundActivated()
-  {
-   return PlayHighSound;
-  }
-//+------------------------------------------------------------------+
-//| Verify if the High Sound is Activated                                                                   |
-//+------------------------------------------------------------------+
-bool isLowSoundActivated()
-  {
-   return PlayLowSound;
-  }
-//+------------------------------------------------------------------+
-//| Verify if the current candle had the Sound played                                                                 |
-//+------------------------------------------------------------------+
-bool isCurrentCandleAlreadyHadSoundPlayed(datetime timeCandle)
-  {
-   if(timeCandle==LasTimeCandleSoundPlayed)
+   if(HiLoHighNoLineBuffer[index+1]==EMPTY_VALUE && HiLoHighNoLineBuffer[index]!=EMPTY_VALUE)
       return true;
-   else
-      return false;
+   return false;
   }
 //+------------------------------------------------------------------+
-//| Update the last time the candle's Sound played.                                                                 |
+//| Verify if the current index is the First Low HiLo (Buy)                                                                 |
 //+------------------------------------------------------------------+
-void updateLastTimeCandleSoundPlayed(datetime timeCandle)
+bool isFirstLowHilo(int index)
   {
-   LasTimeCandleSoundPlayed=timeCandle;
+   if(HiLoLowNoLineBuffer[index+1]==EMPTY_VALUE && HiLoLowNoLineBuffer[index]!=EMPTY_VALUE)
+      return true;
+   return false;
   }
 //+------------------------------------------------------------------+
-//| Reset the last time if the firstHilo is 0.         
-//| This is necessary, because a firstHilo can turn to 1/-1. But the candle
-//| might return to another direction and make the firstHilo return to 0.                                                       |
+//| Verify if the current index is the Second candle of the First High HiLo (Sell)                                                                 |
 //+------------------------------------------------------------------+
-void resetLastTimeCandleSoundPlayed(int firstHilo)
+bool isSecondHighHilo(int index)
   {
-   if(firstHilo==0)
-      LasTimeCandleSoundPlayed=0;
+   if(HiLoHighNoLineBuffer[index+2]==EMPTY_VALUE && HiLoHighNoLineBuffer[index+1]!=EMPTY_VALUE)
+      return true;
+   return false;
   }
 //+------------------------------------------------------------------+
-//| Verify if the time is on Current Candle or is still loading the History.                                                                  |
+//| Verify if the current index is the Second candle of the First Low HiLo (Buy)                                                                |
+//+------------------------------------------------------------------+
+bool isSecondLowHilo(int index)
+  {
+   if(HiLoLowNoLineBuffer[index+2]==EMPTY_VALUE && HiLoLowNoLineBuffer[index+1]!=EMPTY_VALUE)
+      return true;
+   return false;
+  }
+//+------------------------------------------------------------------+
+//| Verify if the time is on Current Candle or is still loading the History.
 //+------------------------------------------------------------------+
 bool isOnCurrentCandle(datetime timeCandle)
   {
-// timeCandle can be 09:05. So plus PeriodSeconds to get 09:10 
+// timeCandle can be 09:05. So plus PeriodSeconds to get 09:10
 // since a currentTime can be 09:08
    int timePlusPeriod=int(timeCandle)+PeriodSeconds();
    int currentTime=int(TimeTradeServer());

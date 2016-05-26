@@ -5,7 +5,7 @@
 //+------------------------------------------------------------------+
 #property copyright "Frederico Benevides"
 #property link      "fredbene@gmail.com"
-#property version   "1.00"
+#property version   "1.10"
 
 #resource "\\Indicators\\HiLo Activator.ex5"
 #include <MyTrades.mqh>
@@ -15,28 +15,22 @@
 //+------------------------------------------------------------------+
 //--- input parameters
 input string         InpHiLoData="------------------------------";    // --------------- HiLo ---------------
-input int            InpPeriod=3;                                     // Period
+input int            InpPeriod=1;                                     // Period
 input ENUM_MA_METHOD InpMaMethod=MODE_SMMA;                           // Method
-input bool           InpArrowInFirstHiLo=true;                        // Add an arrow to the first HiLo
-input bool           InpArrowInCurrentCandle=true;                    // Add an arrow to the current candle
-input bool           InpShowHiLoLine=false;                           // Show the line of HiLo
-
-//--- input parameters for Sounds
-input string         InpSoundData="------------------------------"; // --------------- Sounds ---------------
-input bool           InpSetSoundInFirstHighHilo=false;              // Set Sound on the first High(sell) HiLo
-input bool           InpSetSoundInFirstLowHilo=false;               // Set Sound on the first Low(buy) HiLo
-input string         InpHighSoundsName="dinkdink";                  // The Sound's name of the High(sell) HiLo
-input string         InpLowSoundsName="dingdong";                   // The Sound's name of the Low(buy) HiLo
+input bool           InpArrowInFirstHiLo=false;                       // Add an arrow to the first HiLo
+input bool           InpArrowInSecondHiLo=true;                       // Add an arrow to the second HiLo
+input bool           InpArrowInCurrentCandle=false;                   // Add an arrow to the current candle
+input bool           InpShowHiLoLine=true;                            // Show the line of HiLo
 
 //--- input parameters for Trades
 input string          InpTradesData="------------------------------"; // --------------- Trades ---------------
-input ENUM_TIMEFRAMES InpTradeTimeFrame=PERIOD_CURRENT;               // Default TimeFrame 
-input int             InpTradeVolume=2;                               // Default volume to do trades operations
+input ENUM_TIMEFRAMES InpTradeTimeFrame=PERIOD_CURRENT;               // Default TimeFrame
+input int             InpTradeVolume=1;                               // Default volume to do trades operations
 input double          InpTradeVolumeFactor=2.0;                       // Default factor for the next volume operation.
 input double          InpTradeTakeProfit=0.0;                         // Default value of Take Profit
-input bool            InpSetTradeSound=true;                          // Play sound for each operation on Buy or Sell trades.
-input string          InpSellTradeSound="dinkdink";                   // The Sound's name for Sell trade operations.
-input string          InpBuyTradeSound="dingdong";                    // The Sound's name for Buy trade operations.
+input bool            InpSetTradeSound=false;                         // Play sound for each operation on Buy or Sell trades.
+input string          InpSellTradeSound="alert";                      // The Sound's name for Sell trade operations.
+input string          InpBuyTradeSound="alert2";                      // The Sound's name for Buy trade operations.
 
 //--- global vars for HiLo Activator
 int MinRatesTotal;
@@ -62,7 +56,6 @@ CMyTrade myTrade;
 bool isOnBuyTrade;
 bool isOnSellTrade;
 int currentTradeVolume;
-
 //+------------------------------------------------------------------+
 //| Expert initialization function                                   |
 //+------------------------------------------------------------------+
@@ -72,8 +65,8 @@ int OnInit()
    Print("********** Initting Exp HiLo Activator **********");
 
    HiLoCustomHandle=iCustom(Symbol(),InpTradeTimeFrame,"HiLo Activator.ex5",
-                            InpHiLoData,InpPeriod,InpMaMethod,InpArrowInFirstHiLo,InpArrowInCurrentCandle,InpShowHiLoLine,
-                            InpSoundData,InpSetSoundInFirstHighHilo,InpSetSoundInFirstLowHilo,InpHighSoundsName,InpLowSoundsName);
+                            InpHiLoData,InpPeriod,InpMaMethod,InpArrowInFirstHiLo,InpArrowInSecondHiLo,
+                            InpArrowInCurrentCandle,InpShowHiLoLine);
    if(HiLoCustomHandle==INVALID_HANDLE)
       Print("Failed to get handle of HiLo activator indicator");
 
@@ -112,10 +105,10 @@ void OnTick()
 
    if(myTrade.isNewBar(_Symbol,InpTradeTimeFrame))
      {
-      if(CopyBuffer(HiLoCustomHandle,6,0,3,HighHiLo)<=0)
+      if(CopyBuffer(HiLoCustomHandle,8,0,3,HighHiLo)<=0)
          return;
 
-      if(CopyBuffer(HiLoCustomHandle,7,0,3,LowHiLo)<=0)
+      if(CopyBuffer(HiLoCustomHandle,9,0,3,LowHiLo)<=0)
          return;
 
       if(HighHiLo[0]==EMPTY_VALUE && HighHiLo[1]!=EMPTY_VALUE && HighHiLo[2]!=EMPTY_VALUE)
@@ -189,9 +182,9 @@ void OnChartEvent(const int id,          // event identifier
 //| Event on Trade Transaction to find a trade runned by a Take Profit
 //+------------------------------------------------------------------+
 void  OnTradeTransaction(
-                         const MqlTradeTransaction& trans,        // trade transaction structure 
-                         const MqlTradeRequest&     request,      // request structure 
-                         const MqlTradeResult&      result        // result structure 
+                         const MqlTradeTransaction& trans,        // trade transaction structure
+                         const MqlTradeRequest&     request,      // request structure
+                         const MqlTradeResult&      result        // result structure
                          )
   {
    if(InpTradeTakeProfit==0.0)
@@ -252,7 +245,7 @@ void initDefaultStatus()
      }
   }
 //+------------------------------------------------------------------+
-//| Reset to default Trade Status                                                                 
+//| Reset to default Trade Status
 //+------------------------------------------------------------------+
 void resetDefaultTradeStatus()
   {
@@ -286,7 +279,7 @@ void printDataStatus()
    Print("InpTradeVolumeFactor: ",InpTradeVolumeFactor);
   }
 //+------------------------------------------------------------------+
-//| Create the default buttons on initting the Expert                                                                 
+//| Create the default buttons on initting the Expert
 //+------------------------------------------------------------------+
 void createTradeButtons()
   {
@@ -324,14 +317,14 @@ void createTradeOrNoTradeButton()
       showNoTradeButton();
   }
 //+------------------------------------------------------------------+
-//| Create the Buy Button                                                                 
+//| Create the Buy Button
 //+------------------------------------------------------------------+
 void createBuyButton()
   {
    createButton("BUY","Buy",100,25,10,int(ChartGetInteger(0,CHART_HEIGHT_IN_PIXELS)-100),clrBlack,isBuyButtonSelected);
   }
 //+------------------------------------------------------------------+
-//| Create the Sell Button                                                                 
+//| Create the Sell Button
 //+------------------------------------------------------------------+
 void createSellButton()
   {
@@ -373,28 +366,28 @@ void destroyStartButton()
    ObjectDelete(0,"START");
   }
 //+------------------------------------------------------------------+
-//| Destroy the Stop Button                                                                 
+//| Destroy the Stop Button
 //+------------------------------------------------------------------+
 void destroyStopButton()
   {
    ObjectDelete(0,"STOP");
   }
 //+------------------------------------------------------------------+
-//| Enable Buy button as selected                                                                 
+//| Enable Buy button as selected
 //+------------------------------------------------------------------+
 void enableBuyButton()
   {
    ObjectSetInteger(0,"BUY",OBJPROP_STATE,false);
   }
 //+------------------------------------------------------------------+
-//| Enable Sell button as selected                                                                 
+//| Enable Sell button as selected
 //+------------------------------------------------------------------+
 void enableSellButton()
   {
    ObjectSetInteger(0,"SELL",OBJPROP_STATE,false);
   }
 //+------------------------------------------------------------------+
-//| Disable Buy button as selected                                                                  
+//| Disable Buy button as selected
 //+------------------------------------------------------------------+
 void disableBuyButton()
   {
@@ -408,7 +401,7 @@ void disableSellButton()
    ObjectSetInteger(0,"SELL",OBJPROP_STATE,true);
   }
 //+------------------------------------------------------------------+
-//| Show the button with the text Enable                                                                
+//| Show the button with the text Enable
 //+------------------------------------------------------------------+
 void showTradeButton()
   {
@@ -417,7 +410,7 @@ void showTradeButton()
    ObjectSetInteger(0,"TRADE_BUTTON",OBJPROP_STATE,true);
   }
 //+------------------------------------------------------------------+
-//| Show the button with the text Disable                                                               
+//| Show the button with the text Disable
 //+------------------------------------------------------------------+
 void showNoTradeButton()
   {
@@ -440,7 +433,7 @@ void createButton(string name,string title,int xSize,int ySize,int xDistance,int
    ObjectSetInteger(0,name,OBJPROP_STATE,selected);
   }
 //+------------------------------------------------------------------+
-//| Events for Enable Disable Button                                                                 
+//| Events for Enable Disable Button
 //+------------------------------------------------------------------+
 void eventEnableDisableButton()
   {
@@ -473,7 +466,7 @@ void eventEnableDisableButton()
    ChartRedraw();
   }
 //+------------------------------------------------------------------+
-//| Events for Buy Button                                                                 
+//| Events for Buy Button
 //+------------------------------------------------------------------+
 void eventBuyButton()
   {
@@ -500,7 +493,7 @@ void eventBuyButton()
         {
          Print("********** Disable BUY mode operation! **********");
 
-         // create Start button if the Sell Operation is selected and is not on operation. 
+         // create Start button if the Sell Operation is selected and is not on operation.
          if(isSellButtonSelected && !isOnTradeOperation())
             createStartButton();
          else if(!isSellButtonSelected) // Destroy the start button since none of the operations are selected.
@@ -516,7 +509,7 @@ void eventBuyButton()
      }
   }
 //+------------------------------------------------------------------+
-//| Events for Sell Button                                                                 
+//| Events for Sell Button
 //+------------------------------------------------------------------+
 void eventSellButton()
   {
@@ -543,7 +536,7 @@ void eventSellButton()
         {
          Print("********** Disabled SELL mode operation! **********");
 
-         // create Start button if the Buy Operation is selected and is not on operation. 
+         // create Start button if the Buy Operation is selected and is not on operation.
          if(isBuyButtonSelected && !isOnTradeOperation())
             createStartButton();
          else if(!isBuyButtonSelected) // Destroy the start button since none of the operations are selected.
@@ -559,7 +552,7 @@ void eventSellButton()
      }
   }
 //+------------------------------------------------------------------+
-//| Events for Start Button                                                                 
+//| Events for Start Button
 //+------------------------------------------------------------------+
 void eventStartButton()
   {
@@ -601,7 +594,7 @@ void eventStartButton()
       Print("********** Executed START operation! **********");
   }
 //+------------------------------------------------------------------+
-//| Events for Stop Button                                                                 
+//| Events for Stop Button
 //+------------------------------------------------------------------+
 void eventStopButton()
   {
@@ -631,14 +624,14 @@ void eventStopButton()
    Print("********** Executed STOP operation! **********");
   }
 //+------------------------------------------------------------------+
-//| Reset the current volume and set to be equal to the InpTradeVolume                                                                 
+//| Reset the current volume and set to be equal to the InpTradeVolume
 //+------------------------------------------------------------------+
 void resetCurrentVolumeToInpTradeVolume()
   {
    currentTradeVolume=InpTradeVolume;
   }
 //+------------------------------------------------------------------+
-//| Calculate the next volume to use in currentVolume using the InpTradeFactor                                                                  
+//| Calculate the next volume to use in currentVolume using the InpTradeFactor
 //+------------------------------------------------------------------+
 void calculateNextVolumeUsingTradeFactor()
   {
@@ -651,7 +644,7 @@ void tradeBuyOpen()
   {
    if(isOnTradeOperation())
      {
-      Print("Sell will not be executed since is already on Buy/Sell Trade Operation **********");
+      Print("Sell will not be executed since since is already on Buy/Sell Trade Operation **********");
       return;
      }
 
@@ -672,7 +665,7 @@ void tradeSellOpen()
   {
    if(isOnTradeOperation())
      {
-      Print("Sell will not be executed since is already on Buy/Sell Trade Operation **********");
+      Print("Sell will not be executed since since is already on Buy/Sell Trade Operation **********");
       return;
      }
 
