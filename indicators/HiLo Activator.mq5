@@ -5,7 +5,7 @@
 //+------------------------------------------------------------------+
 #property copyright "Frederico Benevides"
 #property link      "fredbene@gmail.com"
-#property version   "1.10"
+#property version   "1.20"
 #property indicator_chart_window
 #property indicator_buffers 13
 #property indicator_plots   10
@@ -34,17 +34,17 @@
 #property indicator_style4  STYLE_SOLID
 #property indicator_width4  3
 //--- plot Second High
-#property indicator_label5  "First Second HiLo (Sell)"
+#property indicator_label5  "Second High HiLo (Sell)"
 #property indicator_type5   DRAW_ARROW
 #property indicator_color5  clrChocolate
 #property indicator_style5  STYLE_SOLID
-#property indicator_width5  3
+#property indicator_width5  1
 //--- plot Second Low
-#property indicator_label6  "First Second HiLo (Buy)"
+#property indicator_label6  "Second Low HiLo (Buy)"
 #property indicator_type6   DRAW_ARROW
 #property indicator_color6  clrDarkGreen
 #property indicator_style6  STYLE_SOLID
-#property indicator_width6  3
+#property indicator_width6  1
 //--- plot Current High
 #property indicator_label7  "Current High HiLo (Sell)"
 #property indicator_type7   DRAW_ARROW
@@ -94,6 +94,7 @@ int MaHighHandle;
 int MaLowHandle;
 int Period;
 int MinRatesTotal;
+
 //+------------------------------------------------------------------+
 //| Custom indicator initialization function                         |
 //+------------------------------------------------------------------+
@@ -117,8 +118,8 @@ int OnInit()
 //--- set the type of arrow
    PlotIndexSetInteger(2,PLOT_ARROW,167); // First High
    PlotIndexSetInteger(3,PLOT_ARROW,167); // First Low
-   PlotIndexSetInteger(4,PLOT_ARROW,167); // Second High
-   PlotIndexSetInteger(5,PLOT_ARROW,167); // Second Low
+   PlotIndexSetInteger(4,PLOT_ARROW,162); // Second High
+   PlotIndexSetInteger(5,PLOT_ARROW,162); // Second Low
    PlotIndexSetInteger(6,PLOT_ARROW,167); // Current High
    PlotIndexSetInteger(7,PLOT_ARROW,167); // Current Low
 
@@ -179,6 +180,7 @@ int OnCalculate(const int rates_total,
 
    ArraySetAsSeries(MaHighBuffer,true);
    ArraySetAsSeries(MaLowBuffer,true);
+   ArraySetAsSeries(open,true);
    ArraySetAsSeries(close,true);
    ArraySetAsSeries(time,true);
 
@@ -218,7 +220,7 @@ int OnCalculate(const int rates_total,
       showLowHiLo(i);
 
       includeArrowInFirstHilo(i);
-      includeArrowInSecondHilo(i);
+      includeArrowInSecondHilo(i,open[i]);
      }
 
 //--- return value of prev_calculated for next call
@@ -328,16 +330,17 @@ void includeArrowInFirstHilo(int index)
 //+------------------------------------------------------------------+
 //| Include the arrow in the second HiLo if there is a First HiLo
 //+------------------------------------------------------------------+
-void includeArrowInSecondHilo(int index)
+void includeArrowInSecondHilo(int index,double openValue)
   {
    if(!InpArrowInSecondHiLo)
       return;
 
    if(isSecondHighHilo(index))
-      HiLoSecondHighBuffer[index]=HiLoHighNoLineBuffer[index];
+      HiLoSecondHighBuffer[index]=openValue;
 
    if(isSecondLowHilo(index))
-      HiLoSecondLowBuffer[index]=HiLoLowNoLineBuffer[index];
+      HiLoSecondLowBuffer[index]=openValue;
+
   }
 //+------------------------------------------------------------------+
 //| Verify if the current index is the First High HiLo (Sell)                                                                 |
@@ -349,6 +352,9 @@ bool isFirstHighHilo(int index)
    return false;
   }
 //+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+//+------------------------------------------------------------------+
 //| Verify if the current index is the First Low HiLo (Buy)                                                                 |
 //+------------------------------------------------------------------+
 bool isFirstLowHilo(int index)
@@ -357,6 +363,9 @@ bool isFirstLowHilo(int index)
       return true;
    return false;
   }
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
 //| Verify if the current index is the Second candle of the First High HiLo (Sell)                                                                 |
 //+------------------------------------------------------------------+
@@ -367,6 +376,9 @@ bool isSecondHighHilo(int index)
    return false;
   }
 //+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+//+------------------------------------------------------------------+
 //| Verify if the current index is the Second candle of the First Low HiLo (Buy)                                                                |
 //+------------------------------------------------------------------+
 bool isSecondLowHilo(int index)
@@ -375,6 +387,9 @@ bool isSecondLowHilo(int index)
       return true;
    return false;
   }
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
 //| Verify if the time is on Current Candle or is still loading the History.
 //+------------------------------------------------------------------+

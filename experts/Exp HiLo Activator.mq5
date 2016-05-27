@@ -5,7 +5,7 @@
 //+------------------------------------------------------------------+
 #property copyright "Frederico Benevides"
 #property link      "fredbene@gmail.com"
-#property version   "1.10"
+#property version   "1.20"
 
 #resource "\\Indicators\\HiLo Activator.ex5"
 #include <MyTrades.mqh>
@@ -19,8 +19,8 @@ input int            InpPeriod=1;                                     // Period
 input ENUM_MA_METHOD InpMaMethod=MODE_SMMA;                           // Method
 input bool           InpArrowInFirstHiLo=false;                       // Add an arrow to the first HiLo
 input bool           InpArrowInSecondHiLo=true;                       // Add an arrow to the second HiLo
-input bool           InpArrowInCurrentCandle=false;                   // Add an arrow to the current candle
-input bool           InpShowHiLoLine=true;                            // Show the line of HiLo
+input bool           InpArrowInCurrentCandle=true;                    // Add an arrow to the current candle
+input bool           InpShowHiLoLine=false;                           // Show the line of HiLo
 
 //--- input parameters for Trades
 input string          InpTradesData="------------------------------"; // --------------- Trades ---------------
