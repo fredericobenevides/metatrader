@@ -15,24 +15,17 @@
 #include <Controls\SpinEdit.mqh>
 
 //--- indents and gaps
-#define INDENT_LEFT                         (11)      // indent from left (with allowance for border width)
-#define INDENT_TOP                          (11)      // indent from top (with allowance for border width)
-#define INDENT_RIGHT                        (11)      // indent from right (with allowance for border width)
-#define INDENT_BOTTOM                       (11)      // indent from bottom (with allowance for border width)
+#define INDENT_LEFT                         (15)      // indent from left (with allowance for border width)
+#define INDENT_TOP                          (15)      // indent from top (with allowance for border width)
+#define INDENT_RIGHT                        (15)      // indent from right (with allowance for border width)
+#define INDENT_BOTTOM                       (15)      // indent from bottom (with allowance for border width)
 #define CONTROLS_GAP_X                      (5)       // gap by X coordinate
 #define CONTROLS_GAP_Y                      (5)       // gap by Y coordinate
-//--- for buttons
-#define BUTTON_WIDTH                        (80)     // size by X coordinate
-#define BUTTON_HEIGHT                       (20)      // size by Y coordinate
-//--- for check boxes
-#define CHECKBOX_WIDTH                      (45)      // size by X coordinate
-#define CHECKBOX_HEIGHT                     (20)      // size by Y coordinate
-//--- for label
-#define LABEL_WIDTH                         (45)      // size by X coordinate
-#define LABEL_HEIGHT                        (20)      // size by Y coordinate
-//--- for edit
-#define EDIT_WIDTH                          (45)      // size by X coordinate
-#define EDIT_HEIGHT                         (20)      // size by Y coordinate
+//--- sizes
+#define WIDTH_DEFAULT                       (80)      // size by X coordinate
+#define WIDTH_SHORT                         (45)      // size by X coordinate
+
+#define HEIGHT_DEFAULT                      (20)      // size by X coordinate
 //+------------------------------------------------------------------+
 //| Class CPanelHiLoDialog                                           
 //| Usage: main dialog of the Controls application                   
@@ -56,6 +49,11 @@ private:
    CLabel            pLabelMartingale;
    CButton           pUpMgButton;
    CButton           pDownMgButton;
+
+   CCheckBox         pCheckBoxTakeProfit;
+   CEdit             pEditTakeProfit;
+   CCheckBox         pCheckBoxStopLoss;
+   CEdit             pEditStopLoss;
 
    int               currentVolume;
    int               nextVolume;
@@ -94,6 +92,9 @@ protected:
    bool              CreateEditVolume(void);
    bool              CreateNextVolume(void);
    bool              CreateMartingale(void);
+
+   bool              CreateTakeProfit(void);
+   bool              CreateStopLoss(void);
 
    //--- handlers of the dependent controls events
    void              OnClickBuyCheckBox(void);
@@ -168,6 +169,11 @@ bool CPanelHiLoDialog::Create(const long chart,const string name,const int subwi
    if(!CreateNextVolume())
       return false;
    if(!CreateMartingale())
+      return false;
+
+   if(!CreateTakeProfit())
+      return false;
+   if(!CreateStopLoss())
       return false;
 
    initToDefaults();
@@ -251,10 +257,10 @@ int CPanelHiLoDialog::getCurrentVolume(void)
 bool CPanelHiLoDialog::CreateBuyCheckBox(void)
   {
 //--- coordinates
-   int x1=2*INDENT_LEFT;
+   int x1=INDENT_LEFT;
    int y1=INDENT_TOP;
-   int x2=x1+CHECKBOX_WIDTH;
-   int y2=y1+CHECKBOX_HEIGHT;
+   int x2=x1+WIDTH_DEFAULT;
+   int y2=y1+HEIGHT_DEFAULT;
 
 //--- create
    if(!pBuyCheckBox.Create(m_chart_id,"pBuyCheckBox",m_subwin,x1,y1,x2,y2))
@@ -272,10 +278,10 @@ bool CPanelHiLoDialog::CreateBuyCheckBox(void)
 bool CPanelHiLoDialog::CreateSellCheckBox(void)
   {
 //--- coordinates
-   int x1=2*INDENT_LEFT+(CHECKBOX_WIDTH+CONTROLS_GAP_X);
+   int x1=INDENT_LEFT+(WIDTH_DEFAULT+CONTROLS_GAP_X);
    int y1=INDENT_TOP;
-   int x2=x1+CHECKBOX_WIDTH;
-   int y2=y1+CHECKBOX_HEIGHT;
+   int x2=x1+WIDTH_DEFAULT;
+   int y2=y1+HEIGHT_DEFAULT;
 
 //--- create
    if(!pSellCheckBox.Create(m_chart_id,"pSellCheckBox",m_subwin,x1,y1,x2,y2))
@@ -293,10 +299,10 @@ bool CPanelHiLoDialog::CreateSellCheckBox(void)
 bool CPanelHiLoDialog::CreateClosePLCheckBox(void)
   {
 //--- coordinates
-   int x1=2*INDENT_LEFT+2*(CHECKBOX_WIDTH+CONTROLS_GAP_X);
+   int x1=INDENT_LEFT+2*(WIDTH_DEFAULT+CONTROLS_GAP_X);
    int y1=INDENT_TOP;
-   int x2=x1+2*CHECKBOX_WIDTH;
-   int y2=y1+CHECKBOX_HEIGHT;
+   int x2=x1+2*WIDTH_DEFAULT;
+   int y2=y1+HEIGHT_DEFAULT;
 
 //--- create
    if(!pClosePLCheckBox.Create(m_chart_id,"pClosePLCheckBox",m_subwin,x1,y1,x2,y2))
@@ -315,9 +321,9 @@ bool CPanelHiLoDialog::CreateStartButton(void)
   {
 //--- coordinates
    int x1=INDENT_LEFT;
-   int y1=INDENT_TOP+(CHECKBOX_HEIGHT+CONTROLS_GAP_Y);
-   int x2=x1+BUTTON_WIDTH;
-   int y2=y1+BUTTON_HEIGHT;
+   int y1=INDENT_TOP+(HEIGHT_DEFAULT+CONTROLS_GAP_Y);
+   int x2=x1+WIDTH_DEFAULT;
+   int y2=y1+HEIGHT_DEFAULT;
 
 //--- create
    if(!pStartButton.Create(m_chart_id,"pStartButton",m_subwin,x1,y1,x2,y2))
@@ -335,10 +341,10 @@ bool CPanelHiLoDialog::CreateStartButton(void)
 bool CPanelHiLoDialog::CreateStopButton(void)
   {
 //--- coordinates
-   int x1=(2*INDENT_LEFT)+(BUTTON_WIDTH+CONTROLS_GAP_X);
-   int y1=INDENT_TOP+(CHECKBOX_HEIGHT+CONTROLS_GAP_Y);
-   int x2=x1+BUTTON_WIDTH;
-   int y2=y1+BUTTON_HEIGHT;
+   int x1=(2*INDENT_LEFT)+(WIDTH_DEFAULT+CONTROLS_GAP_X);
+   int y1=INDENT_TOP+(HEIGHT_DEFAULT+CONTROLS_GAP_Y);
+   int x2=x1+WIDTH_DEFAULT;
+   int y2=y1+HEIGHT_DEFAULT;
 
 //--- create
    if(!pStopButton.Create(m_chart_id,"pStopButton",m_subwin,x1,y1,x2,y2))
@@ -356,10 +362,10 @@ bool CPanelHiLoDialog::CreateStopButton(void)
 bool CPanelHiLoDialog::CreateResetDefaultsButton(void)
   {
 //--- coordinates
-   int x1=(2*INDENT_LEFT)+2*(BUTTON_WIDTH+CONTROLS_GAP_X);
-   int y1=INDENT_TOP+(CHECKBOX_HEIGHT+CONTROLS_GAP_Y);
-   int x2=x1+BUTTON_WIDTH;
-   int y2=y1+BUTTON_HEIGHT;
+   int x1=(2*INDENT_LEFT)+2*(WIDTH_DEFAULT+CONTROLS_GAP_X);
+   int y1=INDENT_TOP+(HEIGHT_DEFAULT+CONTROLS_GAP_Y);
+   int x2=x1+WIDTH_DEFAULT;
+   int y2=y1+HEIGHT_DEFAULT;
 
 //--- create
    if(!pResetDefaultsButton.Create(m_chart_id,"pResetDefaultsButton",m_subwin,x1,y1,x2,y2))
@@ -376,13 +382,13 @@ bool CPanelHiLoDialog::CreateResetDefaultsButton(void)
 //+------------------------------------------------------------------+
 bool CPanelHiLoDialog::CreateEditVolume(void)
   {
-//--- coordinates label
+//--- coordinates label volume
    int x1=INDENT_LEFT;
-   int y1=INDENT_TOP+2*(BUTTON_HEIGHT+CONTROLS_GAP_Y);
-   int x2=x1+LABEL_WIDTH;
-   int y2=y1+LABEL_HEIGHT;
+   int y1=INDENT_TOP+2*(HEIGHT_DEFAULT+CONTROLS_GAP_Y);
+   int x2=x1+WIDTH_DEFAULT;
+   int y2=y1+HEIGHT_DEFAULT;
 
-//--- create label
+//--- create label volume
    if(!pLabelVolume.Create(m_chart_id,"pLabelVolume",m_subwin,x1,y1,x2,y2))
       return false;
    if(!pLabelVolume.Text("Volume"))
@@ -390,13 +396,13 @@ bool CPanelHiLoDialog::CreateEditVolume(void)
    if(!Add(pLabelVolume))
       return false;
 
-//--- coordinates edit
+//--- coordinates edit volume
    x1=INDENT_LEFT;
-   y1=(INDENT_TOP/2)+3*(LABEL_HEIGHT+CONTROLS_GAP_Y);
-   x2=x1+EDIT_WIDTH;
-   y2=y1+EDIT_HEIGHT;
+   y1=(INDENT_TOP/2)+3*(HEIGHT_DEFAULT+CONTROLS_GAP_Y);
+   x2=x1+WIDTH_DEFAULT;
+   y2=y1+HEIGHT_DEFAULT;
 
-//--- create label
+//--- create edit volume
    if(!pEditVolume.Create(m_chart_id,"pEditVolume",m_subwin,x1,y1,x2,y2))
       return false;
    if(!Add(pEditVolume))
@@ -411,10 +417,10 @@ bool CPanelHiLoDialog::CreateEditVolume(void)
 bool CPanelHiLoDialog::CreateNextVolume(void)
   {
 //--- coordinates label
-   int x1=int(1.8*INDENT_LEFT)+(LABEL_WIDTH+CONTROLS_GAP_X);
-   int y1=INDENT_TOP+2*(BUTTON_HEIGHT+CONTROLS_GAP_Y);
-   int x2=x1+LABEL_WIDTH;
-   int y2=y1+LABEL_HEIGHT;
+   int x1=int(1.8*INDENT_LEFT)+(WIDTH_DEFAULT+CONTROLS_GAP_X);
+   int y1=INDENT_TOP+2*(HEIGHT_DEFAULT+CONTROLS_GAP_Y);
+   int x2=x1+WIDTH_DEFAULT;
+   int y2=y1+HEIGHT_DEFAULT;
 
 //--- create label
    if(!pLabelNextVolume.Create(m_chart_id,"pLabelNextVolume",m_subwin,x1,y1,x2,y2))
@@ -425,10 +431,10 @@ bool CPanelHiLoDialog::CreateNextVolume(void)
       return false;
 
 //--- coordinates edit
-   x1=INDENT_LEFT+(EDIT_WIDTH+CONTROLS_GAP_X);
-   y1=(INDENT_TOP/2)+3*(LABEL_HEIGHT+CONTROLS_GAP_Y);
-   x2=x1+EDIT_WIDTH;
-   y2=y1+EDIT_HEIGHT;
+   x1=INDENT_LEFT+(WIDTH_DEFAULT+CONTROLS_GAP_X);
+   y1=(INDENT_TOP/2)+3*(HEIGHT_DEFAULT+CONTROLS_GAP_Y);
+   x2=x1+WIDTH_DEFAULT;
+   y2=y1+HEIGHT_DEFAULT;
 
 //--- create label
    if(!pEditNextVolume.Create(m_chart_id,"pEditNextVolume",m_subwin,x1,y1,x2,y2))
@@ -447,10 +453,10 @@ bool CPanelHiLoDialog::CreateNextVolume(void)
 bool CPanelHiLoDialog::CreateMartingale(void)
   {
 //--- coordinates label
-   int x1=INDENT_LEFT+2*(LABEL_WIDTH+CONTROLS_GAP_X);;
-   int y1=INDENT_TOP+2*(BUTTON_HEIGHT+CONTROLS_GAP_Y);
-   int x2=x1+LABEL_WIDTH;
-   int y2=y1+LABEL_HEIGHT;
+   int x1=INDENT_LEFT+2*(WIDTH_DEFAULT+CONTROLS_GAP_X);
+   int y1=INDENT_TOP+2*(HEIGHT_DEFAULT+CONTROLS_GAP_Y);
+   int x2=x1+WIDTH_DEFAULT;
+   int y2=y1+HEIGHT_DEFAULT;
 
 //--- create label
    if(!pLabelMartingale.Create(m_chart_id,"pLabelMartingale",m_subwin,x1,y1,x2,y2))
@@ -461,10 +467,10 @@ bool CPanelHiLoDialog::CreateMartingale(void)
       return false;
 
 //--- coordinates up button
-   x1=INDENT_LEFT+2*(EDIT_WIDTH+CONTROLS_GAP_X);
-   y1=int(0.5*INDENT_TOP)+3*(LABEL_HEIGHT+CONTROLS_GAP_Y);
-   x2=x1+int(0.5*BUTTON_WIDTH);
-   y2=y1+BUTTON_HEIGHT;
+   x1=INDENT_LEFT+2*(WIDTH_DEFAULT+CONTROLS_GAP_X);
+   y1=int(0.5*INDENT_TOP)+3*(HEIGHT_DEFAULT+CONTROLS_GAP_Y);
+   x2=x1+int(0.5*WIDTH_DEFAULT);
+   y2=y1+HEIGHT_DEFAULT;
 
 //
 ////--- create up button 
@@ -476,10 +482,10 @@ bool CPanelHiLoDialog::CreateMartingale(void)
       return false;
 
 //--- coordinates up button
-   x1=INDENT_LEFT+3*(EDIT_WIDTH+CONTROLS_GAP_X);
-   y1=int(0.5*INDENT_TOP)+3*(LABEL_HEIGHT+CONTROLS_GAP_Y);
-   x2=x1+int(0.5*BUTTON_WIDTH);
-   y2=y1+BUTTON_HEIGHT;
+   x1=INDENT_LEFT+3*(WIDTH_DEFAULT+CONTROLS_GAP_X);
+   y1=int(0.5*INDENT_TOP)+3*(HEIGHT_DEFAULT+CONTROLS_GAP_Y);
+   x2=x1+int(0.5*WIDTH_DEFAULT);
+   y2=y1+HEIGHT_DEFAULT;
 
 
 ////--- create up button 
@@ -490,6 +496,70 @@ bool CPanelHiLoDialog::CreateMartingale(void)
    if(!Add(pDownMgButton))
       return false;
 
+   return true;
+  }
+//+------------------------------------------------------------------+
+//| Create the checkbox for TakeProfit
+//+------------------------------------------------------------------+
+bool CPanelHiLoDialog::CreateTakeProfit(void)
+  {
+//--- checkbox take profit
+   int x1=INDENT_LEFT;
+   int y1=INDENT_TOP+4*(HEIGHT_DEFAULT+CONTROLS_GAP_Y);
+   int x2=x1+WIDTH_DEFAULT;
+   int y2=y1+HEIGHT_DEFAULT;
+
+   if(!pCheckBoxTakeProfit.Create(m_chart_id,"pCheckBoxTakeProfit",m_subwin,x1,y1,x2,y2))
+      return false;
+   if(!pCheckBoxTakeProfit.Text("Profit"))
+      return false;
+   if(!Add(pCheckBoxTakeProfit))
+      return false;
+
+//--- edit take profit
+   x1=INDENT_LEFT;
+   y1=(INDENT_TOP/2)+5*(HEIGHT_DEFAULT+CONTROLS_GAP_Y);
+   x2=x1+WIDTH_DEFAULT;
+   y2=y1+HEIGHT_DEFAULT;
+
+   if(!pEditTakeProfit.Create(m_chart_id,"pEditTakeProfit",m_subwin,x1,y1,x2,y2))
+      return false;
+   if(!Add(pEditTakeProfit))
+      return false;
+
+   pEditTakeProfit.TextAlign(ALIGN_CENTER);
+   return true;
+  }
+//+------------------------------------------------------------------+
+//| Create the checkbox for StopLoss
+//+------------------------------------------------------------------+
+bool CPanelHiLoDialog::CreateStopLoss(void)
+  {
+//--- checkbox stop loss
+   int x1=INDENT_LEFT+2*(WIDTH_DEFAULT+CONTROLS_GAP_X);;;
+   int y1=INDENT_TOP+4*(HEIGHT_DEFAULT+CONTROLS_GAP_Y);
+   int x2=x1+WIDTH_DEFAULT;
+   int y2=y1+HEIGHT_DEFAULT;
+
+   if(!pCheckBoxStopLoss.Create(m_chart_id,"pCheckBoxStopLoss",m_subwin,x1,y1,x2,y2))
+      return false;
+   if(!pCheckBoxStopLoss.Text("Loss"))
+      return false;
+   if(!Add(pCheckBoxStopLoss))
+      return false;
+
+//--- edit take profit
+   x1=INDENT_LEFT+2*(WIDTH_DEFAULT+CONTROLS_GAP_Y);
+   y1=(INDENT_TOP/2)+5*(HEIGHT_DEFAULT+CONTROLS_GAP_Y);
+   x2=x1+WIDTH_DEFAULT;
+   y2=y1+HEIGHT_DEFAULT;
+
+   if(!pEditStopLoss.Create(m_chart_id,"pEditStopLoss",m_subwin,x1,y1,x2,y2))
+      return false;
+   if(!Add(pEditStopLoss))
+      return false;
+
+   pEditStopLoss.TextAlign(ALIGN_CENTER);
    return true;
   }
 //+------------------------------------------------------------------+
