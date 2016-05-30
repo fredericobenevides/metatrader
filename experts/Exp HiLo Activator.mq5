@@ -5,7 +5,7 @@
 //+------------------------------------------------------------------+
 #property copyright "Frederico Benevides"
 #property link      "fredbene@gmail.com"
-#property version   "1.20"
+#property version   "1.30"
 
 #resource "\\Indicators\\HiLo Activator.ex5"
 #include <MyTrades.mqh>

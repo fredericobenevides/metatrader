@@ -5,7 +5,7 @@
 //+------------------------------------------------------------------+
 #property copyright "Frederico Benevides"
 #property link      "fredbene@gmail.com"
-#property version   "1.20"
+#property version   "1.30"
 #property indicator_chart_window
 #property indicator_buffers 13
 #property indicator_plots   10
@@ -185,7 +185,7 @@ int OnCalculate(const int rates_total,
    ArraySetAsSeries(time,true);
 
    int limit=0;
-   if(prev_calculated>rates_total || prev_calculated<=0)
+   if(prev_calculated>rates_total || prev_calculated==0)
      {
       // Set the limit to calculate.
       // 100 candles
@@ -352,9 +352,6 @@ bool isFirstHighHilo(int index)
    return false;
   }
 //+------------------------------------------------------------------+
-//|                                                                  |
-//+------------------------------------------------------------------+
-//+------------------------------------------------------------------+
 //| Verify if the current index is the First Low HiLo (Buy)                                                                 |
 //+------------------------------------------------------------------+
 bool isFirstLowHilo(int index)
@@ -363,9 +360,6 @@ bool isFirstLowHilo(int index)
       return true;
    return false;
   }
-//+------------------------------------------------------------------+
-//|                                                                  |
-//+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
 //| Verify if the current index is the Second candle of the First High HiLo (Sell)                                                                 |
 //+------------------------------------------------------------------+
@@ -376,9 +370,6 @@ bool isSecondHighHilo(int index)
    return false;
   }
 //+------------------------------------------------------------------+
-//|                                                                  |
-//+------------------------------------------------------------------+
-//+------------------------------------------------------------------+
 //| Verify if the current index is the Second candle of the First Low HiLo (Buy)                                                                |
 //+------------------------------------------------------------------+
 bool isSecondLowHilo(int index)
@@ -387,9 +378,6 @@ bool isSecondLowHilo(int index)
       return true;
    return false;
   }
-//+------------------------------------------------------------------+
-//|                                                                  |
-//+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
 //| Verify if the time is on Current Candle or is still loading the History.
 //+------------------------------------------------------------------+
