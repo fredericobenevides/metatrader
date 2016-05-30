@@ -56,6 +56,11 @@ private:
    CLabel            pLabelMartingale;
    CButton           pUpMgButton;
    CButton           pDownMgButton;
+   
+   CCheckBox         pCheckBoxTakeProfit;
+   CEdit             pEditTakeProfit;
+   CCheckBox         pCheckBoxStopLoss;
+   CEdit             pEditStopLoss;
 
    int               currentVolume;
    int               nextVolume;
@@ -94,6 +99,9 @@ protected:
    bool              CreateEditVolume(void);
    bool              CreateNextVolume(void);
    bool              CreateMartingale(void);
+   
+   bool              CreateTakeProfit(void);
+   bool              CreateStopLoss(void);
 
    //--- handlers of the dependent controls events
    void              OnClickBuyCheckBox(void);
@@ -168,6 +176,11 @@ bool CPanelHiLoDialog::Create(const long chart,const string name,const int subwi
    if(!CreateNextVolume())
       return false;
    if(!CreateMartingale())
+      return false;
+      
+   if(!CreateTakeProfit())
+      return false;
+   if(!CreateStopLoss())
       return false;
 
    initToDefaults();
@@ -376,13 +389,13 @@ bool CPanelHiLoDialog::CreateResetDefaultsButton(void)
 //+------------------------------------------------------------------+
 bool CPanelHiLoDialog::CreateEditVolume(void)
   {
-//--- coordinates label
+//--- coordinates label volume
    int x1=INDENT_LEFT;
    int y1=INDENT_TOP+2*(BUTTON_HEIGHT+CONTROLS_GAP_Y);
    int x2=x1+LABEL_WIDTH;
    int y2=y1+LABEL_HEIGHT;
 
-//--- create label
+//--- create label volume
    if(!pLabelVolume.Create(m_chart_id,"pLabelVolume",m_subwin,x1,y1,x2,y2))
       return false;
    if(!pLabelVolume.Text("Volume"))
@@ -390,13 +403,13 @@ bool CPanelHiLoDialog::CreateEditVolume(void)
    if(!Add(pLabelVolume))
       return false;
 
-//--- coordinates edit
+//--- coordinates edit volume
    x1=INDENT_LEFT;
    y1=(INDENT_TOP/2)+3*(LABEL_HEIGHT+CONTROLS_GAP_Y);
    x2=x1+EDIT_WIDTH;
    y2=y1+EDIT_HEIGHT;
 
-//--- create label
+//--- create edit volume
    if(!pEditVolume.Create(m_chart_id,"pEditVolume",m_subwin,x1,y1,x2,y2))
       return false;
    if(!Add(pEditVolume))
@@ -447,7 +460,7 @@ bool CPanelHiLoDialog::CreateNextVolume(void)
 bool CPanelHiLoDialog::CreateMartingale(void)
   {
 //--- coordinates label
-   int x1=INDENT_LEFT+2*(LABEL_WIDTH+CONTROLS_GAP_X);;
+   int x1=INDENT_LEFT+2*(LABEL_WIDTH+CONTROLS_GAP_X);
    int y1=INDENT_TOP+2*(BUTTON_HEIGHT+CONTROLS_GAP_Y);
    int x2=x1+LABEL_WIDTH;
    int y2=y1+LABEL_HEIGHT;
@@ -490,6 +503,70 @@ bool CPanelHiLoDialog::CreateMartingale(void)
    if(!Add(pDownMgButton))
       return false;
 
+   return true;
+  }
+//+------------------------------------------------------------------+
+//| Create the checkbox for TakeProfit
+//+------------------------------------------------------------------+
+bool CPanelHiLoDialog::CreateTakeProfit(void)
+  {
+//--- checkbox take profit
+   int x1=INDENT_LEFT;
+   int y1=INDENT_TOP+4*(EDIT_HEIGHT+CONTROLS_GAP_Y);
+   int x2=x1+CHECKBOX_WIDTH;
+   int y2=y1+CHECKBOX_HEIGHT;
+
+   if(!pCheckBoxTakeProfit.Create(m_chart_id,"pCheckBoxTakeProfit",m_subwin,x1,y1,x2,y2))
+      return false;
+   if(!pCheckBoxTakeProfit.Text("Profit"))
+      return false;
+   if(!Add(pCheckBoxTakeProfit))
+      return false;
+
+//--- edit take profit
+   x1=INDENT_LEFT;
+   y1=(INDENT_TOP/2)+5*(CHECKBOX_HEIGHT+CONTROLS_GAP_Y);
+   x2=x1+CHECKBOX_WIDTH;
+   y2=y1+CHECKBOX_HEIGHT;
+
+   if(!pEditTakeProfit.Create(m_chart_id,"pEditTakeProfit",m_subwin,x1,y1,x2,y2))
+      return false;
+   if(!Add(pEditTakeProfit))
+      return false;
+
+   pEditTakeProfit.TextAlign(ALIGN_CENTER);
+   return true;
+  }
+  //+------------------------------------------------------------------+
+//| Create the checkbox for StopLoss
+//+------------------------------------------------------------------+
+bool CPanelHiLoDialog::CreateStopLoss(void)
+  {
+//--- checkbox stop loss
+   int x1=INDENT_LEFT+2*(CHECKBOX_WIDTH+CONTROLS_GAP_X);;;
+   int y1=INDENT_TOP+4*(EDIT_HEIGHT+CONTROLS_GAP_Y);
+   int x2=x1+CHECKBOX_WIDTH;
+   int y2=y1+CHECKBOX_HEIGHT;
+
+   if(!pCheckBoxStopLoss.Create(m_chart_id,"pCheckBoxStopLoss",m_subwin,x1,y1,x2,y2))
+      return false;
+   if(!pCheckBoxStopLoss.Text("Loss"))
+      return false;
+   if(!Add(pCheckBoxStopLoss))
+      return false;
+
+//--- edit take profit
+   x1=INDENT_LEFT+2*(CHECKBOX_WIDTH+CONTROLS_GAP_Y);
+   y1=(INDENT_TOP/2)+5*(CHECKBOX_HEIGHT+CONTROLS_GAP_Y);
+   x2=x1+CHECKBOX_WIDTH;
+   y2=y1+CHECKBOX_HEIGHT;
+
+   if(!pEditStopLoss.Create(m_chart_id,"pEditStopLoss",m_subwin,x1,y1,x2,y2))
+      return false;
+   if(!Add(pEditStopLoss))
+      return false;
+
+   pEditStopLoss.TextAlign(ALIGN_CENTER);
    return true;
   }
 //+------------------------------------------------------------------+

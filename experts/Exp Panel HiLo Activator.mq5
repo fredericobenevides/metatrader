@@ -53,7 +53,7 @@ int OnInit()
 
    if(first_initialization)
      {
-      int y1=int(ChartGetInteger(0,CHART_HEIGHT_IN_PIXELS)-200);
+      int y1=int(ChartGetInteger(0,CHART_HEIGHT_IN_PIXELS)-300);
       int y2=int(ChartGetInteger(0,CHART_HEIGHT_IN_PIXELS)-20);
 
       if(!PanelHiLoDialog.Create(0,"",0,20,y1,320,y2))
