@@ -5,6 +5,7 @@
 //+------------------------------------------------------------------+
 #property copyright "Frederico Benevides"
 #property link      "fredbene@gmail.com"
+#property version   "1.10"
 
 #include <Trade\Trade.mqh>
 //+------------------------------------------------------------------+
@@ -58,18 +59,15 @@ public:
    //+------------------------------------------------------------------+
    bool executeBuyTrade(string symbol,string methodName,int volume,double takeProfit,bool enableTakeProfit=true)
      {
-      double price=SymbolInfoDouble(symbol,SYMBOL_BID);
+      double price=SymbolInfoDouble(symbol,SYMBOL_LAST);
       string comment=methodName+"() "+(string)price;
-      double takeProfitCalculated=0.0;
 
       if(enableTakeProfit && takeProfit>0.0)
         {
-         int digits=(int)SymbolInfoInteger(symbol,SYMBOL_DIGITS);
-         double point=SymbolInfoDouble(symbol,SYMBOL_POINT);
-         takeProfitCalculated=NormalizeDouble(price+takeProfit*point,digits);
+         takeProfit=tradeSumPrice(symbol,takeProfit);
         }
 
-      if(trade.Buy(volume,NULL,0.0,0.0,takeProfitCalculated,comment))
+      if(trade.Buy(volume,NULL,0.0,0.0,takeProfit,comment))
         {
          Print("",methodName,"() method executed successfully. Return code=",trade.ResultRetcode()," (",trade.ResultRetcodeDescription(),")");
          if(playSoundOnOperation)
@@ -92,18 +90,15 @@ public:
    //+------------------------------------------------------------------+
    bool executeSellTrade(string symbol,string methodName,int volume,double takeProfit,bool enableTakeProfit=true)
      {
-      double price=SymbolInfoDouble(symbol,SYMBOL_BID);
+      double price=SymbolInfoDouble(symbol,SYMBOL_LAST);
       string comment=methodName+"() "+(string)price;
-      double takeProfitCalculated=0.0;
 
       if(enableTakeProfit && takeProfit>0.0)
         {
-         int digits=(int)SymbolInfoInteger(symbol,SYMBOL_DIGITS);
-         double point=SymbolInfoDouble(symbol,SYMBOL_POINT);
-         takeProfitCalculated=NormalizeDouble(price-takeProfit*point,digits);
+         takeProfit=tradeMinusPrice(symbol,takeProfit);
         }
 
-      if(trade.Sell(volume,NULL,0.0,0.0,takeProfitCalculated,comment))
+      if(trade.Sell(volume,NULL,0.0,0.0,takeProfit,comment))
         {
          Print("",methodName,"() method executed successfully. Return code=",trade.ResultRetcode()," (",trade.ResultRetcodeDescription(),")");
          if(playSoundOnOperation)
@@ -121,7 +116,45 @@ public:
         }
      };
    //+------------------------------------------------------------------+
-   //| Verify the Chart has a New Bar                                                                 |
+   //| Modify current Buy symbol to use a Take Profit                                                                 
+   //+------------------------------------------------------------------+
+   bool modifyBuyPosition(string symbol,double stopLoss=0,double takeProfit=0)
+     {
+      positionSelect(symbol);
+
+      if(takeProfit>0)
+         takeProfit=tradeSumPrice(symbol,takeProfit);
+      if(stopLoss>0)
+         stopLoss=tradeMinusPrice(symbol,stopLoss);
+
+      bool modified=false;
+      if(trade.PositionModify(symbol,stopLoss,takeProfit))
+         modified=true;
+
+      if(trade.PositionModify(symbol,stopLoss,takeProfit))
+         return true;
+
+      return false;
+     };
+   //+------------------------------------------------------------------+
+   //| Modify current Sell symbol to use a Take Profit                                                                 
+   //+------------------------------------------------------------------+
+   bool modifySellPosition(string symbol,double stopLoss=0,double takeProfit=0)
+     {
+      positionSelect(symbol);
+
+      if(takeProfit>0)
+         takeProfit=tradeMinusPrice(symbol,takeProfit);
+      if(stopLoss>0)
+         stopLoss=tradeSumPrice(symbol,stopLoss);
+
+      if(trade.PositionModify(symbol,stopLoss,takeProfit))
+         return true;
+
+      return false;
+     };
+   //+------------------------------------------------------------------+
+   //| Verify the Chart has a New Bar                                                                 
    //+------------------------------------------------------------------+
    bool isNewBar(string symbol,ENUM_TIMEFRAMES currentTimeFrame)
      {
@@ -144,7 +177,7 @@ public:
      };
 
    //+------------------------------------------------------------------+
-   //| Verify if on the history has an Take Profit operation                                                                 |
+   //| Verify if on the history has an Take Profit operation                                                                 
    //+------------------------------------------------------------------+
    bool hadTakeProfitOnHistory(ENUM_TIMEFRAMES periodStart)
      {
@@ -173,5 +206,43 @@ public:
 
       return false;
      };
+
+   //+------------------------------------------------------------------+
+   //| Sum the current position price with the next price.                                                                 
+   //+------------------------------------------------------------------+
+   double tradeSumPrice(string symbol,double nextPrice)
+     {
+      double price=PositionGetDouble(POSITION_PRICE_OPEN);
+      double digits=SymbolInfoInteger(symbol,SYMBOL_DIGITS);
+      double point=SymbolInfoDouble(symbol,SYMBOL_POINT);
+      
+      nextPrice=NormalizeDouble(price+nextPrice*point,digits);
+      return nextPrice;
+     };
+   //+------------------------------------------------------------------+
+   //| Minus the current position price with the next price.                                                                 
+   //+------------------------------------------------------------------+
+   double tradeMinusPrice(string symbol,double nextPrice)
+     {
+      double price=PositionGetDouble(POSITION_PRICE_OPEN);
+      int digits=(int)SymbolInfoInteger(symbol,SYMBOL_DIGITS);
+      double point=SymbolInfoDouble(symbol,SYMBOL_POINT);
+
+      nextPrice=NormalizeDouble(price-nextPrice*point,digits);
+      return nextPrice;
+     };
+   //+------------------------------------------------------------------+
+   //| Select the current Position                                                                  
+   //+------------------------------------------------------------------+
+   void positionSelect(string symbol)
+     {
+      int retry=1;
+      while(!PositionSelect(_Symbol) && retry<10)
+        {
+         Sleep(retry*100); // sleep for SelectRetryCount * 100 mS
+         retry++;
+        }
+     };
   };
+
 //+------------------------------------------------------------------+
