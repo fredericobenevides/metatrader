@@ -54,6 +54,7 @@ private:
    CEdit             pEditTakeProfit;
    CCheckBox         pCheckBoxStopLoss;
    CEdit             pEditStopLoss;
+   CButton           pUpdateTpSlButton;
 
    int               currentVolume;
    int               nextVolume;
@@ -74,10 +75,15 @@ public:
    bool              isSellChecked(void);
    bool              isClosePLChecked(void);
 
+   bool              isTakeProfitChecked(void);
+   bool              isStopLossChecked(void);
+
    void              upMartingale(void);
    void              downMartingale(void);
 
    int               getCurrentVolume();
+   double            getTakeProfit();
+   double            getStopLoss();
 
 protected:
    //--- create dependent controls
@@ -95,6 +101,7 @@ protected:
 
    bool              CreateTakeProfit(void);
    bool              CreateStopLoss(void);
+   bool              CreateUpdateTpSlButton(void);
 
    //--- handlers of the dependent controls events
    void              OnClickBuyCheckBox(void);
@@ -106,6 +113,8 @@ protected:
    void              OnClickResetDefaultsButton(void);
 
    void              OnChangeEditVolume(void);
+
+   void              OnChangeButtonUpdateTpSl(void);
 
    void              OnClickUpMgButton(void);
    void              OnClickDownMgButton(void);
@@ -126,6 +135,8 @@ ON_EVENT(ON_CLICK,pStopButton,OnClickStopButton)
 ON_EVENT(ON_CLICK,pResetDefaultsButton,OnClickResetDefaultsButton)
 
 ON_EVENT(ON_CHANGE,pEditVolume,OnChangeEditVolume)
+
+ON_EVENT(ON_CLICK,pUpdateTpSlButton,OnChangeButtonUpdateTpSl)
 
 ON_EVENT(ON_CLICK,pUpMgButton,OnClickUpMgButton)
 ON_EVENT(ON_CLICK,pDownMgButton,OnClickDownMgButton)
@@ -175,6 +186,8 @@ bool CPanelHiLoDialog::Create(const long chart,const string name,const int subwi
       return false;
    if(!CreateStopLoss())
       return false;
+   if(!CreateUpdateTpSlButton())
+      return false;
 
    initToDefaults();
 
@@ -213,6 +226,9 @@ void CPanelHiLoDialog::initToDefaults(void)
    pBuyCheckBox.Checked(false);
    pSellCheckBox.Checked(false);
    pClosePLCheckBox.Checked(false);
+
+   pEditTakeProfit.Text(DoubleToString(InpTradeTakeProfit,0));
+   pEditStopLoss.Text(DoubleToString(InpTradeStopLoss,0));
   }
 //+------------------------------------------------------------------+
 //| Reset the current volume to default value.                                                                 
@@ -245,11 +261,41 @@ bool CPanelHiLoDialog::isClosePLChecked(void)
    return pClosePLCheckBox.Checked();
   }
 //+------------------------------------------------------------------+
+//| Verify if the pCheckBoxTakeProfit is Checked
+//+------------------------------------------------------------------+
+bool CPanelHiLoDialog::isTakeProfitChecked(void)
+  {
+   return pCheckBoxTakeProfit.Checked();
+  }
+//+------------------------------------------------------------------+
+//| Verify if the pCheckBoxStopLoss is Checked
+//+------------------------------------------------------------------+
+bool CPanelHiLoDialog::isStopLossChecked(void)
+  {
+   return pCheckBoxStopLoss.Checked();
+  }
+//+------------------------------------------------------------------+
 //| Returns the current Volume
 //+------------------------------------------------------------------+
 int CPanelHiLoDialog::getCurrentVolume(void)
   {
    return currentVolume;
+  }
+//+------------------------------------------------------------------+
+//| Returns the TakeProfit
+//+------------------------------------------------------------------+
+double CPanelHiLoDialog::getTakeProfit()
+  {
+   double takeProfit=StringToDouble(pEditTakeProfit.Text());
+   return takeProfit;
+  }
+//+------------------------------------------------------------------+
+//| Returns the StopLoss                                                              
+//+------------------------------------------------------------------+
+double CPanelHiLoDialog::getStopLoss()
+  {
+   double stopLoss=StringToDouble(pEditStopLoss.Text());
+   return stopLoss;
   }
 //+------------------------------------------------------------------+
 //| Create the Buy CheckBox
@@ -299,9 +345,9 @@ bool CPanelHiLoDialog::CreateSellCheckBox(void)
 bool CPanelHiLoDialog::CreateClosePLCheckBox(void)
   {
 //--- coordinates
-   int x1=INDENT_LEFT+2*(WIDTH_DEFAULT+CONTROLS_GAP_X);
+   int x1=INDENT_LEFT+1.6*(WIDTH_DEFAULT+CONTROLS_GAP_X);
    int y1=INDENT_TOP;
-   int x2=x1+2*WIDTH_DEFAULT;
+   int x2=x1+1*WIDTH_DEFAULT;
    int y2=y1+HEIGHT_DEFAULT;
 
 //--- create
@@ -482,7 +528,7 @@ bool CPanelHiLoDialog::CreateMartingale(void)
       return false;
 
 //--- coordinates up button
-   x1=INDENT_LEFT+3*(WIDTH_DEFAULT+CONTROLS_GAP_X);
+   x1=INDENT_LEFT+2.6*(WIDTH_DEFAULT+CONTROLS_GAP_X);
    y1=int(0.5*INDENT_TOP)+3*(HEIGHT_DEFAULT+CONTROLS_GAP_Y);
    x2=x1+int(0.5*WIDTH_DEFAULT);
    y2=y1+HEIGHT_DEFAULT;
@@ -536,7 +582,7 @@ bool CPanelHiLoDialog::CreateTakeProfit(void)
 bool CPanelHiLoDialog::CreateStopLoss(void)
   {
 //--- checkbox stop loss
-   int x1=INDENT_LEFT+2*(WIDTH_DEFAULT+CONTROLS_GAP_X);;;
+   int x1=INDENT_LEFT+(WIDTH_DEFAULT+CONTROLS_GAP_X);
    int y1=INDENT_TOP+4*(HEIGHT_DEFAULT+CONTROLS_GAP_Y);
    int x2=x1+WIDTH_DEFAULT;
    int y2=y1+HEIGHT_DEFAULT;
@@ -549,7 +595,7 @@ bool CPanelHiLoDialog::CreateStopLoss(void)
       return false;
 
 //--- edit take profit
-   x1=INDENT_LEFT+2*(WIDTH_DEFAULT+CONTROLS_GAP_Y);
+   x1=INDENT_LEFT+(WIDTH_DEFAULT+CONTROLS_GAP_Y);
    y1=(INDENT_TOP/2)+5*(HEIGHT_DEFAULT+CONTROLS_GAP_Y);
    x2=x1+WIDTH_DEFAULT;
    y2=y1+HEIGHT_DEFAULT;
@@ -560,6 +606,25 @@ bool CPanelHiLoDialog::CreateStopLoss(void)
       return false;
 
    pEditStopLoss.TextAlign(ALIGN_CENTER);
+   return true;
+  }
+//+------------------------------------------------------------------+
+//| Create the UpdateTpSlButton
+//+------------------------------------------------------------------+
+bool CPanelHiLoDialog::CreateUpdateTpSlButton(void)
+  {
+//-- button
+   int x1=INDENT_LEFT+2*(WIDTH_DEFAULT+CONTROLS_GAP_X);
+   int y1=INDENT_TOP+4*(HEIGHT_DEFAULT+CONTROLS_GAP_Y);
+   int x2=x1+WIDTH_DEFAULT;
+   int y2=y1+HEIGHT_DEFAULT;
+
+   if(!pUpdateTpSlButton.Create(m_chart_id,"pUpdateTpSlButton",m_subwin,x1,y1,x2,y2))
+      return false;
+   if(!pUpdateTpSlButton.Text("Update TP/SL"))
+      return false;
+   if(!Add(pUpdateTpSlButton))
+      return false;
    return true;
   }
 //+------------------------------------------------------------------+
@@ -617,6 +682,15 @@ void CPanelHiLoDialog::OnChangeEditVolume(void)
 
       loadVolumesToEditBox();
      }
+  }
+//+------------------------------------------------------------------+
+//| Event Change Button UpdateTpSl                                                              |
+//+------------------------------------------------------------------+
+void CPanelHiLoDialog::OnChangeButtonUpdateTpSl(void)
+  {
+  Print("on changeeee");
+   HiLoTrades.modifyBuyPosition();
+   HiLoTrades.modifySellPosition();
   }
 //+------------------------------------------------------------------+
 //| Event Up for Matingale Button
