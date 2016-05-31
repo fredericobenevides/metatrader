@@ -35,6 +35,9 @@ public:
 
    virtual void      tradeStart(bool buy,bool sell);
    virtual void      tradeStop(bool buy,bool sell);
+
+   virtual void      modifyBuyPosition();
+   virtual void      modifySellPosition();
   };
 //+------------------------------------------------------------------+
 //| Verify is there any operation for each candle. 
@@ -100,6 +103,7 @@ void CHiLoTrades::tradeBuyOpen()
    int takeProfit=0;
    if(myTrade.executeBuyTrade(_Symbol,"tradeBuyOpen",currentTradeVolume,takeProfit))
      {
+      modifyBuyPosition();
       isOnBuyTrade=true;
      }
 
@@ -120,6 +124,7 @@ void CHiLoTrades::tradeSellOpen()
    int takeProfit=0;
    if(myTrade.executeSellTrade(_Symbol,"tradeSellOpen",currentTradeVolume,takeProfit))
      {
+      modifySellPosition();
       isOnSellTrade=true;
      }
 
@@ -187,6 +192,8 @@ void CHiLoTrades::tradeStart(bool buy,bool sell)
      {
       if(myTrade.executeSellTrade(_Symbol,"OnClickStartButton",currentTradeVolume,0))
         {
+         modifySellPosition();
+
          isOnSellTrade=true;
          executed=true;
         }
@@ -196,6 +203,8 @@ void CHiLoTrades::tradeStart(bool buy,bool sell)
      {
       if(myTrade.executeBuyTrade(_Symbol,"OnClickStartButton",currentTradeVolume,0))
         {
+         modifyBuyPosition();
+
          isOnBuyTrade=true;
          executed=true;
         }
@@ -209,6 +218,14 @@ void CHiLoTrades::tradeStart(bool buy,bool sell)
 //+------------------------------------------------------------------+
 void CHiLoTrades::tradeStop(bool buy,bool sell)
   {
+   if(!isOnTradeOperation())
+     {
+      string warningMsg="STOP operation was NOT executed. You are not in operation!";
+      Print(warningMsg);
+      MessageBox(warningMsg,"Warning",MB_OK);
+      return;
+     }
+
    bool executed=false;
 
    if(isOnBuyTrade)
@@ -235,7 +252,63 @@ void CHiLoTrades::tradeStop(bool buy,bool sell)
       Print("********** Executed STOP operation! **********");
   }
 //+------------------------------------------------------------------+
-//| Verify if has a trade on operation                                                                  |
+//| Modify the current Buy position to config the StopLoss and TakeProfit
+//+------------------------------------------------------------------+
+void CHiLoTrades::modifyBuyPosition()
+  {
+   double takeProfit=0;
+   double stopLoss=0;
+
+   bool executeModify=false;
+
+   if(PanelHiLoDialog.isTakeProfitChecked())
+     {
+      executeModify=true;
+      takeProfit=PanelHiLoDialog.getTakeProfit();
+     }
+
+   if(PanelHiLoDialog.isStopLossChecked())
+     {
+      executeModify=true;
+      stopLoss=PanelHiLoDialog.getStopLoss();
+     }
+
+   if(executeModify)
+     {
+      if(!myTrade.modifyBuyPosition(_Symbol,stopLoss,takeProfit))
+         Print("There was an error to modify the Position");
+     }
+  }
+//+------------------------------------------------------------------+
+//| Modify the current Buy position to config the StopLoss and TakeProfit
+//+------------------------------------------------------------------+
+void CHiLoTrades::modifySellPosition()
+  {
+   double takeProfit=0;
+   double stopLoss=0;
+
+   bool executeModify=false;
+
+   if(PanelHiLoDialog.isTakeProfitChecked())
+     {
+      executeModify=true;
+      takeProfit=PanelHiLoDialog.getTakeProfit();
+     }
+
+   if(PanelHiLoDialog.isStopLossChecked())
+     {
+      executeModify=true;
+      stopLoss=PanelHiLoDialog.getStopLoss();
+     }
+
+   if(executeModify)
+     {
+      if(!myTrade.modifySellPosition(_Symbol,stopLoss,takeProfit))
+         Print("There was an error to modify the Position");
+     }
+  }
+//+------------------------------------------------------------------+
+//| Verify if has a trade on operation                                                                  
 //+------------------------------------------------------------------+
 bool CHiLoTrades::isOnTradeOperation(void)
   {
