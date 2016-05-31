@@ -5,7 +5,7 @@
 //+------------------------------------------------------------------+
 #property copyright "Frederico Benevides"
 #property link      "fredbene@gmail.com"
-#property version   "1.30"
+#property version   "1.55"
 #property indicator_chart_window
 #property indicator_buffers 17
 #property indicator_plots   14
@@ -103,7 +103,6 @@ input string         InpCmaData="------------------------------";     // -------
 input int            InpCmaPeriod=13;                                 // Period                     
 input ENUM_MA_METHOD InpCmaMethod=MODE_SMA;                          // Method
 
-
 //--- indicator buffers
 double HiLoHighBuffer[];
 double HiLoLowBuffer[];
@@ -186,8 +185,8 @@ int OnInit()
    ArraySetAsSeries(MaHighBuffer,true);
    ArraySetAsSeries(MaLowBuffer,true);
    ArraySetAsSeries(TrendBuffer,true);
-   
-   //--- Moving Average
+
+//--- Moving Average
    ArraySetAsSeries(CmaBuffer,true);
 
 //--- check Period
@@ -351,7 +350,7 @@ void cleanLastCurrentHiLo(int index)
       HiLoCurrentLowBuffer[index+1]=EMPTY_VALUE;
   }
 //+------------------------------------------------------------------+
-//|  Show the High HiLo which means the force is selling.                                                                |
+//|  Show the High HiLo which means the force is selling.                                                               
 //+------------------------------------------------------------------+
 void showHighHiLo(int index)
   {
@@ -367,7 +366,7 @@ void showHighHiLo(int index)
      }
   }
 //+------------------------------------------------------------------+
-//|  Show the Low HiLo which means the force is buying.                                                                 |
+//|  Show the Low HiLo which means the force is buying.                                                                 
 //+------------------------------------------------------------------+
 void showLowHiLo(int index)
   {
@@ -418,7 +417,7 @@ void includeArrowInSecondHilo(int index,double openValue,double close)
 
    if(isSecondHighHilo(index))
      {
-      if(isCloseCandleBelowMA(index,close))
+      if(isCloseCandleBelowMA(index+1,close))
          HiLoSecondHighBuffer[index]=openValue;
       else
          HiLoSecondHighInvalidBuffer[index]=openValue;
@@ -426,7 +425,7 @@ void includeArrowInSecondHilo(int index,double openValue,double close)
 
    if(isSecondLowHilo(index))
      {
-      if(isCloseCandleOverMA(index,close))
+      if(isCloseCandleOverMA(index+1,close))
          HiLoSecondLowBuffer[index]=openValue;
       else
          HiLoSecondLowInvalidBuffer[index]=openValue;
@@ -434,7 +433,7 @@ void includeArrowInSecondHilo(int index,double openValue,double close)
 
   }
 //+------------------------------------------------------------------+
-//| Verify if the current index is the First High HiLo (Sell)                                                                 |
+//| Verify if the current index is the First High HiLo (Sell)                                                                 
 //+------------------------------------------------------------------+
 bool isFirstHighHilo(int index)
   {
@@ -443,7 +442,7 @@ bool isFirstHighHilo(int index)
    return false;
   }
 //+------------------------------------------------------------------+
-//| Verify if the current index is the First Low HiLo (Buy)                                                                 |
+//| Verify if the current index is the First Low HiLo (Buy)                                                                 
 //+------------------------------------------------------------------+
 bool isFirstLowHilo(int index)
   {
@@ -485,20 +484,20 @@ bool isOnCurrentCandle(datetime timeCandle)
       return false;
   }
 //+------------------------------------------------------------------+
-//| Verify if the close candle is below MA. If is is a valid Sell.                                                                 |
+//| Verify if the close candle is below MA. If is is a valid Sell.                                                                 
 //+------------------------------------------------------------------+
 bool isCloseCandleBelowMA(int index,double close)
   {
-   if(NormalizeDouble(close, 8)<=NormalizeDouble(CmaBuffer[index], 8))
+   if(NormalizeDouble(close,8)<=NormalizeDouble(CmaBuffer[index],8))
       return true;
    return false;
   }
 //+------------------------------------------------------------------+
-//| Verify if the close candle is over MA. If is is a valid Buy.                                                                 |
+//| Verify if the close candle is over MA. If is is a valid Buy.                                                                 
 //+------------------------------------------------------------------+
 bool isCloseCandleOverMA(int index,double close)
   {
-   if(NormalizeDouble(close, 8)>=NormalizeDouble(CmaBuffer[index], 8))
+   if(NormalizeDouble(close,8)>=NormalizeDouble(CmaBuffer[index],8))
       return true;
    return false;
   }
