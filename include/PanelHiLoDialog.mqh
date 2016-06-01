@@ -688,7 +688,7 @@ void CPanelHiLoDialog::OnChangeEditVolume(void)
 //+------------------------------------------------------------------+
 void CPanelHiLoDialog::OnChangeButtonUpdateTpSl(void)
   {
-  Print("on changeeee");
+   Print("on changeeee");
    HiLoTrades.modifyBuyPosition();
    HiLoTrades.modifySellPosition();
   }

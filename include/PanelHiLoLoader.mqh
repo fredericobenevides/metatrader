@@ -5,7 +5,6 @@
 //+------------------------------------------------------------------+
 #property copyright "Frederico Benevides"
 #property link      "fredbene@gmail.com"
-#property version   "1.00"
 //+------------------------------------------------------------------+
 //| Class to work with iCustom on HiLo Ma Activator
 //+------------------------------------------------------------------+

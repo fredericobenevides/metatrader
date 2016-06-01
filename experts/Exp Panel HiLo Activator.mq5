@@ -109,3 +109,14 @@ void OnChartEvent(const int id,         // event ID
    PanelHiLoDialog.ChartEvent(id,lparam,dparam,sparam);
   }
 //+------------------------------------------------------------------+
+//| Event onTradeTransaction to find a trade runned by a Take Profit or Stop Loss
+//+------------------------------------------------------------------+
+void OnTradeTransaction(
+                        const MqlTradeTransaction& trans,        // trade transaction structure
+                        const MqlTradeRequest&     request,      // request structure
+                        const MqlTradeResult&      result        // result structure
+                        )
+  {
+   HiLoTrades.OnTradeTransaction(trans.type);
+  }
+//+------------------------------------------------------------------+
