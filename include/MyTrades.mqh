@@ -5,7 +5,7 @@
 //+------------------------------------------------------------------+
 #property copyright "Frederico Benevides"
 #property link      "fredbene@gmail.com"
-#property version   "1.20"
+#property version   "1.21"
 
 #include <Trade\Trade.mqh>
 //+------------------------------------------------------------------+
@@ -126,10 +126,6 @@ public:
          takeProfit=tradeSumPrice(symbol,takeProfit);
       if(stopLoss>0)
          stopLoss=tradeMinusPrice(symbol,stopLoss);
-
-      bool modified=false;
-      if(trade.PositionModify(symbol,stopLoss,takeProfit))
-         modified=true;
 
       if(trade.PositionModify(symbol,stopLoss,takeProfit))
          return true;
