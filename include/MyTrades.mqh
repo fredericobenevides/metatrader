@@ -5,7 +5,7 @@
 //+------------------------------------------------------------------+
 #property copyright "Frederico Benevides"
 #property link      "fredbene@gmail.com"
-#property version   "1.21"
+#property version   "1.22"
 
 #include <Trade\Trade.mqh>
 //+------------------------------------------------------------------+
@@ -122,15 +122,27 @@ public:
      {
       positionSelect(symbol);
 
-      if(takeProfit>0)
-         takeProfit=tradeSumPrice(symbol,takeProfit);
-      if(stopLoss>0)
-         stopLoss=tradeMinusPrice(symbol,stopLoss);
+      double tickSize=SymbolInfoDouble(symbol,SYMBOL_TRADE_TICK_SIZE);
+      bool executedModify=false;
 
-      if(trade.PositionModify(symbol,stopLoss,takeProfit))
-         return true;
+      // Adjust the price using the tickSize.
+      // Example:
+      // Suppose on a market, the price is 50107. Since the step for this market
+      // is 5, the correctly price should be 50100, 50105 or 50110.
+      // So for each tickSize the price will be ajusting by 1 until is possible to
+      // modify the position.
+      for(double i=0;i<tickSize;i++)
+        {
+         if(takeProfit>0)
+            int takeProfitCalculated=tradeSumPrice(symbol,takeProfit,i);
+         if(stopLoss>0)
+            int stopLossCalculated=tradeMinusPrice(symbol,stopLoss,i);
 
-      return false;
+         if(trade.PositionModify(symbol,stopLossCalculated,takeProfitCalculated))
+            executedModify=true;
+        }
+
+      return executedModify;
      };
    //+------------------------------------------------------------------+
    //| Modify current Sell symbol to use a Take Profit                                                                 
@@ -139,15 +151,27 @@ public:
      {
       positionSelect(symbol);
 
-      if(takeProfit>0)
-         takeProfit=tradeMinusPrice(symbol,takeProfit);
-      if(stopLoss>0)
-         stopLoss=tradeSumPrice(symbol,stopLoss);
+      double tickSize=SymbolInfoDouble(symbol,SYMBOL_TRADE_TICK_SIZE);
+      bool executedModify=false;
 
-      if(trade.PositionModify(symbol,stopLoss,takeProfit))
-         return true;
+      // Adjust the price using the tickSize.
+      // Example:
+      // Suppose on a market, the price is 50107. Since the step for this market
+      // is 5, the correctly price should be 50100, 50105 or 50110.
+      // So for each tickSize the price will be ajusting by 1 until is possible to
+      // modify the position.
+      for(double i=0;i<tickSize;i++)
+        {
+         if(takeProfit>0)
+            int takeProfitCalculated==tradeMinusPrice(symbol,takeProfit);
+         if(stopLoss>0)
+            int stopLossCalculated=tradeSumPrice(symbol,stopLoss);
 
-      return false;
+         if(trade.PositionModify(symbol,stopLossCalculated,takeProfitCalculated))
+            executedModify=true;
+        }
+
+      return executedModify;
      };
    //+------------------------------------------------------------------+
    //| Verify the Chart has a New Bar                                                                 
@@ -220,28 +244,30 @@ public:
      };
 
    //+------------------------------------------------------------------+
-   //| Sum the current position price with the next price.                                                                 
+   //| Sum the current position price with the price.
+   //| If the adjustPrice is different from 0. Minus the price with the adjustPrice.
    //+------------------------------------------------------------------+
-   double tradeSumPrice(string symbol,double nextPrice)
+   double tradeSumPrice(string symbol,double price,double adjustPrice=0)
      {
-      double price=PositionGetDouble(POSITION_PRICE_OPEN);
+      double positionPrice=PositionGetDouble(POSITION_PRICE_OPEN);
       int digits=(int)SymbolInfoInteger(symbol,SYMBOL_DIGITS);
       double point=SymbolInfoDouble(symbol,SYMBOL_POINT);
 
-      nextPrice=NormalizeDouble(price+nextPrice*point,digits);
-      return nextPrice;
+      price=NormalizeDouble(positionPrice+(price*point)-(adjustPrice*point),digits);
+      return price;
      };
    //+------------------------------------------------------------------+
-   //| Minus the current position price with the next price.                                                                 
+   //| Minus the current position price with the next price.
+   //| If the adjustPrice is different from 0. Sum the price with the adjustPrice.
    //+------------------------------------------------------------------+
-   double tradeMinusPrice(string symbol,double nextPrice)
+   double tradeMinusPrice(string symbol,double price,double adjustPrice=0)
      {
-      double price=PositionGetDouble(POSITION_PRICE_OPEN);
+      double positionPrice=PositionGetDouble(POSITION_PRICE_OPEN);
       int digits=(int)SymbolInfoInteger(symbol,SYMBOL_DIGITS);
       double point=SymbolInfoDouble(symbol,SYMBOL_POINT);
 
-      nextPrice=NormalizeDouble(price-nextPrice*point,digits);
-      return nextPrice;
+      price=NormalizeDouble(positionPrice-(price*point)+(adjustPrice*point),digits);
+      return price;
      };
    //+------------------------------------------------------------------+
    //| Select the current Position                                                                  
