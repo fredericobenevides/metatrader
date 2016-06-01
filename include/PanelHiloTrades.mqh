@@ -5,7 +5,6 @@
 //+------------------------------------------------------------------+
 #property copyright "Frederico Benevides"
 #property link      "fredbene@gmail.com"
-#property version   "1.00"
 //+------------------------------------------------------------------+
 //| Class to work with trades
 //+------------------------------------------------------------------+
@@ -24,6 +23,7 @@ private:
 
 public:
    virtual void      OnTick(int handle,int minRatesTotal);
+   virtual void      OnTradeTransaction(ENUM_TRADE_TRANSACTION_TYPE tradeType);
 
    virtual bool      isOnTradeOperation(void);
 
@@ -35,6 +35,8 @@ public:
 
    virtual void      tradeStart(bool buy,bool sell);
    virtual void      tradeStop(bool buy,bool sell);
+
+   virtual void      executedTpOrSl();
 
    virtual void      modifyBuyPosition();
    virtual void      modifySellPosition();
@@ -68,6 +70,7 @@ void CHiLoTrades::OnTick(int handle,int minRatesTotal)
       //--- open operation only if is a valid HiLo
       if(highHiLo[0]!=EMPTY_VALUE)
         {
+         // if closePl is Checked. Don't open a new operation
          if(PanelHiLoDialog.isClosePLChecked())
             PanelHiLoDialog.initToDefaults();
          else if(PanelHiLoDialog.isSellChecked())
@@ -81,12 +84,34 @@ void CHiLoTrades::OnTick(int handle,int minRatesTotal)
       //--- open operation only if is a valid HiLo
       if(lowHiLo[0]!=EMPTY_VALUE)
         {
+         // if closePl is Checked. Don't open a new operation
          if(PanelHiLoDialog.isClosePLChecked())
             PanelHiLoDialog.initToDefaults();
          else if(PanelHiLoDialog.isBuyChecked())
             tradeBuyOpen();
         }
      }
+  }
+//+------------------------------------------------------------------+
+//| Verify if has a TakeProfit or StopLoss operation                                                                 
+//+------------------------------------------------------------------+
+void CHiLoTrades::OnTradeTransaction(ENUM_TRADE_TRANSACTION_TYPE tradeType)
+  {
+   if(tradeType!=TRADE_TRANSACTION_HISTORY_ADD)
+      return;
+
+// verify on the current day
+   bool hadTakeProfitOnHistory=myTrade.hadTakeProfitOnHistory(PERIOD_D1);
+   if(hadTakeProfitOnHistory)
+      executedTpOrSl();
+
+   bool hadStopLossOnHistory=myTrade.hadStopLossOnHistory(PERIOD_D1);
+   if(hadStopLossOnHistory)
+      executedTpOrSl();
+
+   Print("On trade transaction");
+   Print(tradeType);
+   Print("fim On trade transaction");
   }
 //+------------------------------------------------------------------+
 //| Open a BUY operation
@@ -250,6 +275,24 @@ void CHiLoTrades::tradeStop(bool buy,bool sell)
 
    if(executed)
       Print("********** Executed STOP operation! **********");
+  }
+//+------------------------------------------------------------------+
+//| If has Take Profit or Stop Loss. Reset the volumes and stop the Expert closing a current Operation.
+//+------------------------------------------------------------------+
+void CHiLoTrades::executedTpOrSl()
+  {
+   PanelHiLoDialog.resetVolumesToDefault();
+
+   if(isOnBuyTrade)
+     {
+      isOnBuyTrade=false;
+      Print("********** Executed BUY TP / SL operation! **********");
+     }
+   else
+     {
+      isOnSellTrade=false;
+      Print("********** Executed SELL TP / SL operation! **********");
+     }
   }
 //+------------------------------------------------------------------+
 //| Modify the current Buy position to config the StopLoss and TakeProfit

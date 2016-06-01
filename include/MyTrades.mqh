@@ -5,7 +5,7 @@
 //+------------------------------------------------------------------+
 #property copyright "Frederico Benevides"
 #property link      "fredbene@gmail.com"
-#property version   "1.10"
+#property version   "1.20"
 
 #include <Trade\Trade.mqh>
 //+------------------------------------------------------------------+
@@ -181,6 +181,22 @@ public:
    //+------------------------------------------------------------------+
    bool hadTakeProfitOnHistory(ENUM_TIMEFRAMES periodStart)
      {
+      return hadCommentOnHistory(periodStart, "tp ");
+     };
+
+   //+------------------------------------------------------------------+
+   //| Verify if on the history has a Stop Loss operation                                                                 
+   //+------------------------------------------------------------------+
+   bool hadStopLossOnHistory(ENUM_TIMEFRAMES periodStart)
+     {
+      return hadCommentOnHistory(periodStart, "sl ");
+     };
+
+   //+------------------------------------------------------------------+
+   //| Verify if on the history has the specified comment                                                               
+   //+------------------------------------------------------------------+
+   bool hadCommentOnHistory(ENUM_TIMEFRAMES periodStart,string comment)
+     {
       datetime end=TimeCurrent();
       datetime start=end-PeriodSeconds(periodStart);
 
@@ -196,7 +212,7 @@ public:
            {
             // if the last symbol comment has tp, so is a takeProfit
             string historyComment=HistoryOrderGetString(ticket,ORDER_COMMENT);
-            if(StringFind(historyComment,"tp ")!=-1)
+            if(StringFind(historyComment,comment)!=-1)
                return true;
 
             // break if the last index of the current symbol doesn't have tp in the comment  
@@ -213,9 +229,9 @@ public:
    double tradeSumPrice(string symbol,double nextPrice)
      {
       double price=PositionGetDouble(POSITION_PRICE_OPEN);
-      double digits=SymbolInfoInteger(symbol,SYMBOL_DIGITS);
+      int digits=(int)SymbolInfoInteger(symbol,SYMBOL_DIGITS);
       double point=SymbolInfoDouble(symbol,SYMBOL_POINT);
-      
+
       nextPrice=NormalizeDouble(price+nextPrice*point,digits);
       return nextPrice;
      };
