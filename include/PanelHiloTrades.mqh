@@ -108,10 +108,6 @@ void CHiLoTrades::OnTradeTransaction(ENUM_TRADE_TRANSACTION_TYPE tradeType)
    bool hadStopLossOnHistory=myTrade.hadStopLossOnHistory(PERIOD_D1);
    if(hadStopLossOnHistory)
       executedTpOrSl();
-
-   Print("On trade transaction");
-   Print(tradeType);
-   Print("fim On trade transaction");
   }
 //+------------------------------------------------------------------+
 //| Open a BUY operation
