@@ -256,6 +256,63 @@ public:
      };
 
    //+------------------------------------------------------------------+
+   //| Verify if on the history has the specified comment                                                               
+   //+------------------------------------------------------------------+
+   double calculateBreakEven(ENUM_TIMEFRAMES periodStart)
+     {
+      double symbolFactor=getSymbolFactor();
+      if(symbolFactor==0)
+         return 0;
+
+      MqlDateTime dtServer;
+      TimeTradeServer(dtServer);
+
+      datetime end=TimeCurrent();
+      datetime start=end-PeriodSeconds(periodStart);
+
+      HistorySelect(start,end);
+      int historyOrders=HistoryOrdersTotal();
+      int lastIndex=historyOrders-1;
+
+      for(int i=0;i<=lastIndex;i++)
+        {
+         ulong ticket=HistoryOrderGetTicket(i);
+         string historySymbol=HistoryOrderGetString(ticket,ORDER_SYMBOL);
+         if(historySymbol==Symbol())
+           {
+            datetime dtOrder=HistoryOrderGetInteger(ticket,ORDER_TIME_DONE);
+            MqlDateTime dtTimeOrder;
+            TimeToStruct(dtOrder,dtTimeOrder);
+
+            // Verify if is in the same day of the TradeServer
+            if(dtServer.day==dtTimeOrder.day)
+              {
+               string comment=HistoryOrderGetString(ticket,ORDER_COMMENT));
+
+               Print("inicio");
+               Print(HistoryOrderGetString(ticket,ORDER_COMMENT));
+               Print(HistoryOrderGetDouble(ticket,ORDER_PRICE_CURRENT));
+               Print(HistoryOrderGetDouble(ticket,ORDER_PRICE_OPEN));
+               Print(HistoryOrderGetDouble(ticket,ORDER_VOLUME_CURRENT));
+               Print(HistoryOrderGetDouble(ticket,ORDER_VOLUME_INITIAL));
+               Print(HistoryOrderGetInteger(ticket,ORDER_TIME_DONE));
+
+               Print("deal");
+               Print(HistoryDealGetInteger(ticket,DEAL_TYPE));
+
+               Print("fim");
+              }
+
+           }
+        }
+      Print("fim total");
+
+      //return false;
+      return 0;
+
+     };
+
+   //+------------------------------------------------------------------+
    //| Sum the current position price with the price.
    //| If the adjustPrice is different from 0. Minus the price with the adjustPrice.
    //+------------------------------------------------------------------+
@@ -268,6 +325,7 @@ public:
       price=NormalizeDouble(positionPrice+(price*point)-(adjustPrice*point),digits);
       return price;
      };
+
    //+------------------------------------------------------------------+
    //| Minus the current position price with the next price.
    //| If the adjustPrice is different from 0. Sum the price with the adjustPrice.
@@ -281,6 +339,14 @@ public:
       price=NormalizeDouble(positionPrice-(price*point)+(adjustPrice*point),digits);
       return price;
      };
+
+   double calculateProfit(double priceOpen,double priceClose,int volume,double symbolFactor)
+     {
+      int digits=(int)SymbolInfoInteger(symbol,SYMBOL_DIGITS);
+      double profit=NormalizeDouble(priceClose-priceOpen,digits);
+      return profit;
+     };
+
    //+------------------------------------------------------------------+
    //| Select the current Position                                                                  
    //+------------------------------------------------------------------+
@@ -292,6 +358,17 @@ public:
          Sleep(retry*100); // sleep for SelectRetryCount * 100 mS
          retry++;
         }
+     };
+
+   double getSymbolFactor()
+     {
+      if(StringFind(_Symbol,"WIN")!=-1)
+         return 0.2;
+
+      if(StringFind(_Symbol,"WDO")!=-1)
+         return 10;
+
+      return 0;
      };
   };
 
