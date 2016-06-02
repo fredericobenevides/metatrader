@@ -5,7 +5,7 @@
 //+------------------------------------------------------------------+
 #property copyright "Frederico Benevides"
 #property link      "fredbene@gmail.com"
-#property version   "1.22"
+#property version   "1.23"
 
 #include <Trade\Trade.mqh>
 //+------------------------------------------------------------------+
@@ -133,13 +133,19 @@ public:
       // modify the position.
       for(double i=0;i<tickSize;i++)
         {
+         double takeProfitCalculated=0;
+         double stopLossCalculated=0;
+
          if(takeProfit>0)
-            int takeProfitCalculated=tradeSumPrice(symbol,takeProfit,i);
+            takeProfitCalculated=tradeSumPrice(symbol,takeProfit,i);
          if(stopLoss>0)
-            int stopLossCalculated=tradeMinusPrice(symbol,stopLoss,i);
+            stopLossCalculated=tradeMinusPrice(symbol,stopLoss,i);
 
          if(trade.PositionModify(symbol,stopLossCalculated,takeProfitCalculated))
+           {
             executedModify=true;
+            break;
+           }
         }
 
       return executedModify;
@@ -162,13 +168,19 @@ public:
       // modify the position.
       for(double i=0;i<tickSize;i++)
         {
+         double takeProfitCalculated=0;
+         double stopLossCalculated=0;
+
          if(takeProfit>0)
-            int takeProfitCalculated==tradeMinusPrice(symbol,takeProfit);
+            takeProfitCalculated=tradeMinusPrice(symbol,takeProfit,i);
          if(stopLoss>0)
-            int stopLossCalculated=tradeSumPrice(symbol,stopLoss);
+            stopLossCalculated=tradeSumPrice(symbol,stopLoss,i);
 
          if(trade.PositionModify(symbol,stopLossCalculated,takeProfitCalculated))
+           {
             executedModify=true;
+            break;
+           }
         }
 
       return executedModify;
