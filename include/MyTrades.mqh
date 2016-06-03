@@ -8,9 +8,7 @@
 #property version   "1.23"
 
 #include <Trade\Trade.mqh>
-#include <MyTradesOperation.mqh>
-
-#include <Arrays\List.mqh>
+#include <MyTradesPosition.mqh>
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
@@ -26,7 +24,7 @@ protected:
    string            sellTradeSoundName;
    string            errorTradeSoundName;
 
-   CList         *tradesOperation;
+   CTradesPosition   tradesPosition;
 
 public:
    //+------------------------------------------------------------------+
@@ -78,7 +76,7 @@ public:
          if(playSoundOnOperation)
             PlaySound(buyTradeSoundName);
 
-         createTradeOperation();
+         //createTradeOperation();
 
          return true;
         }
@@ -111,7 +109,7 @@ public:
          if(playSoundOnOperation)
             PlaySound(sellTradeSoundName);
 
-         createTradeOperation();
+         //createTradeOperation();
 
          return true;
         }
@@ -292,11 +290,90 @@ public:
       return price;
      };
 
-   double calculateProfit(double priceOpen,double priceClose,int volume,double symbolFactor)
+   double calculateBreakEven(int baseVolume,double pricePerVolume=0)
      {
-      int digits=(int)SymbolInfoInteger(_Symbol,SYMBOL_DIGITS);
-      double   profit=NormalizeDouble((priceClose-priceOpen)*symbolFactor,digits);
-      return profit;
+      int digits=SymbolInfoInteger(_Symbol,SYMBOL_DIGITS);
+
+      MqlDateTime dtServer;
+      TimeTradeServer(dtServer);
+
+      datetime end=TimeCurrent();
+      datetime start=end-PeriodSeconds(PERIOD_D1);
+      HistorySelect(start,end);
+
+      double totalProfit=0;
+      int totalVolumes=0;
+
+      int deals=HistoryDealsTotal();
+      //for(int i=0; i<deals-6;i++)
+      for(int i=0; i<18;i++)
+        {
+         ulong ticket=HistoryDealGetTicket(i);
+         if(ticket>0)
+           {
+            string historySymbol=HistoryDealGetString(ticket,DEAL_SYMBOL);
+            if(historySymbol==_Symbol)
+              {
+               datetime dealTime=HistoryDealGetInteger(ticket,DEAL_TIME);
+               MqlDateTime dealMqlTime;
+               TimeToStruct(dealTime,dealMqlTime);
+
+               // Verify if is in the same day of the TradeServer
+               if(dtServer.day==dealMqlTime.day)
+                 {
+                  double dealProfit=HistoryDealGetDouble(ticket,DEAL_PROFIT);
+                  Print("dealProfit i"+i);
+                  Print(dealProfit);
+
+                  totalProfit=NormalizeDouble(totalProfit+dealProfit,digits);
+
+                  double dealVolume=HistoryDealGetDouble(ticket,DEAL_VOLUME);
+                  Print("dealVolume i"+i);
+                  Print(dealVolume);
+                  totalVolumes=totalVolumes+dealVolume;
+                 }
+              }
+           }
+         else
+           {
+            PrintFormat("Total number of deals %d, error in selection of the deal"+
+                        " with index %d. Error %d",deals,i,GetLastError());
+           }
+        }
+
+      Print("totalProfit");
+      Print(totalProfit);
+
+      Print("totalVolumes");
+      Print(totalVolumes);
+
+      double breakEven=0;
+      if(totalProfit<0)
+        {
+
+         double volumeWithFactor=NormalizeDouble(baseVolume*getSymbolFactor(),6);
+         Print("volume");
+         Print(baseVolume);
+         Print("Factor");
+         Print(getSymbolFactor());
+         Print("volumeWithFactor");
+         Print(volumeWithFactor);
+         if(pricePerVolume>0)
+            totalProfit=NormalizeDouble(totalProfit-(totalVolumes*pricePerVolume),6);
+
+         Print("total profit with volumes");
+         Print(totalProfit);
+
+         breakEven=MathAbs(NormalizeDouble(totalProfit/volumeWithFactor,digits));
+         //Print("valor do breakeven");
+         //Print(NormalizeDouble(totalProfit/baseVolume,8));
+
+
+         //breakEven=abs(breakEven)
+
+        }
+
+      return breakEven;
      };
 
    //+------------------------------------------------------------------+
@@ -322,37 +399,5 @@ public:
 
       return 0;
      };
-
-   void createTradeOperation()
-     {
-     if (tradesOperation == NULL) {
-      tradesOperation = new CList();
-     }
-     
-
-    
-     
-      //int size = ArraySize(tradesOperation)-1;
-      //CTradeOperation last = tradesOperation[size];
-      positionSelect(_Symbol);
-      CPositionInfo positionInfo;
-      positionInfo.Select(_Symbol);
-
-      CTradeOperation* tradeOperation = new CTradeOperation();
-      tradeOperation.priceOpen(positionInfo.PriceCurrent());
-      tradeOperation.priceClose(positionInfo.PriceCurrent());
-      tradeOperation.volume(positionInfo.Volume());
-      tradeOperation.factor(getSymbolFactor());
-
-
-     bool existPriceClose
-     
-     CTradeOperation* tradeOperation = tradesOperation.GetLastNode();
-     if (lastNode != NULL && lastNode.priceClose != 0) {
-     tradeOperation = new *CTradeOperation();
-     }
-
-      tradesOperation.Add(tradeOperation);
-     }
   };
 //+------------------------------------------------------------------+

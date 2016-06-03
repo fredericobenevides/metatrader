@@ -1,0 +1,34 @@
+
+winm16
+
+sell 50480  1
+buy  50280  1
+profit 39 (1 contrato)
+
+sell 50340  1
+buy 50490 1
+profit -30 (1 contrato)
+
+buy  50490
+sell 50410
+profit -32 (2 contrato)
+
+buy 50410 1 contrato
+buy 50410 3 contrato
+sell 50520 3 contrato
+sell 50520  1 contrato
+profit -66   3 contrato
+profit -22   (1 contrato)
+
+buy 50520 1 contrato
+buy 50520 3 contrato
+buy 50520 3 contrato
+buy 50520 1 contrato
+sell 50580 3 contrato
+sell 50580 3 contrato
+sell 50575 1 contrato
+sell 50575 1 contrato
+profit 36   3 contrato
+profit 36   3 contrato
+profit 11   1 contrato
+profit 11   1 contrato
