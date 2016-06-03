@@ -1,0 +1,198 @@
+//+------------------------------------------------------------------+
+   //| Verify if on the history has the specified comment                                                               
+   //+------------------------------------------------------------------+
+   double calculateBreakEven(ENUM_TIMEFRAMES periodStart)
+     {
+      double tradeCost=1;
+      double factor=0.2;
+
+      //positionSelect(_Symbol);
+
+      //     CPositionInfo pi;
+      //     
+      //     Print(pi.Swap());
+
+
+      //Print("aquiiiii");
+      //double symbolFactor=getSymbolFactor();
+      //if(symbolFactor==0)
+      //  {
+      //   Print("BreakEven is not being calculated since there isn't any Factor for it");
+      //   return 0;
+      //  }
+
+      MqlDateTime dtServer;
+      TimeTradeServer(dtServer);
+
+      datetime end=TimeCurrent();
+      datetime start=end-PeriodSeconds(periodStart);
+
+      HistorySelect(start,end);
+      int historyOrders=HistoryOrdersTotal();
+      int lastIndex=historyOrders-1;
+
+      //// There is only one operation 
+      //if (lastIndex==0)
+      //   return 0;
+
+      CHistoryOrderInfo historyInfo;
+      CPositionInfo positionInfo;
+
+      Print("inicio");
+      Print(OrdersTotal());
+      Print(PositionsTotal());
+
+      //      for(int i=0;i<lastIndex;i++)
+      //        {
+      //         ulong ticket=HistoryOrderGetTicket(i);
+      //
+      //         // current position
+      //         //string typeDescription = positionInfo.TypeDescription();
+      //         //double volume = positionInfo.Volume();
+      //
+      //
+      //         positionInfo.SelectByTicket(ticket);
+      //         double priceOpen=positionInfo.PriceCurrent();
+      //
+      //         // next ticket
+      //         ulong nextTicket=HistoryOrderGetTicket(i+1);
+      //         positionInfo.SelectByTicket(nextTicket);
+      //         double priceClose=positionInfo.PriceCurrent();
+      //         int volume=positionInfo.Volume();
+      //
+      //         double profit=calculateProfit(priceOpen,priceClose,volume,0.2);
+      //         Print("priceOpen");
+      //         Print(priceOpen);
+      //         Print("priceClose");
+      //         Print(priceClose);
+      //         Print("profit");
+      //         Print(profit);
+      //
+      //         // if(positionInfo.TypeDescription=="buy")
+      //         //{
+      //         //}
+      //
+      //         //         hoi.SelectByIndex(i);
+      //         //         Print(hoi.StateDescription());
+      //         //         Print(PositionsTotal());
+      //         //
+      //         //         positionInfo.SelectByTicket(ticket);
+      //         //         Print(positionInfo.Volume());
+      //         //         Print(positionInfo.Swap());
+      //         //         Print(positionInfo.Commission());
+      //         //         Print(positionInfo.TypeDescription());
+      //         //         Print(positionInfo.Profit());
+      //         //i=i+2;
+      //        }
+
+      // exist only one operation of Buy / SELL
+      double points=0;
+
+      if(lastIndex==0)
+        {
+         historyInfo.SelectByIndex(0);
+
+         double priceOpen=historyInfo.PriceCurrent();
+         int volume=historyInfo.VolumeInitial();
+         int digits=(int)SymbolInfoInteger(_Symbol,SYMBOL_DIGITS);
+         double point=SymbolInfoDouble(_Symbol,SYMBOL_POINT);
+
+         if(positionInfo.TypeDescription()=="buy")
+            points=NormalizeDouble(priceOpen-(volume*point),digits);
+         else
+            points=NormalizeDouble(priceOpen+(volume*point),digits);
+
+         Print("points lastindex=0");
+         Print(points);
+        }
+      else if(lastIndex>0)
+        {
+         double lastPrice=0;
+         double totalProfit=0;
+
+         // Index tem que ser maior que 3, pois se for 2, foi uma operação de abertura e fechamento
+         for(int i=0;i<lastIndex;i++)
+           {
+            if(lastPrice!=0)
+              {
+               historyInfo.SelectByIndex(i);
+
+               double currentPrice=historyInfo.PriceCurrent();
+               int volume=historyInfo.VolumeInitial();
+
+               int digits=(int)SymbolInfoInteger(_Symbol,SYMBOL_DIGITS);
+               double point=SymbolInfoDouble(_Symbol,SYMBOL_POINT);
+
+               if(positionInfo.TypeDescription()=="buy")
+                  points=NormalizeDouble(currentPrice-lastPrice-(volume*point),digits);
+               else
+                  points=NormalizeDouble(currentPrice+lastPrice+(volume*point),digits);
+
+               Print("points lastindex!=0");
+               Print(points);
+
+               totalProfit+=points;
+               lastPrice=currentPrice;
+              }
+            else
+              {
+               historyInfo.SelectByIndex(0);
+               lastPrice=historyInfo.PriceCurrent();
+              }
+            //            historyInfo.SelectByIndex(i);
+            //
+            //            double priceOpen=historyInfo.PriceCurrent();
+            //            int volume=historyInfo.VolumeInitial();
+            //
+            //            historyInfo.SelectByIndex(i+2);
+            //            double priceClose=historyInfo.PriceCurrent();
+            //
+            //            int digits=(int)SymbolInfoInteger(_Symbol,SYMBOL_DIGITS);
+            //            double point=SymbolInfoDouble(_Symbol,SYMBOL_POINT);
+            //
+            //            if(positionInfo.TypeDescription()=="buy")
+            //               points=NormalizeDouble(priceOpen-priceClose-(volume*point),digits);
+            //            else
+            //               points=NormalizeDouble(priceOpen+priceClose+(volume*point),digits);
+            //
+            //            Print("points lastindex!=0");
+            //            Print(points);
+           }
+        }
+
+      Print("fim");
+      //         ulong ticket=HistoryOrderGetTicket(i);
+      //         string historySymbol=HistoryOrderGetString(ticket,ORDER_SYMBOL);
+      //         if(historySymbol==Symbol())
+      //           {
+      //            datetime dtOrder=HistoryOrderGetInteger(ticket,ORDER_TIME_DONE);
+      //            MqlDateTime dtTimeOrder;
+      //            TimeToStruct(dtOrder,dtTimeOrder);
+      //
+      //            // Verify if is in the same day of the TradeServer
+      //            if(dtServer.day==dtTimeOrder.day)
+      //              {
+      //               string comment=HistoryOrderGetString(ticket,ORDER_COMMENT);
+      //
+      //               Print("inicio");
+      //               Print(HistoryOrderGetString(ticket,ORDER_COMMENT));
+      //               Print(HistoryOrderGetDouble(ticket,ORDER_PRICE_CURRENT));
+      //               //Print(HistoryOrderGetDouble(ticket,ORDER_PRICE_OPEN));
+      //               //Print(HistoryOrderGetDouble(ticket,ORDER_VOLUME_CURRENT));
+      //               Print(HistoryOrderGetDouble(ticket,ORDER_VOLUME_INITIAL));
+      //               //Print(HistoryOrderGetInteger(ticket,ORDER_TIME_DONE));
+      //
+      //               Print("deal");
+      //               Print(HistoryDealGetInteger(ticket,DEAL_TYPE));
+      //
+      //               Print("fim");
+      //              }
+      //
+      //           }
+
+      //      Print("fim total");
+
+      //return false;
+      return points;
+
+     };
