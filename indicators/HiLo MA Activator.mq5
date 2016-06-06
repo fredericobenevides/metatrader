@@ -5,7 +5,7 @@
 //+------------------------------------------------------------------+
 #property copyright "Frederico Benevides"
 #property link      "fredbene@gmail.com"
-#property version   "1.55"
+#property version   "1.56"
 #property indicator_chart_window
 #property indicator_buffers 17
 #property indicator_plots   14
