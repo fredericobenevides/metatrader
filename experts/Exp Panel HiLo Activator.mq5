@@ -9,10 +9,11 @@
 
 #resource "\\Indicators\\HiLo MA Activator.ex5"
 
-#include <PanelHiLoDialog.mqh>
-#include <PanelHiLoLoader.mqh>
-#include <PanelHiLoTrades.mqh>
-#include <MyTrades.mqh>
+#include <MyLibs\HiLo\HiLoDialog.mqh>
+#include <MyLibs\HiLo\HiLoMALoader.mqh>
+#include <MyLibs\HiLo\HiLoTrades.mqh>
+#include <MyLibs\Trade\BreakEven.mqh>
+#include <MyLibs\Trade\MyTrade.mqh>
 
 //--- input parameters
 input string         InpHiLoData="------------------------------";    // --------------- HiLo ---------------
@@ -32,8 +33,10 @@ input ENUM_MA_METHOD InpCmaMethod=MODE_SMA;                           // Method
 input string          InpTradesData="------------------------------"; // --------------- Trades ---------------
 input ENUM_TIMEFRAMES InpTradeTimeFrame=PERIOD_CURRENT;               // Default TimeFrame
 input int             InpTradeVolume=1;                               // Default volume to do trades operations
+input double          InpTradeVolumeFactor=2;                         // Default trade factor (martingale)
 input double          InpTradeTakeProfit=200.0;                       // Default Take Profit
 input double          InpTradeStopLoss=0.0;                           // Default Stop Loss
+input double          InpTradePricePerVolume=0;                       // Default Price Per Volume
 input bool            InpSetTradeSound=false;                         // Play sound for each operation on Buy or Sell trades.
 input string          InpSellTradeSound="dinkdink";                   // The Sound's name for Sell trade operations.
 input string          InpBuyTradeSound="dingdong";                    // The Sound's name for Buy trade operations.
@@ -42,10 +45,11 @@ input string          InpBuyTradeSound="dingdong";                    // The Sou
 //--- global vars
 int first_initialization=true; // flag indicate if is the first initialization
 
-CPanelHiLoDialog PanelHiLoDialog;
+CHiLoDialog HiLoDialog;
 CHiLoLoader HiLoLoader;
 CHiLoTrades HiLoTrades;
-CMyTrade myTrade;
+CBreakEven BreakEven;
+CMyTrade MyTrade;
 //+------------------------------------------------------------------+
 //| Expert initialization function                                   |
 //+------------------------------------------------------------------+
@@ -58,17 +62,17 @@ int OnInit()
       int y1=int(ChartGetInteger(0,CHART_HEIGHT_IN_PIXELS)-300);
       int y2=int(ChartGetInteger(0,CHART_HEIGHT_IN_PIXELS)-20);
 
-      if(!PanelHiLoDialog.Create(0,"",0,20,y1,320,y2))
+      if(!HiLoDialog.Create(0,"",0,20,y1,320,y2))
          return(INIT_FAILED);
       //--- run application
 
       if(!HiLoLoader.Init())
          return(INIT_FAILED);
 
-      PanelHiLoDialog.Run();
+      HiLoDialog.Run();
 
       if(InpSetTradeSound)
-         myTrade.enableSoundOnOperation(InpSellTradeSound,InpBuyTradeSound);
+         MyTrade.EnableSoundOnOperation(InpSellTradeSound,InpBuyTradeSound);
      }
 
    return(INIT_SUCCEEDED);
@@ -82,7 +86,7 @@ void OnDeinit(const int reason)
 //--- destroy dialog
    if(reason!=REASON_CHARTCHANGE)
      {
-      PanelHiLoDialog.Destroy(reason);
+      HiLoDialog.Destroy(reason);
       HiLoLoader.Destroy();
 
       first_initialization=true;
@@ -106,7 +110,7 @@ void OnChartEvent(const int id,         // event ID
                   const double& dparam, // event parameter of the double type
                   const string& sparam) // event parameter of the string type
   {
-   PanelHiLoDialog.ChartEvent(id,lparam,dparam,sparam);
+   HiLoDialog.ChartEvent(id,lparam,dparam,sparam);
   }
 //+------------------------------------------------------------------+
 //| Event onTradeTransaction to find a trade runned by a Take Profit or Stop Loss

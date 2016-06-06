@@ -12,27 +12,14 @@ class CHiLoLoader
   {
 private:
    //--- vars for HiLo Loader
-   int               HiLoCustomHandle;
-   int               MinRatesTotal;
-
-   //--- vars for Trades
-   bool              isOnBuyTrade;
-   bool              isOnSellTrade;
+   int               m_hilo_custom_handle;
+   int               m_min_rates_total;
 
 public:
-   virtual bool      Init();
-   virtual void      Destroy();
+   bool              Init();
+   void              Destroy();
 
-   virtual void      OnTick();
-
-protected:
-   virtual void      tradeBuyOpen();
-   virtual void      tradeSellOpen();
-
-   virtual void      tradeBuyClose();
-   virtual void      tradeSellClose();
-
-   virtual bool      isOnTradeOperation();
+   void              OnTick();
 
   };
 //+------------------------------------------------------------------+
@@ -40,34 +27,32 @@ protected:
 //+------------------------------------------------------------------+
 bool CHiLoLoader::Init()
   {
-   HiLoCustomHandle=iCustom(Symbol(),InpTradeTimeFrame,"HiLo MA Activator.ex5",
+   m_hilo_custom_handle=iCustom(_Symbol,InpTradeTimeFrame,"HiLo MA Activator.ex5",
                             InpHiLoData,InpPeriod,InpMaMethod,
                             InpArrowInFirstHiLo,InpArrowInSecondHiLo,InpArrowInCurrentCandle,InpShowHiLoLine,
                             InpCmaData,InpCmaPeriod,InpCmaMethod);
-   if(HiLoCustomHandle==INVALID_HANDLE)
+   if(m_hilo_custom_handle==INVALID_HANDLE)
      {
       Print("Failed to get handle of HiLo activator indicator");
       return false;
      }
 
-   MinRatesTotal=InpPeriod+1;
-   myTrade.loadTradeConfig();
-
+   m_min_rates_total=InpPeriod+1;
    return true;
   }
 //+------------------------------------------------------------------+
-//| Destroy the HiLoCustomHandle                                                                 |
+//| Destroy the m_hilo_custom_handle                                                                 |
 //+------------------------------------------------------------------+
 void CHiLoLoader::Destroy(void)
   {
-   IndicatorRelease(HiLoCustomHandle);
+   IndicatorRelease(m_hilo_custom_handle);
   }
 //+------------------------------------------------------------------+
 //| Verify is there any operation for each candle.                                                                 |
 //+------------------------------------------------------------------+
 void CHiLoLoader::OnTick(void)
   {
-   HiLoTrades.OnTick(HiLoCustomHandle,MinRatesTotal);
+   HiLoTrades.OnTick(m_hilo_custom_handle,m_min_rates_total);
   }
 
 //+------------------------------------------------------------------+
