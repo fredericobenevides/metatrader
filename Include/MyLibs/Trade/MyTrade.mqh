@@ -69,8 +69,11 @@ public:
    int               CurrentTradeVolume();
    void              LoadTradeOperationFromPosition();
 
-   double            TradeSumPrice(double price,double adjustPrice=0);
-   double            TradeMinusPrice(double price,double adjustPrice=0);
+   double            TradeLastDealSumPrice(double price,double adjustPrice=0);
+   double            TradeLastDealMinusPrice(double price,double adjustPrice=0);
+   double            TradePositionSumPrice(double price,double adjustPrice=0);
+   double            TradePositionMinusPrice(double price,double adjustPrice=0);
+
    void              CurrentPositionSelect();
    double            SymbolFactor();
   };
@@ -296,9 +299,9 @@ bool CMyTrade::ModifyBuyTpSl(double stopLoss=0,double takeProfit=0)
       double stopLossCalculated=0;
 
       if(takeProfit>0)
-         takeProfitCalculated=TradeSumPrice(takeProfit,i);
+         takeProfitCalculated=TradeLastDealSumPrice(takeProfit,i);
       if(stopLoss>0)
-         stopLossCalculated=TradeMinusPrice(stopLoss,i);
+         stopLossCalculated=TradeLastDealMinusPrice(stopLoss,i);
 
       if(m_trade.PositionModify(_Symbol,stopLossCalculated,takeProfitCalculated))
         {
@@ -336,9 +339,9 @@ bool CMyTrade::ModifySellTpSl(double stopLoss=0,double takeProfit=0)
       double stopLossCalculated=0;
 
       if(takeProfit>0)
-         takeProfitCalculated=TradeMinusPrice(takeProfit,i);
+         takeProfitCalculated=TradeLastDealMinusPrice(takeProfit,i);
       if(stopLoss>0)
-         stopLossCalculated=TradeSumPrice(stopLoss,i);
+         stopLossCalculated=TradeLastDealSumPrice(stopLoss,i);
 
       if(m_trade.PositionModify(_Symbol,stopLossCalculated,takeProfitCalculated))
         {
@@ -521,12 +524,10 @@ double CMyTrade::CalculateBreakEven(int baseVolume,double pricePerVolume=0)
      }
 
    if(totalProfit!=0)
-      totalProfit=NormalizeDouble(totalProfit-totalPricePerVolume,6);
-
-   if(totalProfit<0)
      {
+      totalProfit=NormalizeDouble(totalProfit-totalPricePerVolume,6);
       double volumeWithFactor=NormalizeDouble(baseVolume*SymbolFactor(),6);
-      breakEven=MathAbs(NormalizeDouble(totalProfit/volumeWithFactor,digits));
+      breakEven=NormalizeDouble(totalProfit/volumeWithFactor,digits);
      }
 
    return breakEven;
@@ -534,15 +535,35 @@ double CMyTrade::CalculateBreakEven(int baseVolume,double pricePerVolume=0)
 //+------------------------------------------------------------------+
 //| Calculate current break even and use to set it up with the last order,
 //| verifying is on a BUY or SELL trade
+//|
+//| Example for a BUY operation with break even with positive value:
+//| Current price: 50100.
+//| BreakEven: 60
+//| New Price wil be: 50040
+//|
+//| Example for a BUY operation with break even with negative value:
+//| Current price: 50100.
+//| BreakEven: -60
+//| New Price wil be: 50160
+//|
+//| Example for a SELL operation with break even with positive value:
+//| Current price: 50100.
+//| BreakEven: 60
+//| New Price wil be: 50160
+//|
+//| Example for a BUY operation with break even with negative value:
+//| Current price: 50100.
+//| BreakEven: -60
+//| New Price wil be: 50040
 //+------------------------------------------------------------------+
 double CMyTrade::CalculateBreakEvenWithLastDeal(int baseVolume,double pricePerVolume=0)
   {
    double breakEven=CalculateBreakEven(baseVolume,pricePerVolume);
 
-   if(m_is_on_buy_trade)
-      return TradeSumPrice(breakEven);
-   else
-      return TradeMinusPrice(breakEven);
+   if(IsOnBuyTrade())
+      breakEven=NormalizeDouble(breakEven*-1,2);
+
+   return TradePositionSumPrice(breakEven);
   }
 //+------------------------------------------------------------------+
 //| Enable the sounds for BUY operation and SELL operation                                                                
@@ -649,7 +670,7 @@ void CMyTrade::LoadTradeOperationFromPosition()
 //| Sum the current last deal price with the next price.
 //| If the adjustPrice is different from 0. Minus the price with the adjustPrice.
 //+------------------------------------------------------------------+
-double CMyTrade::TradeSumPrice(double price,double adjustPrice=0)
+double CMyTrade::TradeLastDealSumPrice(double price,double adjustPrice=0)
   {
    double lastDealPrice=LastDealPriceOnHistory();
    int digits=(int)SymbolInfoInteger(_Symbol,SYMBOL_DIGITS);
@@ -662,7 +683,7 @@ double CMyTrade::TradeSumPrice(double price,double adjustPrice=0)
 //| Minus the current last deal price with the next price.
 //| If the adjustPrice is different from 0. Sum the price with the adjustPrice.
 //+------------------------------------------------------------------+
-double CMyTrade::TradeMinusPrice(double price,double adjustPrice=0)
+double CMyTrade::TradeLastDealMinusPrice(double price,double adjustPrice=0)
   {
    double lastDealPrice=LastDealPriceOnHistory();
    int digits=(int)SymbolInfoInteger(_Symbol,SYMBOL_DIGITS);
@@ -671,6 +692,32 @@ double CMyTrade::TradeMinusPrice(double price,double adjustPrice=0)
    price=NormalizeDouble(lastDealPrice-(price*point)+(adjustPrice*point),digits);
    return price;
   };
+//+------------------------------------------------------------------+
+//| Sum the current position open price with the next price.
+//| If the adjustPrice is different from 0. Minus the price with the adjustPrice.                                                                 |
+//+------------------------------------------------------------------+
+double CMyTrade::TradePositionSumPrice(double price,double adjustPrice=0)
+  {
+   double positionPrice=PositionGetDouble(POSITION_PRICE_OPEN);
+   int digits=(int)SymbolInfoInteger(_Symbol,SYMBOL_DIGITS);
+   double point=SymbolInfoDouble(_Symbol,SYMBOL_POINT);
+
+   price=NormalizeDouble(positionPrice+(price*point)-(adjustPrice*point),digits);
+   return price;
+  }
+//+------------------------------------------------------------------+
+//| Minus the current position open price with the next price.
+//| If the adjustPrice is different from 0. Sum the price with the adjustPrice.
+//+------------------------------------------------------------------+
+double CMyTrade::TradePositionMinusPrice(double price,double adjustPrice=0)
+  {
+   double positionPrice=PositionGetDouble(POSITION_PRICE_OPEN);
+   int digits=(int)SymbolInfoInteger(_Symbol,SYMBOL_DIGITS);
+   double point=SymbolInfoDouble(_Symbol,SYMBOL_POINT);
+
+   price=NormalizeDouble(positionPrice-(price*point)+(adjustPrice*point),digits);
+   return price;
+  }
 //+------------------------------------------------------------------+
 //| Select the current Position                                                                  
 //+------------------------------------------------------------------+
