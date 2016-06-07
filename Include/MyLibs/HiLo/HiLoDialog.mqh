@@ -55,6 +55,8 @@ class CHiLoDialog : public CAppDialog
    CEdit             m_edit_stop_loss;
    CButton           m_button_update_tpsl;
 
+   CEdit             m_edit_volume_status;
+
    int               m_current_volume;
    int               m_next_volume;
 
@@ -68,7 +70,9 @@ public:
    bool              ChartEvent(const int id,const long &lparam,const double &dparam,const string &sparam);
 
    void              InitToDefaults();
+   void              InitWhenTradeIsOn();
    void              ResetVolumesToDefault();
+   void              PrintAllStatus();
 
    bool              IsBuyChecked(void);
    bool              IsSellChecked(void);
@@ -79,8 +83,10 @@ public:
 
    void              UpMartingale(void);
    void              DownMartingale(void);
+   void              UpOnlyNextVolume(void);
 
    void              LoadVolumesToEditBox(void);
+   void              LoadVolumeStatusToEditBox(void);
 
    int               CurrentVolume();
    int               NextVolume();
@@ -106,10 +112,12 @@ protected:
    bool              CreateStopLoss(void);
    bool              CreateButtonUpdateTpSl(void);
 
+   bool              CreateEditVolumeStatus(void);
+
    //--- handlers of the dependent controls events
-   void              OnClickCheckBoxBuy(void);
-   void              OnClickCheckBoxSell(void);
-   void              OnClickCheckBoxCloseTpSl(void);
+   void              OnChangeCheckBoxBuy(void);
+   void              OnChangeCheckBoxSell(void);
+   void              OnChangeCheckBoxCloseTpSl(void);
 
    void              OnClickButtonStart(void);
    void              OnClickButtonStop(void);
@@ -126,9 +134,9 @@ protected:
 //| Event Handling                                                   |
 //+------------------------------------------------------------------+
 EVENT_MAP_BEGIN(CHiLoDialog)
-ON_EVENT(ON_CLICK,m_checkbox_buy,OnClickCheckBoxBuy)
-ON_EVENT(ON_CLICK,m_checkbox_sell,OnClickCheckBoxSell)
-ON_EVENT(ON_CLICK,m_checkbox_close_on_tpsl,OnClickCheckBoxCloseTpSl)
+ON_EVENT(ON_CHANGE,m_checkbox_buy,OnChangeCheckBoxBuy)
+ON_EVENT(ON_CHANGE,m_checkbox_sell,OnChangeCheckBoxSell)
+ON_EVENT(ON_CHANGE,m_checkbox_close_on_tpsl,OnChangeCheckBoxCloseTpSl)
 
 ON_EVENT(ON_CLICK,m_button_start,OnClickButtonStart)
 ON_EVENT(ON_CLICK,m_button_stop,OnClickButtonStop)
@@ -189,7 +197,11 @@ bool CHiLoDialog::Create(const long chart,const string name,const int subwin,con
    if(!CreateButtonUpdateTpSl())
       return false;
 
+//if(!CreateEditVolumeStatus())
+//   return false;
+
    InitToDefaults();
+   InitWhenTradeIsOn();
 
    return true;
   }
@@ -229,6 +241,31 @@ void CHiLoDialog::InitToDefaults(void)
 
    m_edit_take_profit.Text(DoubleToString(InpTradeTakeProfit,0));
    m_edit_stop_loss.Text(DoubleToString(InpTradeStopLoss,0));
+
+   PrintAllStatus();
+  }
+//+------------------------------------------------------------------+
+//| Init when there is already current position
+//+------------------------------------------------------------------+
+void CHiLoDialog::InitWhenTradeIsOn()
+  {
+   MyTrade.LoadTradeOperationFromPosition();
+
+   if(MyTrade.IsOnTradeOperation())
+     {
+      if(MyTrade.IsOnBuyTrade())
+         m_checkbox_buy.Checked(true);
+      else
+         m_checkbox_sell.Checked(true);
+
+      m_current_volume=MyTrade.CurrentTradeVolume();
+      UpOnlyNextVolume();
+
+      LoadVolumesToEditBox();
+
+      Print("******** Printing again the status since there is a current position ******** ");
+      PrintAllStatus();
+     }
   }
 //+------------------------------------------------------------------+
 //| Reset the current volume to default value.                                                                 
@@ -236,8 +273,33 @@ void CHiLoDialog::InitToDefaults(void)
 void CHiLoDialog::ResetVolumesToDefault(void)
   {
    m_current_volume=InpTradeVolume;
-   m_next_volume=2*m_current_volume;
+   m_next_volume=(int)(m_current_volume*InpTradeVolumeFactor);
    LoadVolumesToEditBox();
+  }
+//+------------------------------------------------------------------+
+//| Print All Status                                                                 |
+//+------------------------------------------------------------------+
+void CHiLoDialog::PrintAllStatus(void)
+  {
+   string buyChecked=m_checkbox_buy.Checked() ? "Y" : "N";
+   string sellChecked=m_checkbox_sell.Checked() ? "Y" : "N";
+   string closeTpSlChecked=m_checkbox_close_on_tpsl.Checked() ? "Y" : "N";
+
+   string buyTrade=MyTrade.IsOnBuyTrade() ? "Y" : "N";
+   string sellTrade=MyTrade.IsOnSellTrade() ? "Y" : "N";
+
+   string tpChecked=m_checkbox_take_profit.Checked() ? "Y" : "N";
+   string tpValue=m_edit_take_profit.Text();
+
+   string slChecked=m_checkbox_stop_loss.Checked() ? "Y" : "N";
+   string slValue=m_edit_stop_loss.Text();
+
+   PrintFormat("Status for: %s",_Symbol);
+   PrintFormat("Buy: (%s), Sell: (%s), Close P/L: (%s)",buyChecked,sellChecked,closeTpSlChecked);
+   PrintFormat("Buy Trade: (%s), Sell Trade: (%s)",buyTrade,sellTrade);
+   PrintFormat("Volume: (%d), Next: (%d), Martingale: (%.2f), Price Per Volume: (%.2f)",m_current_volume,m_next_volume,InpTradeVolumeFactor,InpTradePricePerVolume);
+   PrintFormat("Take Profit: (%s - %s), Stop Loss: (%s - %s)",tpChecked,tpValue,slChecked,slValue);
+   PrintFormat("Finished Status");
   }
 //+------------------------------------------------------------------+
 //| Verify if the m_checkbox_buy is Checked
@@ -297,12 +359,35 @@ void CHiLoDialog::DownMartingale(void)
    LoadVolumesToEditBox();
   }
 //+------------------------------------------------------------------+
+//| Down the martingale
+//+------------------------------------------------------------------+
+void CHiLoDialog::UpOnlyNextVolume(void)
+  {
+   m_next_volume=(int)(m_current_volume*InpTradeVolumeFactor);
+  }
+//+------------------------------------------------------------------+
 //| Load volumes to Edit Box
 //+------------------------------------------------------------------+
 void CHiLoDialog::LoadVolumesToEditBox(void)
   {
    m_edit_volume.Text(IntegerToString(m_current_volume));
    m_edit_next_volume.Text(IntegerToString(m_next_volume));
+   ChartRedraw();
+  }
+//+------------------------------------------------------------------+
+//| Load the volume status (Volume/Factor/Profit) in the Edit Box
+//+------------------------------------------------------------------+
+void CHiLoDialog::LoadVolumeStatusToEditBox(void)
+  {
+//   string newStatus=MyTrade.CurrentPositionStatus();
+//   string currentStatus=m_edit_volume_status.Text();
+//
+//   if(currentStatus!=newStatus)
+//     {
+//     Print("aquiii");
+//      m_edit_volume_status.Text(newStatus);
+//      ChartRedraw();
+//     }
   }
 //+------------------------------------------------------------------+
 //| Returns the current Volume
@@ -549,19 +634,19 @@ bool CHiLoDialog::CreateMartingale(void)
    if(!Add(m_label_martingale))
       return false;
 
-//--- coordinates up button
+//--- coordinates down button
    x1=INDENT_LEFT+2*(WIDTH_DEFAULT+CONTROLS_GAP_X);
    y1=int(0.5*INDENT_TOP)+3*(HEIGHT_DEFAULT+CONTROLS_GAP_Y);
    x2=x1+int(0.5*WIDTH_DEFAULT);
    y2=y1+HEIGHT_DEFAULT;
 
-//
-////--- create up button 
-   if(!m_button_up_martingale.Create(m_chart_id,"m_button_up_martingale",m_subwin,x1,y1,x2,y2))
+
+////--- create down button 
+   if(!m_button_down_martingale.Create(m_chart_id,"m_button_down_martingale",m_subwin,x1,y1,x2,y2))
       return false;
-   if(!m_button_up_martingale.Text("Up"))
+   if(!m_button_down_martingale.Text("Down"))
       return false;
-   if(!Add(m_button_up_martingale))
+   if(!Add(m_button_down_martingale))
       return false;
 
 //--- coordinates up button
@@ -570,13 +655,12 @@ bool CHiLoDialog::CreateMartingale(void)
    x2=x1+int(0.5*WIDTH_DEFAULT);
    y2=y1+HEIGHT_DEFAULT;
 
-
 ////--- create up button 
-   if(!m_button_down_martingale.Create(m_chart_id,"m_button_down_martingale",m_subwin,x1,y1,x2,y2))
+   if(!m_button_up_martingale.Create(m_chart_id,"m_button_up_martingale",m_subwin,x1,y1,x2,y2))
       return false;
-   if(!m_button_down_martingale.Text("Down"))
+   if(!m_button_up_martingale.Text("Up"))
       return false;
-   if(!Add(m_button_down_martingale))
+   if(!Add(m_button_up_martingale))
       return false;
 
    return true;
@@ -665,25 +749,46 @@ bool CHiLoDialog::CreateButtonUpdateTpSl(void)
    return true;
   }
 //+------------------------------------------------------------------+
+//| Create the Edit Volume Status
+//+------------------------------------------------------------------+
+bool CHiLoDialog::CreateEditVolumeStatus(void)
+  {
+//-- edit
+   int x1=INDENT_LEFT;
+   int y1=INDENT_TOP+7*(HEIGHT_DEFAULT+CONTROLS_GAP_Y);
+   int x2=x1+3*WIDTH_DEFAULT;
+   int y2=y1+HEIGHT_DEFAULT;
+
+   if(!m_edit_volume_status.Create(m_chart_id,"m_edit_volume_status",m_subwin,x1,y1,x2,y2))
+      return false;
+
+   string status=MyTrade.CurrentPositionStatus();
+   if(!m_edit_volume_status.Text(status))
+      return false;
+   if(!Add(m_edit_volume_status))
+      return false;
+   return true;
+  }
+//+------------------------------------------------------------------+
 //| Event Buy CheckBox
 //+------------------------------------------------------------------+
-void CHiLoDialog::OnClickCheckBoxBuy(void)
+void CHiLoDialog::OnChangeCheckBoxBuy(void)
   {
-
+   PrintAllStatus();
   }
 //+------------------------------------------------------------------+
 //| Event Sell CheckBox
 //+------------------------------------------------------------------+
-void CHiLoDialog::OnClickCheckBoxSell(void)
+void CHiLoDialog::OnChangeCheckBoxSell(void)
   {
-
+   PrintAllStatus();
   }
 //+------------------------------------------------------------------+
 //| Event Close Profit Loss CheckBox
 //+------------------------------------------------------------------+
-void CHiLoDialog::OnClickCheckBoxCloseTpSl(void)
+void CHiLoDialog::OnChangeCheckBoxCloseTpSl(void)
   {
-
+   PrintAllStatus();
   }
 //+------------------------------------------------------------------+
 //| Event Start Button
@@ -715,7 +820,7 @@ void CHiLoDialog::OnChangeEditVolume(void)
    if(v!=m_current_volume)
      {
       m_current_volume=v;
-      m_next_volume=(int)(m_current_volume*InpTradeVolumeFactor);
+      UpOnlyNextVolume();
 
       LoadVolumesToEditBox();
      }

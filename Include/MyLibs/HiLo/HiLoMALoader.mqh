@@ -8,7 +8,7 @@
 //+------------------------------------------------------------------+
 //| Class to work with iCustom on HiLo Ma Activator
 //+------------------------------------------------------------------+
-class CHiLoLoader
+class CHiLoMALoader
   {
 private:
    //--- vars for HiLo Loader
@@ -23,9 +23,9 @@ public:
 
   };
 //+------------------------------------------------------------------+
-//|  Init load the iCustom for HiLo MA Activator.ex5                                                                |
+//|  Init load the iCustom for HiLo MA Activator.ex5
 //+------------------------------------------------------------------+
-bool CHiLoLoader::Init()
+bool CHiLoMALoader::Init()
   {
    m_hilo_custom_handle=iCustom(_Symbol,InpTradeTimeFrame,"HiLo MA Activator.ex5",
                             InpHiLoData,InpPeriod,InpMaMethod,
@@ -43,14 +43,14 @@ bool CHiLoLoader::Init()
 //+------------------------------------------------------------------+
 //| Destroy the m_hilo_custom_handle                                                                 |
 //+------------------------------------------------------------------+
-void CHiLoLoader::Destroy(void)
+void CHiLoMALoader::Destroy(void)
   {
    IndicatorRelease(m_hilo_custom_handle);
   }
 //+------------------------------------------------------------------+
 //| Verify is there any operation for each candle.                                                                 |
 //+------------------------------------------------------------------+
-void CHiLoLoader::OnTick(void)
+void CHiLoMALoader::OnTick(void)
   {
    HiLoTrades.OnTick(m_hilo_custom_handle,m_min_rates_total);
   }

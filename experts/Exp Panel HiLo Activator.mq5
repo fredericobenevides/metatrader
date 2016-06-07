@@ -46,7 +46,7 @@ input string          InpBuyTradeSound="dingdong";                    // The Sou
 int first_initialization=true; // flag indicate if is the first initialization
 
 CHiLoDialog HiLoDialog;
-CHiLoLoader HiLoLoader;
+CHiLoMALoader HiLoMALoader;
 CHiLoTrades HiLoTrades;
 CBreakEven BreakEven;
 CMyTrade MyTrade;
@@ -66,7 +66,7 @@ int OnInit()
          return(INIT_FAILED);
       //--- run application
 
-      if(!HiLoLoader.Init())
+      if(!HiLoMALoader.Init())
          return(INIT_FAILED);
 
       HiLoDialog.Run();
@@ -87,7 +87,7 @@ void OnDeinit(const int reason)
    if(reason!=REASON_CHARTCHANGE)
      {
       HiLoDialog.Destroy(reason);
-      HiLoLoader.Destroy();
+      HiLoMALoader.Destroy();
 
       first_initialization=true;
      }
@@ -100,7 +100,7 @@ void OnDeinit(const int reason)
 //+------------------------------------------------------------------+
 void OnTick()
   {
-   HiLoLoader.OnTick();
+   HiLoMALoader.OnTick();
   }
 //+------------------------------------------------------------------+
 //| Expert chart event function                                      |
