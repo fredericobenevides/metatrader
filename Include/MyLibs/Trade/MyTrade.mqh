@@ -48,17 +48,27 @@ public:
    bool              HadTakeProfitOnHistory(ENUM_TIMEFRAMES periodStart);
    bool              HadStopLossOnHistory(ENUM_TIMEFRAMES periodStart);
    bool              HadCommentOnHistory(ENUM_TIMEFRAMES periodStart,string comment);
+
    bool              LastDealOnHistoryIsProfitPositive();
    double            LastDealPriceOnHistory();
+   string            CurrentPositionStatus();
 
    double            CalculateBreakEven(int baseVolume,double pricePerVolume=0);
    double            CalculateBreakEvenWithLastDeal(int baseVolume,double pricePerVolume=0);
 
    void              EnableSoundOnOperation(string sellSoundsName="alert",string buySoundsName="alert2");
+   void              PlayBuySound();
+   void              PlaySellSound();
+   void              PlayErrorSound();
 
    // utils
    bool              IsNewBar(ENUM_TIMEFRAMES currentTimeFrame);
    bool              IsOnTradeOperation();
+   bool              IsOnBuyTrade();
+   bool              IsOnSellTrade();
+   int               CurrentTradeVolume();
+   void              LoadTradeOperationFromPosition();
+
    double            TradeSumPrice(double price,double adjustPrice=0);
    double            TradeMinusPrice(double price,double adjustPrice=0);
    void              CurrentPositionSelect();
@@ -229,16 +239,14 @@ bool CMyTrade::ExecuteBuyTrade(string methodName,int volume)
    if(m_trade.Buy(volume,NULL,0.0,0,0,comment))
      {
       Print("",methodName,"() method executed successfully. Return code=",m_trade.ResultRetcode()," (",m_trade.ResultRetcodeDescription(),")");
-      if(m_play_sound_on_operation)
-         PlaySound(m_buy_trade_sound_name);
+      PlayBuySound();
 
       return true;
      }
    else
      {
       Print("",methodName,"() method failed. Return code=",m_trade.ResultRetcode(),". Code description: ",m_trade.ResultRetcodeDescription());
-      if(m_play_sound_on_operation)
-         PlaySound(m_error_trade_sound_name);
+      PlayErrorSound();
 
       return false;
      }
@@ -254,16 +262,14 @@ bool CMyTrade::ExecuteSellTrade(string methodName,int volume)
    if(m_trade.Sell(volume,NULL,0.0,0,0,comment))
      {
       Print("",methodName,"() method executed successfully. Return code=",m_trade.ResultRetcode()," (",m_trade.ResultRetcodeDescription(),")");
-      if(m_play_sound_on_operation)
-         PlaySound(m_sell_trade_sound_name);
+      PlaySellSound();
 
       return true;
      }
    else
      {
       Print("",methodName,"() method failed. Return code=",m_trade.ResultRetcode(),". Code description: ",m_trade.ResultRetcodeDescription());
-      if(m_play_sound_on_operation)
-         PlaySound(m_error_trade_sound_name);
+      PlayErrorSound();
 
       return false;
      }
@@ -354,9 +360,15 @@ bool CMyTrade::ModifySellTpSl(double stopLoss=0,double takeProfit=0)
 void CMyTrade::EventTpSlExecuted(void)
   {
    if(m_is_on_buy_trade)
+     {
       m_is_on_buy_trade=false;
+      PlaySellSound(); // sell because is selling on a buy operation
+     }
    else
+     {
       m_is_on_sell_trade=false;
+      PlayBuySound(); // buy because is buying on a sell operation
+     }
 
    Print("********** Executed BUY TP / SL operation! **********");
   }
@@ -429,7 +441,26 @@ double CMyTrade::LastDealPriceOnHistory()
    HistorySelect(start,end);
 
    int deals=HistoryDealsTotal();
-   return HistoryDealGetDouble(deals,DEAL_PRICE);
+   ulong ticket=HistoryDealGetTicket(deals-1);
+
+   double price=HistoryDealGetDouble(ticket,DEAL_PRICE);
+   return price;
+  }
+//+------------------------------------------------------------------+
+//| Return the current position status with (Volume/Points/Profit)
+//+------------------------------------------------------------------+
+string CMyTrade::CurrentPositionStatus(void)
+  {
+   CurrentPositionSelect();
+
+   double volume=PositionGetDouble(POSITION_VOLUME);
+   string sVolume=DoubleToString(volume,0);
+   string profit=DoubleToString(PositionGetDouble(POSITION_PROFIT),2);
+
+   if(volume==0)
+      return "0.0";
+
+   return StringFormat("Volume: %s / Profit: %s",sVolume,profit);
   }
 //+------------------------------------------------------------------+
 //| Calculate the current points of BreakEven for the current Symbol                                                                 
@@ -524,6 +555,30 @@ void CMyTrade::EnableSoundOnOperation(string sellSoundsName="alert",string buySo
    m_error_trade_sound_name="timeout";
   };
 //+------------------------------------------------------------------+
+//| Play sounds for BUY Operation                                                                 |
+//+------------------------------------------------------------------+
+void CMyTrade::PlayBuySound()
+  {
+   if(m_play_sound_on_operation)
+      PlaySound(m_buy_trade_sound_name);
+  }
+//+------------------------------------------------------------------+
+//| Play sounds for SELL Operation                                                                |
+//+------------------------------------------------------------------+
+void CMyTrade::PlaySellSound()
+  {
+   if(m_play_sound_on_operation)
+      PlaySound(m_sell_trade_sound_name);
+  }
+//+------------------------------------------------------------------+
+//| Play sounds for ERROR Operation                                                                |
+//+------------------------------------------------------------------+
+void CMyTrade::PlayErrorSound()
+  {
+   if(m_play_sound_on_operation)
+      PlaySound(m_error_trade_sound_name);
+  }
+//+------------------------------------------------------------------+
 //| Verify if the Chart has a New Bar                                                                  
 //+------------------------------------------------------------------+
 bool CMyTrade::IsNewBar(ENUM_TIMEFRAMES currentTimeFrame)
@@ -550,7 +605,45 @@ bool CMyTrade::IsNewBar(ENUM_TIMEFRAMES currentTimeFrame)
 //+------------------------------------------------------------------+
 bool CMyTrade::IsOnTradeOperation(void)
   {
-   return m_is_on_buy_trade || m_is_on_sell_trade;
+   return IsOnBuyTrade() || IsOnSellTrade();
+  }
+//+------------------------------------------------------------------+
+//| Verify if is on a BUY trade operation
+//+------------------------------------------------------------------+
+bool CMyTrade::IsOnBuyTrade()
+  {
+   return m_is_on_buy_trade;
+  }
+//+------------------------------------------------------------------+
+//| Verify if is on a SELL trade operation
+//+------------------------------------------------------------------+
+bool CMyTrade::IsOnSellTrade()
+  {
+   return m_is_on_sell_trade;
+  }
+//+------------------------------------------------------------------+
+//| Return the current trade volume
+//+------------------------------------------------------------------+
+int CMyTrade::CurrentTradeVolume()
+  {
+   return m_current_trade_volume;
+  }
+//+------------------------------------------------------------------+
+//| Load the Status for TradeOperation using the Current Position
+//+------------------------------------------------------------------+
+void CMyTrade::LoadTradeOperationFromPosition()
+  {
+   CurrentPositionSelect();
+
+   m_current_trade_volume=(int)PositionGetDouble(POSITION_VOLUME);
+   if(m_current_trade_volume!=0)
+     {
+      ENUM_POSITION_TYPE type=(ENUM_POSITION_TYPE)PositionGetInteger(POSITION_TYPE);
+      if(type==POSITION_TYPE_BUY)
+         m_is_on_buy_trade=true;
+      else
+         m_is_on_sell_trade=true;
+     }
   }
 //+------------------------------------------------------------------+
 //| Sum the current last deal price with the next price.
