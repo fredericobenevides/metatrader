@@ -94,6 +94,8 @@ void OnDeinit(const int reason)
    else
       first_initialization=false;
 
+// hide breakEven
+   BreakEven.Hide();
   }
 //+------------------------------------------------------------------+
 //| Expert tick function                                             |

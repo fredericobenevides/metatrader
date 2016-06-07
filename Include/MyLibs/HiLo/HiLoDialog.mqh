@@ -262,6 +262,7 @@ void CHiLoDialog::InitWhenTradeIsOn()
       UpOnlyNextVolume();
 
       LoadVolumesToEditBox();
+      HiLoTrades.BreakEvenShow();
 
       Print("******** Printing again the status since there is a current position ******** ");
       PrintAllStatus();

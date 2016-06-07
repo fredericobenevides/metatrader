@@ -44,7 +44,7 @@ void CHiLoTrades::OnTick(int handle,int minRatesTotal)
   {
    if(BarsCalculated(handle)<minRatesTotal)
       return;
-      
+
    HiLoDialog.LoadVolumeStatusToEditBox();
 
    if(MyTrade.IsNewBar(InpTradeTimeFrame))
