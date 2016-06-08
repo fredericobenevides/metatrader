@@ -17,7 +17,10 @@ private:
    double            m_high_invalid_hilo[1];
    double            m_low_invalid_hilo[1];
 
+   datetime          m_last_time;
+
 public:
+                     CHiLoTrades(void);
    void              OnTick(int handle,int minRatesTotal);
    void              OnTradeTransaction(ENUM_TRADE_TRANSACTION_TYPE tradeType);
 
@@ -36,7 +39,16 @@ public:
 
    void              BreakEvenShow();
    void              BreakEvenHide();
+
+   bool              HasTimeToUpdateStatus();
   };
+//+------------------------------------------------------------------+
+//| Default Constructor                                                                 
+//+------------------------------------------------------------------+
+CHiLoTrades::CHiLoTrades(void)
+  {
+   m_last_time=TimeTradeServer();
+  }
 //+------------------------------------------------------------------+
 //| Verify is there any operation for each candle. 
 //+------------------------------------------------------------------+
@@ -44,8 +56,6 @@ void CHiLoTrades::OnTick(int handle,int minRatesTotal)
   {
    if(BarsCalculated(handle)<minRatesTotal)
       return;
-
-   HiLoDialog.LoadVolumeStatusToEditBox();
 
    if(MyTrade.IsNewBar(InpTradeTimeFrame))
      {
@@ -68,8 +78,8 @@ void CHiLoTrades::OnTick(int handle,int minRatesTotal)
       //--- open operation only if is a valid HiLo
       if(m_high_hilo[0]!=EMPTY_VALUE)
         {
-         // if closePl is Checked. Don't open a new operation
-         if(HiLoDialog.IsCloseTpSlChecked())
+         // if close HiLo is Checked. Don't open a new operation
+         if(HiLoDialog.IsCloseHiLoChecked())
             HiLoDialog.InitToDefaults();
          else if(HiLoDialog.IsSellChecked())
             TradeSellOpen();
@@ -82,13 +92,16 @@ void CHiLoTrades::OnTick(int handle,int minRatesTotal)
       //--- open operation only if is a valid HiLo
       if(m_low_hilo[0]!=EMPTY_VALUE)
         {
-         // if closePl is Checked. Don't open a new operation
-         if(HiLoDialog.IsCloseTpSlChecked())
+         // if close HiLo is Checked. Don't open a new operation
+         if(HiLoDialog.IsCloseHiLoChecked())
             HiLoDialog.InitToDefaults();
          else if(HiLoDialog.IsBuyChecked())
             TradeBuyOpen();
         }
      }
+
+//if(HasTimeToUpdateStatus())
+//   HiLoDialog.LoadVolumeStatusToLabel();
   }
 //+------------------------------------------------------------------+
 //| Verify if has a TakeProfit or StopLoss operation                                                                 
@@ -166,10 +179,7 @@ void CHiLoTrades::TradeBuyClose(void)
   {
    if(MyTrade.TradeBuyClose("TradeBuyClose"))
      {
-      // only calculate the martingale if the last deal is negative.
-      if(!MyTrade.LastDealOnHistoryIsProfitPositive())
-         HiLoDialog.UpMartingale();
-
+      HiLoDialog.UpMartingale();
       BreakEvenHide();
      }
   }
@@ -180,10 +190,7 @@ void CHiLoTrades::TradeSellClose(void)
   {
    if(MyTrade.TradeSellClose("TradeSellClose"))
      {
-      // only calculate the martingale if the last deal is negative.
-      if(!MyTrade.LastDealOnHistoryIsProfitPositive())
-         HiLoDialog.UpMartingale();
-
+      HiLoDialog.UpMartingale();
       BreakEvenHide();
      }
   }
@@ -245,6 +252,10 @@ void CHiLoTrades::EventTpSlExecuted(void)
    HiLoDialog.ResetVolumesToDefault();
    MyTrade.EventTpSlExecuted();
    BreakEvenHide();
+
+// if close Take Profit is Checked. Don't open a new operation
+   if(HiLoDialog.IsCloseTpChecked())
+      HiLoDialog.InitToDefaults();
   }
 //+------------------------------------------------------------------+
 //| Show the BreakEven on Chart                                                                 |
@@ -259,5 +270,24 @@ void CHiLoTrades::BreakEvenShow()
 void CHiLoTrades::BreakEvenHide()
   {
    BreakEven.Hide();
+  }
+//+------------------------------------------------------------------+
+//| Verify if has a new time to update the status                                                               |
+//+------------------------------------------------------------------+
+bool CHiLoTrades::HasTimeToUpdateStatus(void)
+  {
+   datetime currentTime=TimeTradeServer();
+   uint cCurrentTime=(uint)currentTime;
+
+   uint lTime=(uint)m_last_time;
+
+   uint between=cCurrentTime-lTime;
+   if(between>=1)
+     {
+      m_last_time=currentTime;
+      return true;
+     }
+
+   return false;
   }
 //+------------------------------------------------------------------+

@@ -5,7 +5,7 @@
 //+------------------------------------------------------------------+
 #property copyright "Frederico Benevides"
 #property link      "fredbene@gmail.com"
-#property version   "1.00"
+#property version   "2.00"
 
 #resource "\\Indicators\\HiLo MA Activator.ex5"
 
