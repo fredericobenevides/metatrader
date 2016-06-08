@@ -34,7 +34,8 @@ class CHiLoDialog : public CAppDialog
   {
    CCheckBox         m_checkbox_buy;
    CCheckBox         m_checkbox_sell;
-   CCheckBox         m_checkbox_close_on_tpsl;
+   CCheckBox         m_checkbox_close_on_hilo;
+   CCheckBox         m_checkbox_close_on_tp;
 
    CButton           m_button_start;
    CButton           m_button_stop;
@@ -55,7 +56,7 @@ class CHiLoDialog : public CAppDialog
    CEdit             m_edit_stop_loss;
    CButton           m_button_update_tpsl;
 
-   CEdit             m_edit_volume_status;
+   CLabel            m_label_volume_status;
 
    int               m_current_volume;
    int               m_next_volume;
@@ -76,7 +77,8 @@ public:
 
    bool              IsBuyChecked(void);
    bool              IsSellChecked(void);
-   bool              IsCloseTpSlChecked(void);
+   bool              IsCloseHiLoChecked(void);
+   bool              IsCloseTpChecked(void);
 
    bool              IsTakeProfitChecked(void);
    bool              IsStopLossChecked(void);
@@ -86,7 +88,7 @@ public:
    void              UpOnlyNextVolume(void);
 
    void              LoadVolumesToEditBox(void);
-   void              LoadVolumeStatusToEditBox(void);
+   void              LoadVolumeStatusToLabel(void);
 
    int               CurrentVolume();
    int               NextVolume();
@@ -98,7 +100,8 @@ protected:
    //--- create dependent controls
    bool              CreateCheckBoxBuy(void);
    bool              CreateCheckBoxSell(void);
-   bool              CreateCheckBoxCloseOnTpSL(void);
+   bool              CreateCheckBoxCloseOnHiLo(void);
+   bool              CreateCheckBoxCloseOnTp(void);
 
    bool              CreateButtonStart(void);
    bool              CreateButtonStop(void);
@@ -117,7 +120,7 @@ protected:
    //--- handlers of the dependent controls events
    void              OnChangeCheckBoxBuy(void);
    void              OnChangeCheckBoxSell(void);
-   void              OnChangeCheckBoxCloseTpSl(void);
+   void              OnChangeCheckBoxCloseHiLo(void);
 
    void              OnClickButtonStart(void);
    void              OnClickButtonStop(void);
@@ -136,7 +139,7 @@ protected:
 EVENT_MAP_BEGIN(CHiLoDialog)
 ON_EVENT(ON_CHANGE,m_checkbox_buy,OnChangeCheckBoxBuy)
 ON_EVENT(ON_CHANGE,m_checkbox_sell,OnChangeCheckBoxSell)
-ON_EVENT(ON_CHANGE,m_checkbox_close_on_tpsl,OnChangeCheckBoxCloseTpSl)
+ON_EVENT(ON_CHANGE,m_checkbox_close_on_hilo,OnChangeCheckBoxCloseHiLo)
 
 ON_EVENT(ON_CLICK,m_button_start,OnClickButtonStart)
 ON_EVENT(ON_CLICK,m_button_stop,OnClickButtonStop)
@@ -173,7 +176,9 @@ bool CHiLoDialog::Create(const long chart,const string name,const int subwin,con
       return false;
    if(!CreateCheckBoxSell())
       return false;
-   if(!CreateCheckBoxCloseOnTpSL())
+   if(!CreateCheckBoxCloseOnHiLo())
+      return false;
+   if(!CreateCheckBoxCloseOnTp())
       return false;
 
    if(!CreateButtonStart())
@@ -197,8 +202,8 @@ bool CHiLoDialog::Create(const long chart,const string name,const int subwin,con
    if(!CreateButtonUpdateTpSl())
       return false;
 
-//if(!CreateEditVolumeStatus())
-//   return false;
+   //if(!CreateEditVolumeStatus())
+   //   return false;
 
    InitToDefaults();
    InitWhenTradeIsOn();
@@ -237,7 +242,8 @@ void CHiLoDialog::InitToDefaults(void)
 
    m_checkbox_buy.Checked(false);
    m_checkbox_sell.Checked(false);
-   m_checkbox_close_on_tpsl.Checked(false);
+   m_checkbox_close_on_hilo.Checked(false);
+   m_checkbox_close_on_tp.Checked(false);
 
    m_edit_take_profit.Text(DoubleToString(InpTradeTakeProfit,0));
    m_edit_stop_loss.Text(DoubleToString(InpTradeStopLoss,0));
@@ -284,7 +290,7 @@ void CHiLoDialog::PrintAllStatus(void)
   {
    string buyChecked=m_checkbox_buy.Checked() ? "Y" : "N";
    string sellChecked=m_checkbox_sell.Checked() ? "Y" : "N";
-   string closeTpSlChecked=m_checkbox_close_on_tpsl.Checked() ? "Y" : "N";
+   string closeTpSlChecked=m_checkbox_close_on_hilo.Checked() ? "Y" : "N";
 
    string buyTrade=MyTrade.IsOnBuyTrade() ? "Y" : "N";
    string sellTrade=MyTrade.IsOnSellTrade() ? "Y" : "N";
@@ -317,11 +323,18 @@ bool CHiLoDialog::IsSellChecked(void)
    return m_checkbox_sell.Checked();
   }
 //+------------------------------------------------------------------+
-//| Verify if the m_checkbox_close_on_tpsl is Checked
+//| Verify if the m_checkbox_close_on_hilo is Checked
 //+------------------------------------------------------------------+
-bool CHiLoDialog::IsCloseTpSlChecked(void)
+bool CHiLoDialog::IsCloseHiLoChecked(void)
   {
-   return m_checkbox_close_on_tpsl.Checked();
+   return m_checkbox_close_on_hilo.Checked();
+  }
+//+------------------------------------------------------------------+
+//| Verify if the m_checkbox_close_on_tp is Checked
+//+------------------------------------------------------------------+
+bool CHiLoDialog::IsCloseTpChecked(void)
+  {
+   return m_checkbox_close_on_tp.Checked();
   }
 //+------------------------------------------------------------------+
 //| Verify if the m_checkbox_take_profit is Checked
@@ -376,19 +389,18 @@ void CHiLoDialog::LoadVolumesToEditBox(void)
    ChartRedraw();
   }
 //+------------------------------------------------------------------+
-//| Load the volume status (Volume/Factor/Profit) in the Edit Box
+//| Load the volume status (Volume/Profit/Points) in the Edit Box
 //+------------------------------------------------------------------+
-void CHiLoDialog::LoadVolumeStatusToEditBox(void)
+void CHiLoDialog::LoadVolumeStatusToLabel(void)
   {
-//   string newStatus=MyTrade.CurrentPositionStatus();
-//   string currentStatus=m_edit_volume_status.Text();
-//
-//   if(currentStatus!=newStatus)
-//     {
-//     Print("aquiii");
-//      m_edit_volume_status.Text(newStatus);
-//      ChartRedraw();
-//     }
+   string newStatus=MyTrade.CurrentPositionStatus();
+   string currentStatus=m_label_volume_status.Text();
+
+   if(currentStatus!=newStatus)
+     {
+      m_label_volume_status.Text(newStatus);
+      //ChartRedraw();
+     }
   }
 //+------------------------------------------------------------------+
 //| Returns the current Volume
@@ -447,7 +459,7 @@ bool CHiLoDialog::CreateCheckBoxBuy(void)
 bool CHiLoDialog::CreateCheckBoxSell(void)
   {
 //--- coordinates
-   int x1=INDENT_LEFT+(WIDTH_DEFAULT+CONTROLS_GAP_X);
+   int x1=INDENT_LEFT+0.5*(WIDTH_DEFAULT+CONTROLS_GAP_X);
    int y1=INDENT_TOP;
    int x2=x1+WIDTH_DEFAULT;
    int y2=y1+HEIGHT_DEFAULT;
@@ -465,20 +477,41 @@ bool CHiLoDialog::CreateCheckBoxSell(void)
 //+------------------------------------------------------------------+
 //| Create the Close If Profit / Loss CheckBox
 //+------------------------------------------------------------------+
-bool CHiLoDialog::CreateCheckBoxCloseOnTpSL(void)
+bool CHiLoDialog::CreateCheckBoxCloseOnHiLo(void)
   {
 //--- coordinates
-   int x1=INDENT_LEFT+1.6*(WIDTH_DEFAULT+CONTROLS_GAP_X);
+   int x1=INDENT_LEFT+1.1*(WIDTH_DEFAULT+CONTROLS_GAP_X);
    int y1=INDENT_TOP;
    int x2=x1+1*WIDTH_DEFAULT;
    int y2=y1+HEIGHT_DEFAULT;
 
 //--- create
-   if(!m_checkbox_close_on_tpsl.Create(m_chart_id,"m_checkbox_close_on_tpsl",m_subwin,x1,y1,x2,y2))
+   if(!m_checkbox_close_on_hilo.Create(m_chart_id,"m_checkbox_close_on_hilo",m_subwin,x1,y1,x2,y2))
       return false;
-   if(!m_checkbox_close_on_tpsl.Text("Close P/L"))
+   if(!m_checkbox_close_on_hilo.Text("Close HiLo"))
       return false;
-   if(!Add(m_checkbox_close_on_tpsl))
+   if(!Add(m_checkbox_close_on_hilo))
+      return false;
+//--- succeed
+   return true;
+  }
+//+------------------------------------------------------------------+
+//| Create the Close If Profit / Loss CheckBox
+//+------------------------------------------------------------------+
+bool CHiLoDialog::CreateCheckBoxCloseOnTp(void)
+  {
+//--- coordinates
+   int x1=INDENT_LEFT+2.2*(WIDTH_DEFAULT+CONTROLS_GAP_X);
+   int y1=INDENT_TOP;
+   int x2=x1+1*WIDTH_DEFAULT;
+   int y2=y1+HEIGHT_DEFAULT;
+
+//--- create
+   if(!m_checkbox_close_on_tp.Create(m_chart_id,"m_checkbox_close_on_tp",m_subwin,x1,y1,x2,y2))
+      return false;
+   if(!m_checkbox_close_on_tp.Text("Close Tp"))
+      return false;
+   if(!Add(m_checkbox_close_on_tp))
       return false;
 //--- succeed
    return true;
@@ -760,13 +793,13 @@ bool CHiLoDialog::CreateEditVolumeStatus(void)
    int x2=x1+3*WIDTH_DEFAULT;
    int y2=y1+HEIGHT_DEFAULT;
 
-   if(!m_edit_volume_status.Create(m_chart_id,"m_edit_volume_status",m_subwin,x1,y1,x2,y2))
+   if(!m_label_volume_status.Create(m_chart_id,"m_edit_volume_status",m_subwin,x1,y1,x2,y2))
       return false;
 
    string status=MyTrade.CurrentPositionStatus();
-   if(!m_edit_volume_status.Text(status))
+   if(!m_label_volume_status.Text(status))
       return false;
-   if(!Add(m_edit_volume_status))
+   if(!Add(m_label_volume_status))
       return false;
    return true;
   }
@@ -787,7 +820,7 @@ void CHiLoDialog::OnChangeCheckBoxSell(void)
 //+------------------------------------------------------------------+
 //| Event Close Profit Loss CheckBox
 //+------------------------------------------------------------------+
-void CHiLoDialog::OnChangeCheckBoxCloseTpSl(void)
+void CHiLoDialog::OnChangeCheckBoxCloseHiLo(void)
   {
    PrintAllStatus();
   }
