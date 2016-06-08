@@ -33,8 +33,7 @@ public:
    void              TradeBuyClose(void);
    void              TradeSellClose(void);
 
-   void              ModifyBuyTpSl();
-   void              ModifySellTpSl();
+   void              ModifyTpSl();
    void              EventTpSlExecuted();
 
    void              BreakEvenShow();
@@ -128,12 +127,8 @@ void CHiLoTrades::TradeStart(bool buy,bool sell)
    int volume=HiLoDialog.CurrentVolume();
    bool executed=MyTrade.TradeStart("TradeStart",buy,sell,volume);
    if(executed)
-     {
-      if(buy)
-         ModifyBuyTpSl();
-      else
-         ModifySellTpSl();
-     }
+      ModifyTpSl();
+
    BreakEvenShow();
   }
 //+------------------------------------------------------------------+
@@ -156,7 +151,7 @@ void CHiLoTrades::TradeBuyOpen()
    int volume=HiLoDialog.CurrentVolume();
    if(MyTrade.TradeBuyOpen("TradeBuyOpen",volume))
      {
-      ModifyBuyTpSl();
+      ModifyTpSl();
       BreakEvenShow();
      }
   }
@@ -168,7 +163,7 @@ void CHiLoTrades::TradeSellOpen()
    int volume=HiLoDialog.CurrentVolume();
    if(MyTrade.TradeSellOpen("TradeSellOpen",volume))
      {
-      ModifySellTpSl();
+      ModifyTpSl();
       BreakEvenShow();
      }
   }
@@ -197,7 +192,7 @@ void CHiLoTrades::TradeSellClose(void)
 //+------------------------------------------------------------------+
 //| Modify the current Buy position to config the StopLoss and TakeProfit
 //+------------------------------------------------------------------+
-void CHiLoTrades::ModifyBuyTpSl(void)
+void CHiLoTrades::ModifyTpSl(void)
   {
    double takeProfit=0;
    double stopLoss=0;
@@ -217,32 +212,7 @@ void CHiLoTrades::ModifyBuyTpSl(void)
      }
 
    if(executeModify)
-      MyTrade.ModifyBuyTpSl(stopLoss,takeProfit);
-  }
-//+------------------------------------------------------------------+
-//| Modify the current Buy position to config the StopLoss and TakeProfit
-//+------------------------------------------------------------------+
-void CHiLoTrades::ModifySellTpSl(void)
-  {
-   double takeProfit=0;
-   double stopLoss=0;
-
-   bool executeModify=false;
-
-   if(HiLoDialog.IsTakeProfitChecked())
-     {
-      executeModify=true;
-      takeProfit=HiLoDialog.TakeProfit();
-     }
-
-   if(HiLoDialog.IsStopLossChecked())
-     {
-      executeModify=true;
-      stopLoss=HiLoDialog.StopLoss();
-     }
-
-   if(executeModify)
-      MyTrade.ModifySellTpSl(stopLoss,takeProfit);
+      MyTrade.ModifyTpSl(stopLoss,takeProfit);
   }
 //+------------------------------------------------------------------+
 //| If has Take Profit or Stop Loss. Reset the volumes and stop the Expert closing a current Operation.

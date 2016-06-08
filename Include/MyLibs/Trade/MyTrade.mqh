@@ -41,8 +41,7 @@ public:
    bool              ExecuteBuyTrade(string methodName,int volume);
    bool              ExecuteSellTrade(string methodName,int volume);
 
-   bool              ModifyBuyTpSl(double stopLoss=0,double takeProfit=0);
-   bool              ModifySellTpSl(double stopLoss=0,double takeProfit=0);
+   bool              ModifyTpSl(double stopLoss=0,double takeProfit=0);
    void              EventTpSlExecuted(void);
 
    bool              HadTakeProfitOnHistory(ENUM_TIMEFRAMES periodStart);
@@ -70,9 +69,7 @@ public:
    void              LoadTradeOperationFromPosition();
 
    double            TradeLastDealSumPrice(double price,double adjustPrice=0);
-   double            TradeLastDealMinusPrice(double price,double adjustPrice=0);
    double            TradePositionSumPrice(double price,double adjustPrice=0);
-   double            TradePositionMinusPrice(double price,double adjustPrice=0);
 
    void              CurrentPositionSelect();
    double            SymbolFactor();
@@ -278,9 +275,18 @@ bool CMyTrade::ExecuteSellTrade(string methodName,int volume)
      }
   }
 //+------------------------------------------------------------------+
-//| Modify current Buy symbol to use a Take Profit / Stop Loss                                                                 
+//| Modify current Take Profit / Stop Loss 
+//|
+//| Example for a BUY operation:
+//| Current price: 50200.
+//| Take Profit: 200  (50400)
+//| Stop Loss: 50     (50150)
+//|
+//| Example for a SELL operation:
+//| Take Profit: 200  (50000)
+//| Stop Loss: 50     (50250)
 //+------------------------------------------------------------------+
-bool CMyTrade::ModifyBuyTpSl(double stopLoss=0,double takeProfit=0)
+bool CMyTrade::ModifyTpSl(double stopLoss=0,double takeProfit=0)
   {
    CurrentPositionSelect();
 
@@ -297,57 +303,39 @@ bool CMyTrade::ModifyBuyTpSl(double stopLoss=0,double takeProfit=0)
      {
       double takeProfitCalculated=0;
       double stopLossCalculated=0;
+      double adjustIndex=i;
 
       if(takeProfit>0)
-         takeProfitCalculated=TradeLastDealSumPrice(takeProfit,i);
-      if(stopLoss>0)
-         stopLossCalculated=TradeLastDealMinusPrice(stopLoss,i);
+        {
+         // invert the signal for sell operation
+         if(IsOnSellTrade())
+           {
+            takeProfit=NormalizeDouble(takeProfit*-1,2);
+            adjustIndex=NormalizeDouble(adjustIndex*-1,2);
+           }
 
+         takeProfitCalculated=TradeLastDealSumPrice(takeProfit,adjustIndex);
+        }
+      if(stopLoss>0)
+        {
+         // invert the signal for buy operation
+         if(IsOnBuyTrade())
+           {
+            stopLoss=NormalizeDouble(stopLoss*-1,2);
+            adjustIndex=NormalizeDouble(adjustIndex*-1,2);
+           }
+
+         stopLossCalculated=TradeLastDealSumPrice(stopLoss,adjustIndex);
+        }
+
+      ResetLastError();
       if(m_trade.PositionModify(_Symbol,stopLossCalculated,takeProfitCalculated))
         {
          executedModify=true;
          break;
         }
-     }
-
-   if(executedModify)
-      Print("Successfully modified the TP / SL");
-   else
-      Print("There was ann error to modify TP / SL");
-
-   return executedModify;
-  }
-//+------------------------------------------------------------------+
-//| Modify current Sell symbol to use a Take Profit / Stop Loss                                                                 
-//+------------------------------------------------------------------+
-bool CMyTrade::ModifySellTpSl(double stopLoss=0,double takeProfit=0)
-  {
-   CurrentPositionSelect();
-
-   double tickSize=SymbolInfoDouble(_Symbol,SYMBOL_TRADE_TICK_SIZE);
-   bool executedModify=false;
-
-// Adjust the price using the tickSize.
-// Example:
-// Suppose on a market, the price is 50107. Since the step for this market
-// is 5, the correctly price should be 50100, 50105 or 50110.
-// So for each tickSize the price will be ajusting by 1 until is possible to
-// modify the position.
-   for(double i=0;i<tickSize;i++)
-     {
-      double takeProfitCalculated=0;
-      double stopLossCalculated=0;
-
-      if(takeProfit>0)
-         takeProfitCalculated=TradeLastDealMinusPrice(takeProfit,i);
-      if(stopLoss>0)
-         stopLossCalculated=TradeLastDealSumPrice(stopLoss,i);
-
-      if(m_trade.PositionModify(_Symbol,stopLossCalculated,takeProfitCalculated))
-        {
-         executedModify=true;
-         break;
-        }
+      else
+         Print("There was an error when trying to modify TP / SL position: ",GetLastError());
      }
 
    if(executedModify)
@@ -687,19 +675,6 @@ double CMyTrade::TradeLastDealSumPrice(double price,double adjustPrice=0)
    return price;
   };
 //+------------------------------------------------------------------+
-//| Minus the current last deal price with the next price.
-//| If the adjustPrice is different from 0. Sum the price with the adjustPrice.
-//+------------------------------------------------------------------+
-double CMyTrade::TradeLastDealMinusPrice(double price,double adjustPrice=0)
-  {
-   double lastDealPrice=LastDealPriceOnHistory();
-   int digits=(int)SymbolInfoInteger(_Symbol,SYMBOL_DIGITS);
-   double point=SymbolInfoDouble(_Symbol,SYMBOL_POINT);
-
-   price=NormalizeDouble(lastDealPrice-(price*point)+(adjustPrice*point),digits);
-   return price;
-  };
-//+------------------------------------------------------------------+
 //| Sum the current position open price with the next price.
 //| If the adjustPrice is different from 0. Minus the price with the adjustPrice.                                                                 |
 //+------------------------------------------------------------------+
@@ -713,28 +688,28 @@ double CMyTrade::TradePositionSumPrice(double price,double adjustPrice=0)
    return price;
   }
 //+------------------------------------------------------------------+
-//| Minus the current position open price with the next price.
-//| If the adjustPrice is different from 0. Sum the price with the adjustPrice.
-//+------------------------------------------------------------------+
-double CMyTrade::TradePositionMinusPrice(double price,double adjustPrice=0)
-  {
-   double positionPrice=PositionGetDouble(POSITION_PRICE_OPEN);
-   int digits=(int)SymbolInfoInteger(_Symbol,SYMBOL_DIGITS);
-   double point=SymbolInfoDouble(_Symbol,SYMBOL_POINT);
-
-   price=NormalizeDouble(positionPrice-(price*point)+(adjustPrice*point),digits);
-   return price;
-  }
-//+------------------------------------------------------------------+
 //| Select the current Position                                                                  
 //+------------------------------------------------------------------+
 void CMyTrade::CurrentPositionSelect()
   {
+   ENUM_POSITION_TYPE type=POSITION_TYPE_BUY;
+   if(IsOnSellTrade())
+      type=POSITION_TYPE_SELL;
+
+// load current position
+   PositionSelect(_Symbol);
    int retry=1;
-   while(!PositionSelect(_Symbol) && retry<10)
+
+   while(retry<10)
      {
-      Sleep(retry*100); // sleep for SelectRetryCount * 100 mS
+      if(PositionGetInteger(POSITION_TYPE)==type)
+         break;
+
+      Sleep(retry*200); // sleep for SelectRetryCount * 100 mS
       retry++;
+
+      // load again the current position
+      PositionSelect(_Symbol);
      }
   };
 //+------------------------------------------------------------------+
@@ -742,9 +717,13 @@ void CMyTrade::CurrentPositionSelect()
 //+------------------------------------------------------------------+
 double CMyTrade::SymbolFactor()
   {
+   if(StringFind(_Symbol,"IND")!=-1)
+      return 1;
    if(StringFind(_Symbol,"WIN")!=-1)
       return 0.2;
 
+   if(StringFind(_Symbol,"DOL")!=-1)
+      return 50;
    if(StringFind(_Symbol,"WDO")!=-1)
       return 10;
 
