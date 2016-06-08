@@ -202,8 +202,8 @@ bool CHiLoDialog::Create(const long chart,const string name,const int subwin,con
    if(!CreateButtonUpdateTpSl())
       return false;
 
-   //if(!CreateEditVolumeStatus())
-   //   return false;
+//if(!CreateEditVolumeStatus())
+//   return false;
 
    InitToDefaults();
    InitWhenTradeIsOn();
@@ -398,7 +398,7 @@ void CHiLoDialog::LoadVolumeStatusToLabel(void)
 
    if(currentStatus!=newStatus)
      {
-      m_label_volume_status.Text(newStatus);
+      //m_label_volume_status.Text(newStatus);
       //ChartRedraw();
      }
   }
@@ -864,8 +864,7 @@ void CHiLoDialog::OnChangeEditVolume(void)
 //+------------------------------------------------------------------+
 void CHiLoDialog::OnChangeUpdateTpSlButton(void)
   {
-   HiLoTrades.ModifyBuyTpSl();
-   HiLoTrades.ModifySellTpSl();
+   HiLoTrades.ModifyTpSl();
   }
 //+------------------------------------------------------------------+
 //| Event Up for Matingale Button

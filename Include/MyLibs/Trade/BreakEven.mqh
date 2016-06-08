@@ -30,6 +30,8 @@ void CBreakEven::Show(int baseVolume,double pricePerVolume=0)
             ": failed to create a horizontal line! Error code = ",GetLastError());
      }
    ObjectSetInteger(0,name,OBJPROP_COLOR,clrBlueViolet);
+   ObjectSetInteger(0,name,OBJPROP_BACK,true);
+   ChartRedraw();
   }
 //+------------------------------------------------------------------+
 //| Hide the BreakEven                                                                |
@@ -37,5 +39,6 @@ void CBreakEven::Show(int baseVolume,double pricePerVolume=0)
 void CBreakEven::Hide()
   {
    ObjectDelete(0,name);
+   ChartRedraw();
   }
 //+------------------------------------------------------------------+
