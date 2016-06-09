@@ -446,7 +446,7 @@ string CMyTrade::CurrentPositionStatus(void)
 
    double volume=PositionGetDouble(POSITION_VOLUME);
    if(volume==0)
-      return "Volume: 0 / Profit: 0 / P: 0";
+      return "Volume: 0 / Profit: 0 / Pt: 0";
 
    string sVolume=DoubleToString(volume,0);
 
@@ -455,10 +455,13 @@ string CMyTrade::CurrentPositionStatus(void)
    int digits=(int)SymbolInfoInteger(_Symbol,SYMBOL_DIGITS);
    double priceOpen=PositionGetDouble(POSITION_PRICE_OPEN);
    double priceCurrent=PositionGetDouble(POSITION_PRICE_CURRENT);
+
    double points=NormalizeDouble(priceCurrent-priceOpen,digits);
+   if(IsOnSellTrade())
+      points=NormalizeDouble(points*-1,digits);
    string sPoints=DoubleToString(points,digits);
 
-   return StringFormat("Volume: %s / Profit: %s / P: %s",sVolume,profit,sPoints);
+   return StringFormat("Volume: %s / Profit: %s / Pt: %s",sVolume,profit,sPoints);
   }
 //+------------------------------------------------------------------+
 //| Calculate the current points of BreakEven for the current Symbol                                                                 
@@ -700,7 +703,7 @@ void CMyTrade::CurrentPositionSelect()
    PositionSelect(_Symbol);
    int retry=1;
 
-   while(retry<10)
+   while(retry<20)
      {
       if(PositionGetInteger(POSITION_TYPE)==type)
          break;

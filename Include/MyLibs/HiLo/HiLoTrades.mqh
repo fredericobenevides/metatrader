@@ -20,7 +20,6 @@ private:
    datetime          m_last_time;
 
 public:
-                     CHiLoTrades(void);
    void              OnTick(int handle,int minRatesTotal);
    void              OnTradeTransaction(ENUM_TRADE_TRANSACTION_TYPE tradeType);
 
@@ -40,18 +39,9 @@ public:
    void              BreakEvenHide();
 
    bool              IsTimeToOpenOperation();
-   bool              IsTimeToCloseOperation();
-   void              TimeToCloseOperation();
 
    bool              HasTimeToUpdateStatus();
   };
-//+------------------------------------------------------------------+
-//| Default Constructor                                                                 
-//+------------------------------------------------------------------+
-CHiLoTrades::CHiLoTrades(void)
-  {
-   m_last_time=TimeTradeServer();
-  }
 //+------------------------------------------------------------------+
 //| Verify is there any operation for each candle. 
 //+------------------------------------------------------------------+
@@ -103,8 +93,8 @@ void CHiLoTrades::OnTick(int handle,int minRatesTotal)
         }
      }
 
-//if(HasTimeToUpdateStatus())
-//   HiLoDialog.LoadVolumeStatusToLabel();
+   if(Time.HasPassedTime(0.5))
+      HiLoDialog.LoadVolumeStatusToLabel();
   }
 //+------------------------------------------------------------------+
 //| Verify if has a TakeProfit or StopLoss operation                                                                 
@@ -187,8 +177,6 @@ void CHiLoTrades::TradeBuyClose(void)
       HiLoDialog.UpMartingale();
       BreakEvenHide();
      }
-
-   TimeToCloseOperation();
   }
 //+------------------------------------------------------------------+
 //| Close a SELL operation
@@ -200,8 +188,6 @@ void CHiLoTrades::TradeSellClose(void)
       HiLoDialog.UpMartingale();
       BreakEvenHide();
      }
-
-   TimeToCloseOperation();
   }
 //+------------------------------------------------------------------+
 //| Modify the current Buy position to config the StopLoss and TakeProfit
@@ -240,8 +226,6 @@ void CHiLoTrades::EventTpSlExecuted(void)
 // if close Take Profit is Checked. Don't open a new operation
    if(HiLoDialog.IsCloseTpChecked())
       HiLoDialog.InitToDefaults();
-
-   TimeToCloseOperation();
   }
 //+------------------------------------------------------------------+
 //| Show the BreakEven on Chart                                                                 |
@@ -269,43 +253,5 @@ bool CHiLoTrades::IsTimeToOpenOperation()
    datetime end=Time.StrToDatetime(InpTimeEnd);
 
    return Time.TimeTradeServerBetween(start,end);
-  }
-//+------------------------------------------------------------------+
-//| Verify if need to stop to open new operations 
-//+------------------------------------------------------------------+
-bool CHiLoTrades::IsTimeToCloseOperation()
-  {
-   if(!InpTimeEnabled)
-      return false;
-
-   datetime end=Time.StrToDatetime(InpTimeEnd);
-   return Time.TimeTradeServerGtEnd(end);
-  }
-//+------------------------------------------------------------------+
-//| If is on time to close operation, reset to the default the dialog
-//+------------------------------------------------------------------+
-void CHiLoTrades::TimeToCloseOperation()
-  {
-   if(IsTimeToCloseOperation())
-      HiLoDialog.InitToDefaults();
-  }
-//+------------------------------------------------------------------+
-//| Verify if has a new time to update the status
-//+------------------------------------------------------------------+
-bool CHiLoTrades::HasTimeToUpdateStatus(void)
-  {
-   datetime currentTime=TimeTradeServer();
-   uint cCurrentTime=(uint)currentTime;
-
-   uint lTime=(uint)m_last_time;
-
-   uint between=cCurrentTime-lTime;
-   if(between>=1)
-     {
-      m_last_time=currentTime;
-      return true;
-     }
-
-   return false;
   }
 //+------------------------------------------------------------------+
