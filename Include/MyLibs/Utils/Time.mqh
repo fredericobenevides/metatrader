@@ -10,11 +10,26 @@
 //+------------------------------------------------------------------+
 class CTime
   {
+private:
+   datetime          m_last_time;
 public:
+                     CTime(void);
    datetime          StrToDatetime(string hourMinute);
+
    bool              TimeTradeServerBetween(datetime start,datetime end);
    bool              TimeTradeServerGtEnd(datetime end);
+
+   bool              HasPassedTime(int timeToPass);
+
+   void              PrintCurrentTimeServer();
   };
+//+------------------------------------------------------------------+
+//| Default Constructor                                                                 
+//+------------------------------------------------------------------+
+CTime::CTime(void)
+  {
+   m_last_time=TimeTradeServer();
+  }
 //+------------------------------------------------------------------+
 //| StrToDateTime transform a string "09:00" to datetime as "yyyy.mm.dd 09:00:00"
 //+------------------------------------------------------------------+
@@ -42,5 +57,27 @@ bool CTime::TimeTradeServerGtEnd(datetime end)
    datetime timeServer=TimeTradeServer();
    if(timeServer>=end) return(true);
    return(false);
+  };
+//+------------------------------------------------------------------+
+//| Verify if has passed the seconds from the parameter
+//+------------------------------------------------------------------+
+bool CTime::HasPassedTime(int timeInSeconds)
+  {
+   datetime timeServer=TimeTradeServer();
+
+   if(timeServer>(m_last_time+timeInSeconds))
+     {
+      m_last_time=timeServer;
+      return true;
+     }
+   return false;
+  }
+//+------------------------------------------------------------------+
+//| Print the current time of server
+//+------------------------------------------------------------------+
+void CTime::PrintCurrentTimeServer()
+  {
+   datetime timeServer=TimeTradeServer();
+   Print(timeServer);
   };
 //+------------------------------------------------------------------+

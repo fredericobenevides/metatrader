@@ -202,8 +202,8 @@ bool CHiLoDialog::Create(const long chart,const string name,const int subwin,con
    if(!CreateButtonUpdateTpSl())
       return false;
 
-//if(!CreateEditVolumeStatus())
-//   return false;
+   if(!CreateEditVolumeStatus())
+      return false;
 
    InitToDefaults();
    InitWhenTradeIsOn();
@@ -220,12 +220,12 @@ bool CHiLoDialog::ChartEvent(const int id,const long &lparam,const double &dpara
 
    if(id==CHARTEVENT_CLICK)
      {
-      if(sparam=="pStartButton")
+      if(sparam=="m_button_start")
          OnClickButtonStart();
-      if(sparam=="pStopButton")
+      if(sparam=="m_button_stop")
          OnClickButtonStop();
      }
-   if(sparam=="pEditVolume")
+   if(sparam=="m_edit_volume")
      {
       OnChangeEditVolume();
       ChartRedraw();
@@ -313,7 +313,7 @@ void CHiLoDialog::PrintAllStatus(void)
    PrintFormat("Volume: (%d), Next: (%d), Martingale: (%.2f), Price Per Volume: (%.2f)",m_current_volume,m_next_volume,InpTradeVolumeFactor,InpTradePricePerVolume);
    PrintFormat("Take Profit: (%s - %s), Stop Loss: (%s - %s)",tpChecked,tpValue,slChecked,slValue);
    PrintFormat("Time Enabled: (%s), Time Start: (%s), Time End: (%s)",tEnabled,timeStart,timeEnd);
-   PrintFormat("Finished Status");
+   PrintFormat("Finished Status for: %s",_Symbol);
   }
 //+------------------------------------------------------------------+
 //| Verify if the m_checkbox_buy is Checked
@@ -405,8 +405,8 @@ void CHiLoDialog::LoadVolumeStatusToLabel(void)
 
    if(currentStatus!=newStatus)
      {
-      //m_label_volume_status.Text(newStatus);
-      //ChartRedraw();
+      m_label_volume_status.Text(newStatus);
+      ChartRedraw();
      }
   }
 //+------------------------------------------------------------------+

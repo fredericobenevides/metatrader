@@ -44,9 +44,9 @@ input string          InpBuyTradeSound="dingdong";                    // The Sou
 
 //--- input parameters for Time Control
 input string          InpTimeControlData="-------------------------"; // --------------- Time Control ---------------
-input bool            InpTimeEnabled=false;                           // Default to false to not use the start and end time.
+input bool            InpTimeEnabled=true;                            // Enable the Time Control
 input string          InpTimeStart="09:30";                           // Default time to start the operation
-input string          InpTimeEnd="12:30";                             // Default time to end the operation
+input string          InpTimeEnd="18:00";                             // Default time to end the operation
 
 //--- global vars
 int first_initialization=true; // flag indicate if is the first initialization
