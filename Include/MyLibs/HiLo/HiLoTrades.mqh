@@ -39,6 +39,10 @@ public:
    void              BreakEvenShow();
    void              BreakEvenHide();
 
+   bool              IsTimeToOpenOperation();
+   bool              IsTimeToCloseOperation();
+   void              TimeToCloseOperation();
+
    bool              HasTimeToUpdateStatus();
   };
 //+------------------------------------------------------------------+
@@ -148,6 +152,9 @@ void CHiLoTrades::TradeStop()
 //+------------------------------------------------------------------+
 void CHiLoTrades::TradeBuyOpen()
   {
+   if(!IsTimeToOpenOperation())
+      return;
+
    int volume=HiLoDialog.CurrentVolume();
    if(MyTrade.TradeBuyOpen("TradeBuyOpen",volume))
      {
@@ -160,6 +167,9 @@ void CHiLoTrades::TradeBuyOpen()
 //+------------------------------------------------------------------+
 void CHiLoTrades::TradeSellOpen()
   {
+   if(!IsTimeToOpenOperation())
+      return;
+
    int volume=HiLoDialog.CurrentVolume();
    if(MyTrade.TradeSellOpen("TradeSellOpen",volume))
      {
@@ -177,6 +187,8 @@ void CHiLoTrades::TradeBuyClose(void)
       HiLoDialog.UpMartingale();
       BreakEvenHide();
      }
+
+   TimeToCloseOperation();
   }
 //+------------------------------------------------------------------+
 //| Close a SELL operation
@@ -188,6 +200,8 @@ void CHiLoTrades::TradeSellClose(void)
       HiLoDialog.UpMartingale();
       BreakEvenHide();
      }
+
+   TimeToCloseOperation();
   }
 //+------------------------------------------------------------------+
 //| Modify the current Buy position to config the StopLoss and TakeProfit
@@ -226,6 +240,8 @@ void CHiLoTrades::EventTpSlExecuted(void)
 // if close Take Profit is Checked. Don't open a new operation
    if(HiLoDialog.IsCloseTpChecked())
       HiLoDialog.InitToDefaults();
+
+   TimeToCloseOperation();
   }
 //+------------------------------------------------------------------+
 //| Show the BreakEven on Chart                                                                 |
@@ -242,7 +258,39 @@ void CHiLoTrades::BreakEvenHide()
    BreakEven.Hide();
   }
 //+------------------------------------------------------------------+
-//| Verify if has a new time to update the status                                                               |
+//| Verify if can start to open new operations
+//+------------------------------------------------------------------+
+bool CHiLoTrades::IsTimeToOpenOperation()
+  {
+   if(!InpTimeEnabled)
+      return true;
+
+   datetime start=Time.StrToDatetime(InpTimeStart);
+   datetime end=Time.StrToDatetime(InpTimeEnd);
+
+   return Time.TimeTradeServerBetween(start,end);
+  }
+//+------------------------------------------------------------------+
+//| Verify if need to stop to open new operations 
+//+------------------------------------------------------------------+
+bool CHiLoTrades::IsTimeToCloseOperation()
+  {
+   if(!InpTimeEnabled)
+      return false;
+
+   datetime end=Time.StrToDatetime(InpTimeEnd);
+   return Time.TimeTradeServerGtEnd(end);
+  }
+//+------------------------------------------------------------------+
+//| If is on time to close operation, reset to the default the dialog
+//+------------------------------------------------------------------+
+void CHiLoTrades::TimeToCloseOperation()
+  {
+   if(IsTimeToCloseOperation())
+      HiLoDialog.InitToDefaults();
+  }
+//+------------------------------------------------------------------+
+//| Verify if has a new time to update the status
 //+------------------------------------------------------------------+
 bool CHiLoTrades::HasTimeToUpdateStatus(void)
   {

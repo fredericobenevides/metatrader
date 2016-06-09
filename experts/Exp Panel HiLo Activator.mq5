@@ -14,6 +14,7 @@
 #include <MyLibs\HiLo\HiLoTrades.mqh>
 #include <MyLibs\Trade\BreakEven.mqh>
 #include <MyLibs\Trade\MyTrade.mqh>
+#include <MyLibs\Utils\Time.mqh>
 
 //--- input parameters
 input string         InpHiLoData="------------------------------";    // --------------- HiLo ---------------
@@ -41,6 +42,11 @@ input bool            InpSetTradeSound=false;                         // Play so
 input string          InpSellTradeSound="dinkdink";                   // The Sound's name for Sell trade operations.
 input string          InpBuyTradeSound="dingdong";                    // The Sound's name for Buy trade operations.
 
+//--- input parameters for Time Control
+input string          InpTimeControlData="-------------------------"; // --------------- Time Control ---------------
+input bool            InpTimeEnabled=false;                           // Default to false to not use the start and end time.
+input string          InpTimeStart="09:30";                           // Default time to start the operation
+input string          InpTimeEnd="12:30";                             // Default time to end the operation
 
 //--- global vars
 int first_initialization=true; // flag indicate if is the first initialization
@@ -50,6 +56,7 @@ CHiLoMALoader HiLoMALoader;
 CHiLoTrades HiLoTrades;
 CBreakEven BreakEven;
 CMyTrade MyTrade;
+CTime Time;
 //+------------------------------------------------------------------+
 //| Expert initialization function                                   |
 //+------------------------------------------------------------------+

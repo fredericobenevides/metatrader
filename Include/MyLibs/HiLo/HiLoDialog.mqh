@@ -301,11 +301,18 @@ void CHiLoDialog::PrintAllStatus(void)
    string slChecked=m_checkbox_stop_loss.Checked() ? "Y" : "N";
    string slValue=m_edit_stop_loss.Text();
 
+   string tEnabled=InpTimeEnabled ? "Y" : "N";
+   datetime dtStart= Time.StrToDatetime(InpTimeStart);
+   string timeStart=TimeToString(dtStart);
+   datetime dtEnd= Time.StrToDatetime(InpTimeEnd);
+   string timeEnd=TimeToString(dtEnd);
+
    PrintFormat("Status for: %s",_Symbol);
    PrintFormat("Buy: (%s), Sell: (%s), Close P/L: (%s)",buyChecked,sellChecked,closeTpSlChecked);
    PrintFormat("Buy Trade: (%s), Sell Trade: (%s)",buyTrade,sellTrade);
    PrintFormat("Volume: (%d), Next: (%d), Martingale: (%.2f), Price Per Volume: (%.2f)",m_current_volume,m_next_volume,InpTradeVolumeFactor,InpTradePricePerVolume);
    PrintFormat("Take Profit: (%s - %s), Stop Loss: (%s - %s)",tpChecked,tpValue,slChecked,slValue);
+   PrintFormat("Time Enabled: (%s), Time Start: (%s), Time End: (%s)",tEnabled,timeStart,timeEnd);
    PrintFormat("Finished Status");
   }
 //+------------------------------------------------------------------+
