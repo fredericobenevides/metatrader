@@ -174,7 +174,7 @@ void CHiLoTrades::TradeBuyClose(void)
   {
    if(MyTrade.TradeBuyClose("TradeBuyClose"))
      {
-      HiLoDialog.UpMartingale();
+      HiLoDialog.CalculateVolumeForTrade();
       BreakEvenHide();
      }
   }
@@ -185,7 +185,7 @@ void CHiLoTrades::TradeSellClose(void)
   {
    if(MyTrade.TradeSellClose("TradeSellClose"))
      {
-      HiLoDialog.UpMartingale();
+      HiLoDialog.CalculateVolumeForTrade();
       BreakEvenHide();
      }
   }

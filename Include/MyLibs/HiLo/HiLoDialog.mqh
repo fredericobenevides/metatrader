@@ -43,12 +43,6 @@ class CHiLoDialog : public CAppDialog
 
    CLabel            m_label_volume;
    CEdit             m_edit_volume;
-   CLabel            m_label_next_volume;
-   CEdit             m_edit_next_volume;
-
-   CLabel            m_label_martingale;
-   CButton           m_button_up_martingale;
-   CButton           m_button_down_martingale;
 
    CCheckBox         m_checkbox_take_profit;
    CEdit             m_edit_take_profit;
@@ -59,7 +53,6 @@ class CHiLoDialog : public CAppDialog
    CLabel            m_label_volume_status;
 
    int               m_current_volume;
-   int               m_next_volume;
 
 public:
                      CHiLoDialog(void);
@@ -83,10 +76,6 @@ public:
    bool              IsTakeProfitChecked(void);
    bool              IsStopLossChecked(void);
 
-   void              UpMartingale(void);
-   void              DownMartingale(void);
-   void              UpOnlyNextVolume(void);
-
    void              LoadVolumesToEditBox(void);
    void              LoadVolumeStatusToLabel(void);
 
@@ -95,6 +84,8 @@ public:
 
    double            TakeProfit();
    double            StopLoss();
+
+   void              CalculateVolumeForTrade();
 
 protected:
    //--- create dependent controls
@@ -108,8 +99,6 @@ protected:
    bool              CreateButtonResetToDefaults(void);
 
    bool              CreateEditVolume(void);
-   bool              CreateEditNextVolume(void);
-   bool              CreateMartingale(void);
 
    bool              CreateTakeProfit(void);
    bool              CreateStopLoss(void);
@@ -127,11 +116,10 @@ protected:
    void              OnClickButtonResetToDefaults(void);
 
    void              OnChangeEditVolume(void);
+   void              OnClickButtonUpVolume(void);
+   void              OnClickButtonDownVolume(void);
 
    void              OnChangeUpdateTpSlButton(void);
-
-   void              OnClickButtonUpMartingale(void);
-   void              OnClickButtonDownMartingale(void);
   };
 //+------------------------------------------------------------------+
 //| Event Handling                                                   |
@@ -148,9 +136,6 @@ ON_EVENT(ON_CLICK,m_button_reset_to_defaults,OnClickButtonResetToDefaults)
 ON_EVENT(ON_CHANGE,m_edit_volume,OnChangeEditVolume)
 
 ON_EVENT(ON_CLICK,m_button_update_tpsl,OnChangeUpdateTpSlButton)
-
-ON_EVENT(ON_CLICK,m_button_up_martingale,OnClickButtonUpMartingale)
-ON_EVENT(ON_CLICK,m_button_down_martingale,OnClickButtonDownMartingale)
 EVENT_MAP_END(CAppDialog)
 //+------------------------------------------------------------------+
 //| Constructor
@@ -189,10 +174,6 @@ bool CHiLoDialog::Create(const long chart,const string name,const int subwin,con
       return false;
 
    if(!CreateEditVolume())
-      return false;
-   if(!CreateEditNextVolume())
-      return false;
-   if(!CreateMartingale())
       return false;
 
    if(!CreateTakeProfit())
@@ -240,8 +221,8 @@ void CHiLoDialog::InitToDefaults(void)
   {
    ResetVolumesToDefault();
 
-   m_checkbox_buy.Checked(false);
-   m_checkbox_sell.Checked(false);
+   m_checkbox_buy.Checked(true);
+   m_checkbox_sell.Checked(true);
    m_checkbox_close_on_hilo.Checked(false);
    m_checkbox_close_on_tp.Checked(false);
 
@@ -265,7 +246,6 @@ void CHiLoDialog::InitWhenTradeIsOn()
          m_checkbox_sell.Checked(true);
 
       m_current_volume=MyTrade.CurrentTradeVolume();
-      UpOnlyNextVolume();
 
       LoadVolumesToEditBox();
       HiLoTrades.BreakEvenShow();
@@ -280,7 +260,6 @@ void CHiLoDialog::InitWhenTradeIsOn()
 void CHiLoDialog::ResetVolumesToDefault(void)
   {
    m_current_volume=InpTradeVolume;
-   m_next_volume=(int)(m_current_volume*InpTradeVolumeFactor);
    LoadVolumesToEditBox();
   }
 //+------------------------------------------------------------------+
@@ -310,7 +289,7 @@ void CHiLoDialog::PrintAllStatus(void)
    PrintFormat("Status for: %s",_Symbol);
    PrintFormat("Buy: (%s), Sell: (%s), Close P/L: (%s)",buyChecked,sellChecked,closeTpSlChecked);
    PrintFormat("Buy Trade: (%s), Sell Trade: (%s)",buyTrade,sellTrade);
-   PrintFormat("Volume: (%d), Next: (%d), Martingale: (%.2f), Price Per Volume: (%.2f)",m_current_volume,m_next_volume,InpTradeVolumeFactor,InpTradePricePerVolume);
+   PrintFormat("Volume: (%d), Price Per Volume: (%.2f)",m_current_volume,InpTradePricePerVolume);
    PrintFormat("Take Profit: (%s - %s), Stop Loss: (%s - %s)",tpChecked,tpValue,slChecked,slValue);
    PrintFormat("Time Enabled: (%s), Time Start: (%s), Time End: (%s)",tEnabled,timeStart,timeEnd);
    PrintFormat("Finished Status for: %s",_Symbol);
@@ -358,41 +337,11 @@ bool CHiLoDialog::IsStopLossChecked(void)
    return m_checkbox_stop_loss.Checked();
   }
 //+------------------------------------------------------------------+
-//| Up the martingale
-//+------------------------------------------------------------------+
-void CHiLoDialog::UpMartingale(void)
-  {
-   m_current_volume=(int)(m_current_volume*InpTradeVolumeFactor);
-   m_next_volume=(int)(m_current_volume*InpTradeVolumeFactor);
-
-   LoadVolumesToEditBox();
-  }
-//+------------------------------------------------------------------+
-//| Down the martingale
-//+------------------------------------------------------------------+
-void CHiLoDialog::DownMartingale(void)
-  {
-   m_current_volume=(int)(m_current_volume/InpTradeVolumeFactor);
-   if(m_current_volume==0)
-      m_current_volume=1;
-   m_next_volume=(int)(m_current_volume*InpTradeVolumeFactor);
-
-   LoadVolumesToEditBox();
-  }
-//+------------------------------------------------------------------+
-//| Down the martingale
-//+------------------------------------------------------------------+
-void CHiLoDialog::UpOnlyNextVolume(void)
-  {
-   m_next_volume=(int)(m_current_volume*InpTradeVolumeFactor);
-  }
-//+------------------------------------------------------------------+
 //| Load volumes to Edit Box
 //+------------------------------------------------------------------+
 void CHiLoDialog::LoadVolumesToEditBox(void)
   {
    m_edit_volume.Text(IntegerToString(m_current_volume));
-   m_edit_next_volume.Text(IntegerToString(m_next_volume));
    ChartRedraw();
   }
 //+------------------------------------------------------------------+
@@ -417,13 +366,6 @@ int CHiLoDialog::CurrentVolume(void)
    return m_current_volume;
   }
 //+------------------------------------------------------------------+
-//| Returns the next Volume
-//+------------------------------------------------------------------+
-int CHiLoDialog::NextVolume(void)
-  {
-   return m_next_volume;
-  }
-//+------------------------------------------------------------------+
 //| Returns the TakeProfit
 //+------------------------------------------------------------------+
 double CHiLoDialog::TakeProfit()
@@ -438,6 +380,14 @@ double CHiLoDialog::StopLoss()
   {
    double stopLoss=StringToDouble(m_edit_stop_loss.Text());
    return stopLoss;
+  }
+//+------------------------------------------------------------------+
+//| Calculate the volume to use for Trade
+//+------------------------------------------------------------------+
+void CHiLoDialog::CalculateVolumeForTrade()
+  {
+   m_current_volume=MyTrade.CalculateVolumeFactorOnPrice(InpTradeVolumeFactorOnPrice,InpTradeVolumeFactor,InpTradePricePerVolume);
+   LoadVolumesToEditBox();
   }
 //+------------------------------------------------------------------+
 //| Create the Buy CheckBox
@@ -621,92 +571,6 @@ bool CHiLoDialog::CreateEditVolume(void)
    return true;
   }
 //+------------------------------------------------------------------+
-//| Create the label and button for Next Volume
-//+------------------------------------------------------------------+
-bool CHiLoDialog::CreateEditNextVolume(void)
-  {
-//--- coordinates label
-   int x1=int(1.8*INDENT_LEFT)+(WIDTH_DEFAULT+CONTROLS_GAP_X);
-   int y1=INDENT_TOP+2*(HEIGHT_DEFAULT+CONTROLS_GAP_Y);
-   int x2=x1+WIDTH_DEFAULT;
-   int y2=y1+HEIGHT_DEFAULT;
-
-//--- create label
-   if(!m_label_next_volume.Create(m_chart_id,"m_label_next_volume",m_subwin,x1,y1,x2,y2))
-      return false;
-   if(!m_label_next_volume.Text("Next"))
-      return false;
-   if(!Add(m_label_next_volume))
-      return false;
-
-//--- coordinates edit
-   x1=INDENT_LEFT+(WIDTH_DEFAULT+CONTROLS_GAP_X);
-   y1=(INDENT_TOP/2)+3*(HEIGHT_DEFAULT+CONTROLS_GAP_Y);
-   x2=x1+WIDTH_DEFAULT;
-   y2=y1+HEIGHT_DEFAULT;
-
-//--- create label
-   if(!m_edit_next_volume.Create(m_chart_id,"m_edit_next_volume",m_subwin,x1,y1,x2,y2))
-      return false;
-   if(!Add(m_edit_next_volume))
-      return false;
-
-   m_edit_next_volume.TextAlign(ALIGN_CENTER);
-   m_edit_next_volume.ReadOnly(true);
-
-   return true;
-  }
-//+------------------------------------------------------------------+
-//| Create the label and buttons for Martingale
-//+------------------------------------------------------------------+
-bool CHiLoDialog::CreateMartingale(void)
-  {
-//--- coordinates label
-   int x1=INDENT_LEFT+2*(WIDTH_DEFAULT+CONTROLS_GAP_X);
-   int y1=INDENT_TOP+2*(HEIGHT_DEFAULT+CONTROLS_GAP_Y);
-   int x2=x1+WIDTH_DEFAULT;
-   int y2=y1+HEIGHT_DEFAULT;
-
-//--- create label
-   if(!m_label_martingale.Create(m_chart_id,"m_label_martingale",m_subwin,x1,y1,x2,y2))
-      return false;
-   if(!m_label_martingale.Text("Martingale"))
-      return false;
-   if(!Add(m_label_martingale))
-      return false;
-
-//--- coordinates down button
-   x1=INDENT_LEFT+2*(WIDTH_DEFAULT+CONTROLS_GAP_X);
-   y1=int(0.5*INDENT_TOP)+3*(HEIGHT_DEFAULT+CONTROLS_GAP_Y);
-   x2=x1+int(0.5*WIDTH_DEFAULT);
-   y2=y1+HEIGHT_DEFAULT;
-
-
-////--- create down button 
-   if(!m_button_down_martingale.Create(m_chart_id,"m_button_down_martingale",m_subwin,x1,y1,x2,y2))
-      return false;
-   if(!m_button_down_martingale.Text("Down"))
-      return false;
-   if(!Add(m_button_down_martingale))
-      return false;
-
-//--- coordinates up button
-   x1=INDENT_LEFT+2.6*(WIDTH_DEFAULT+CONTROLS_GAP_X);
-   y1=int(0.5*INDENT_TOP)+3*(HEIGHT_DEFAULT+CONTROLS_GAP_Y);
-   x2=x1+int(0.5*WIDTH_DEFAULT);
-   y2=y1+HEIGHT_DEFAULT;
-
-////--- create up button 
-   if(!m_button_up_martingale.Create(m_chart_id,"m_button_up_martingale",m_subwin,x1,y1,x2,y2))
-      return false;
-   if(!m_button_up_martingale.Text("Up"))
-      return false;
-   if(!Add(m_button_up_martingale))
-      return false;
-
-   return true;
-  }
-//+------------------------------------------------------------------+
 //| Create the checkbox for TakeProfit
 //+------------------------------------------------------------------+
 bool CHiLoDialog::CreateTakeProfit(void)
@@ -861,8 +725,6 @@ void CHiLoDialog::OnChangeEditVolume(void)
    if(v!=m_current_volume)
      {
       m_current_volume=v;
-      UpOnlyNextVolume();
-
       LoadVolumesToEditBox();
      }
   }
@@ -876,15 +738,20 @@ void CHiLoDialog::OnChangeUpdateTpSlButton(void)
 //+------------------------------------------------------------------+
 //| Event Up for Matingale Button
 //+------------------------------------------------------------------+
-void CHiLoDialog::OnClickButtonUpMartingale(void)
+void CHiLoDialog::OnClickButtonUpVolume(void)
   {
-   UpMartingale();
+   m_current_volume=(int)(m_current_volume+1);
+   LoadVolumesToEditBox();
   }
 //+------------------------------------------------------------------+
 //| Event Down for Matingale Button
 //+------------------------------------------------------------------+
-void CHiLoDialog::OnClickButtonDownMartingale(void)
+void CHiLoDialog::OnClickButtonDownVolume(void)
   {
-   DownMartingale();
+   m_current_volume=(int)(m_current_volume-1);
+   if(m_current_volume==0)
+      m_current_volume=1;
+
+   LoadVolumesToEditBox();
   }
 //+------------------------------------------------------------------+

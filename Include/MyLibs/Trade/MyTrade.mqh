@@ -27,6 +27,9 @@ private:
    string            m_sell_trade_sound_name;
    string            m_error_trade_sound_name;
 
+   double            m_total_profit_day;
+   double            m_total_volumes_day;
+
 public:
    void              CMyTrade(void);
 
@@ -50,10 +53,13 @@ public:
 
    bool              LastDealOnHistoryIsProfitPositive();
    double            LastDealPriceOnHistory();
+   double            LastDealVolumeOnHistory();
    string            CurrentPositionStatus();
 
+   void              CalculateProfitOrdersOnCurrentDay();
    double            CalculateBreakEven(int baseVolume,double pricePerVolume=0);
    double            CalculateBreakEvenWithLastDeal(int baseVolume,double pricePerVolume=0);
+   int               CalculateVolumeFactorOnPrice(double priceFactor,double volumeFactor,double pricePerVolume=0);
 
    void              EnableSoundOnOperation(string sellSoundsName="alert",string buySoundsName="alert2");
    void              PlayBuySound();
@@ -438,6 +444,21 @@ double CMyTrade::LastDealPriceOnHistory()
    return price;
   }
 //+------------------------------------------------------------------+
+//| Return the last deal volume on history
+//+------------------------------------------------------------------+
+double CMyTrade::LastDealVolumeOnHistory()
+  {
+   datetime end=TimeCurrent();
+   datetime start=end-PeriodSeconds(PERIOD_D1);
+   HistorySelect(start,end);
+
+   int deals=HistoryDealsTotal();
+   ulong ticket=HistoryDealGetTicket(deals-1);
+
+   double volume=HistoryDealGetDouble(ticket,DEAL_VOLUME);
+   return volume;
+  }
+//+------------------------------------------------------------------+
 //| Return the current position status with (Volume/Points/Profit)
 //+------------------------------------------------------------------+
 string CMyTrade::CurrentPositionStatus(void)
@@ -464,9 +485,9 @@ string CMyTrade::CurrentPositionStatus(void)
    return StringFormat("Volume: %s / Profit: %s / Pt: %s",sVolume,profit,sPoints);
   }
 //+------------------------------------------------------------------+
-//| Calculate the current points of BreakEven for the current Symbol                                                                 
+//| Calculate the profit of history orders on the current day
 //+------------------------------------------------------------------+
-double CMyTrade::CalculateBreakEven(int baseVolume,double pricePerVolume=0)
+void CMyTrade::CalculateProfitOrdersOnCurrentDay()
   {
    int digits=(int)SymbolInfoInteger(_Symbol,SYMBOL_DIGITS);
 
@@ -477,8 +498,8 @@ double CMyTrade::CalculateBreakEven(int baseVolume,double pricePerVolume=0)
    datetime start=end-PeriodSeconds(PERIOD_D1);
    HistorySelect(start,end);
 
-   double totalProfit=0;
-   int totalVolumes=0;
+   m_total_profit_day=0;
+   m_total_volumes_day=0;
 
    int deals=HistoryDealsTotal();
    for(int i=0; i<deals;i++)
@@ -497,10 +518,10 @@ double CMyTrade::CalculateBreakEven(int baseVolume,double pricePerVolume=0)
             if(dtServer.day==dealMqlTime.day)
               {
                double dealProfit=HistoryDealGetDouble(ticket,DEAL_PROFIT);
-               totalProfit=NormalizeDouble(totalProfit+dealProfit,digits);
+               m_total_profit_day=NormalizeDouble(m_total_profit_day+dealProfit,digits);
 
                int dealVolume=(int)HistoryDealGetDouble(ticket,DEAL_VOLUME);
-               totalVolumes=totalVolumes+dealVolume;
+               m_total_volumes_day=m_total_volumes_day+dealVolume;
               }
            }
         }
@@ -510,22 +531,31 @@ double CMyTrade::CalculateBreakEven(int baseVolume,double pricePerVolume=0)
                      " with index %d. Error %d",deals,i,GetLastError());
         }
      }
+  }
+//+------------------------------------------------------------------+
+//| Calculate the current points of BreakEven for the current Symbol                                                                 
+//+------------------------------------------------------------------+
+double CMyTrade::CalculateBreakEven(int baseVolume,double pricePerVolume=0)
+  {
+   CalculateProfitOrdersOnCurrentDay();
+
+   int digits=(int)SymbolInfoInteger(_Symbol,SYMBOL_DIGITS);
 
    double breakEven=0;
-   double totalPricePerVolume=NormalizeDouble(totalVolumes*pricePerVolume,6);
+   double totalPricePerVolume=NormalizeDouble(m_total_volumes_day*pricePerVolume,6);
 
 // first operation doesn't have a profit, so the breakeven is the cost of the volume
-   if(totalProfit==0)
+   if(m_total_profit_day==0)
      {
       breakEven=NormalizeDouble(totalPricePerVolume*-1,6); // negate the volume, since is expensive.
       return breakEven;
      }
 
-   if(totalProfit!=0)
+   if(m_total_profit_day!=0)
      {
-      totalProfit=NormalizeDouble(totalProfit-totalPricePerVolume,6);
+      m_total_profit_day=NormalizeDouble(m_total_profit_day-totalPricePerVolume,6);
       double volumeWithFactor=NormalizeDouble(baseVolume*SymbolFactor(),6);
-      breakEven=NormalizeDouble(totalProfit/volumeWithFactor,digits);
+      breakEven=NormalizeDouble(m_total_profit_day/volumeWithFactor,digits);
      }
 
    return breakEven;
@@ -562,6 +592,29 @@ double CMyTrade::CalculateBreakEvenWithLastDeal(int baseVolume,double pricePerVo
       breakEven=NormalizeDouble(breakEven*-1,2);
 
    return TradePositionSumPrice(breakEven);
+  }
+//+------------------------------------------------------------------+
+//| Calculate the next volume factor using the price factor                                                                 
+//+------------------------------------------------------------------+
+int CMyTrade::CalculateVolumeFactorOnPrice(double priceFactor,double volumeFactor,double pricePerVolume=0)
+  {
+   CalculateProfitOrdersOnCurrentDay();
+
+   int digits=(int)SymbolInfoInteger(_Symbol,SYMBOL_DIGITS);
+
+   double totalPricePerVolume=NormalizeDouble(m_total_volumes_day*pricePerVolume,6);
+   m_total_profit_day=NormalizeDouble(m_total_profit_day-totalPricePerVolume,6);
+
+   priceFactor=NormalizeDouble(priceFactor*SymbolFactor(),digits);
+   double volumeForTrade=MathAbs(NormalizeDouble(m_total_profit_day/priceFactor,digits));
+
+   double lastVolume=LastDealVolumeOnHistory();
+   double volumeDoubleMartingale=NormalizeDouble(lastVolume*volumeFactor,2);
+
+   if(volumeForTrade<volumeDoubleMartingale)
+      volumeForTrade=NormalizeDouble(lastVolume*volumeFactor,2);
+
+   return (int)volumeForTrade;
   }
 //+------------------------------------------------------------------+
 //| Enable the sounds for BUY operation and SELL operation                                                                

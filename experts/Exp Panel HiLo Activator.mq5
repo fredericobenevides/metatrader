@@ -35,9 +35,12 @@ input string          InpTradesData="------------------------------"; // -------
 input ENUM_TIMEFRAMES InpTradeTimeFrame=PERIOD_CURRENT;               // Default TimeFrame
 input int             InpTradeVolume=1;                               // Default volume to do trades operations
 input double          InpTradeVolumeFactor=2;                         // Default trade factor (martingale)
+input double          InpTradeVolumeFactorOnPrice=50;                 // Default price to calculate the next volume factor
 input double          InpTradeTakeProfit=200.0;                       // Default Take Profit
 input double          InpTradeStopLoss=0.0;                           // Default Stop Loss
 input double          InpTradePricePerVolume=0;                       // Default Price Per Volume
+//--- input parameters for Trades Sound
+input string          InpTradesSoundData="------------------------------"; // ------------ Trades Sound ------------
 input bool            InpSetTradeSound=false;                         // Play sound for each operation on Buy or Sell trades.
 input string          InpSellTradeSound="dinkdink";                   // The Sound's name for Sell trade operations.
 input string          InpBuyTradeSound="dingdong";                    // The Sound's name for Buy trade operations.
