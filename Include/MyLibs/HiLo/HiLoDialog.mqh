@@ -23,7 +23,8 @@
 #define CONTROLS_GAP_Y                      (5)       // gap by Y coordinate
 //--- width sizes
 #define WIDTH_DEFAULT                       (80)      // size by X coordinate
-#define WIDTH_SHORT                         (45)      // size by X coordinate
+#define WIDTH_BIG                           (160)     // size by X coordinate
+#define WIDTH_ADJUST                        (10)      // size by X coordinate
 //-- height sizes
 #define HEIGHT_DEFAULT                      (20)      // size by X coordinate
 //+------------------------------------------------------------------+
@@ -85,7 +86,7 @@ public:
    double            TakeProfit();
    double            StopLoss();
 
-   void              CalculateVolumeForTrade();
+   void              CalculateVolumeFactor();
 
 protected:
    //--- create dependent controls
@@ -221,11 +222,12 @@ void CHiLoDialog::InitToDefaults(void)
   {
    ResetVolumesToDefault();
 
-   m_checkbox_buy.Checked(true);
-   m_checkbox_sell.Checked(true);
+   m_checkbox_buy.Checked(false);
+   m_checkbox_sell.Checked(false);
    m_checkbox_close_on_hilo.Checked(false);
-   m_checkbox_close_on_tp.Checked(false);
+   m_checkbox_close_on_tp.Checked(true);
 
+   m_checkbox_take_profit.Checked(true);
    m_edit_take_profit.Text(DoubleToString(InpTradeTakeProfit,0));
    m_edit_stop_loss.Text(DoubleToString(InpTradeStopLoss,0));
 
@@ -384,9 +386,13 @@ double CHiLoDialog::StopLoss()
 //+------------------------------------------------------------------+
 //| Calculate the volume to use for Trade
 //+------------------------------------------------------------------+
-void CHiLoDialog::CalculateVolumeForTrade()
+void CHiLoDialog::CalculateVolumeFactor()
   {
-   m_current_volume=MyTrade.CalculateVolumeFactorOnPrice(InpTradeVolumeFactorOnPrice,InpTradeVolumeFactor,InpTradePricePerVolume);
+   if(InpTradeVolumeFactorBreakEvenEnabled)
+      m_current_volume=MyTrade.CalculateVolumeFactorOnBreakEven(InpTradeVolumeFactorBreakEvenPoints,InpTradeVolumeFactor,InpTradePricePerVolume);
+   else
+      m_current_volume=MyTrade.CalculateVolumeFactor(InpTradeVolumeFactor);
+
    LoadVolumesToEditBox();
   }
 //+------------------------------------------------------------------+
@@ -416,7 +422,7 @@ bool CHiLoDialog::CreateCheckBoxBuy(void)
 bool CHiLoDialog::CreateCheckBoxSell(void)
   {
 //--- coordinates
-   int x1=INDENT_LEFT+0.5*(WIDTH_DEFAULT+CONTROLS_GAP_X);
+   int x1=INDENT_LEFT+2*(5*CONTROLS_GAP_X);
    int y1=INDENT_TOP;
    int x2=x1+WIDTH_DEFAULT;
    int y2=y1+HEIGHT_DEFAULT;
@@ -437,9 +443,9 @@ bool CHiLoDialog::CreateCheckBoxSell(void)
 bool CHiLoDialog::CreateCheckBoxCloseOnHiLo(void)
   {
 //--- coordinates
-   int x1=INDENT_LEFT+1.1*(WIDTH_DEFAULT+CONTROLS_GAP_X);
+   int x1=INDENT_LEFT+3*(7*CONTROLS_GAP_X);
    int y1=INDENT_TOP;
-   int x2=x1+1*WIDTH_DEFAULT;
+   int x2=x1+WIDTH_DEFAULT+WIDTH_ADJUST;
    int y2=y1+HEIGHT_DEFAULT;
 
 //--- create
@@ -458,7 +464,7 @@ bool CHiLoDialog::CreateCheckBoxCloseOnHiLo(void)
 bool CHiLoDialog::CreateCheckBoxCloseOnTp(void)
   {
 //--- coordinates
-   int x1=INDENT_LEFT+2.2*(WIDTH_DEFAULT+CONTROLS_GAP_X);
+   int x1=INDENT_LEFT+4*(10*CONTROLS_GAP_X);
    int y1=INDENT_TOP;
    int x2=x1+1*WIDTH_DEFAULT;
    int y2=y1+HEIGHT_DEFAULT;
@@ -480,7 +486,7 @@ bool CHiLoDialog::CreateButtonStart(void)
   {
 //--- coordinates
    int x1=INDENT_LEFT;
-   int y1=INDENT_TOP+(HEIGHT_DEFAULT+CONTROLS_GAP_Y);
+   int y1=INDENT_TOP+2*(3*CONTROLS_GAP_Y);
    int x2=x1+WIDTH_DEFAULT;
    int y2=y1+HEIGHT_DEFAULT;
 
@@ -500,8 +506,8 @@ bool CHiLoDialog::CreateButtonStart(void)
 bool CHiLoDialog::CreateButtonStop(void)
   {
 //--- coordinates
-   int x1=(2*INDENT_LEFT)+(WIDTH_DEFAULT+CONTROLS_GAP_X);
-   int y1=INDENT_TOP+(HEIGHT_DEFAULT+CONTROLS_GAP_Y);
+   int x1=INDENT_LEFT+2*(9.8*CONTROLS_GAP_X);
+   int y1=INDENT_TOP+2*(3*CONTROLS_GAP_Y);
    int x2=x1+WIDTH_DEFAULT;
    int y2=y1+HEIGHT_DEFAULT;
 
@@ -521,8 +527,8 @@ bool CHiLoDialog::CreateButtonStop(void)
 bool CHiLoDialog::CreateButtonResetToDefaults(void)
   {
 //--- coordinates
-   int x1=(2*INDENT_LEFT)+2*(WIDTH_DEFAULT+CONTROLS_GAP_X);
-   int y1=INDENT_TOP+(HEIGHT_DEFAULT+CONTROLS_GAP_Y);
+   int x1=INDENT_LEFT+3*(13*CONTROLS_GAP_X);
+   int y1=INDENT_TOP+2*(3*CONTROLS_GAP_Y);
    int x2=x1+WIDTH_DEFAULT;
    int y2=y1+HEIGHT_DEFAULT;
 
@@ -542,8 +548,8 @@ bool CHiLoDialog::CreateButtonResetToDefaults(void)
 bool CHiLoDialog::CreateEditVolume(void)
   {
 //--- coordinates label volume
-   int x1=INDENT_LEFT;
-   int y1=INDENT_TOP+2*(HEIGHT_DEFAULT+CONTROLS_GAP_Y);
+   int x1=(int)(INDENT_LEFT+1*(3.5*CONTROLS_GAP_X));
+   int y1=INDENT_TOP+3*(4*CONTROLS_GAP_Y);
    int x2=x1+WIDTH_DEFAULT;
    int y2=y1+HEIGHT_DEFAULT;
 
@@ -557,7 +563,7 @@ bool CHiLoDialog::CreateEditVolume(void)
 
 //--- coordinates edit volume
    x1=INDENT_LEFT;
-   y1=(INDENT_TOP/2)+3*(HEIGHT_DEFAULT+CONTROLS_GAP_Y);
+   y1=(int)(INDENT_TOP+3*(5.5*CONTROLS_GAP_Y));
    x2=x1+WIDTH_DEFAULT;
    y2=y1+HEIGHT_DEFAULT;
 
@@ -576,8 +582,8 @@ bool CHiLoDialog::CreateEditVolume(void)
 bool CHiLoDialog::CreateTakeProfit(void)
   {
 //--- checkbox take profit
-   int x1=INDENT_LEFT;
-   int y1=INDENT_TOP+4*(HEIGHT_DEFAULT+CONTROLS_GAP_Y);
+   int x1=INDENT_LEFT+2*(9.8*CONTROLS_GAP_X);
+   int y1=INDENT_TOP+3*(4*CONTROLS_GAP_Y);
    int x2=x1+WIDTH_DEFAULT;
    int y2=y1+HEIGHT_DEFAULT;
 
@@ -589,8 +595,8 @@ bool CHiLoDialog::CreateTakeProfit(void)
       return false;
 
 //--- edit take profit
-   x1=INDENT_LEFT;
-   y1=(INDENT_TOP/2)+5*(HEIGHT_DEFAULT+CONTROLS_GAP_Y);
+   x1=(int)(INDENT_LEFT+2*(9.8*CONTROLS_GAP_X));
+   y1=(int)(INDENT_TOP+3*(5.5*CONTROLS_GAP_Y));
    x2=x1+WIDTH_DEFAULT;
    y2=y1+HEIGHT_DEFAULT;
 
@@ -608,8 +614,8 @@ bool CHiLoDialog::CreateTakeProfit(void)
 bool CHiLoDialog::CreateStopLoss(void)
   {
 //--- checkbox stop loss
-   int x1=INDENT_LEFT+(WIDTH_DEFAULT+CONTROLS_GAP_X);
-   int y1=INDENT_TOP+4*(HEIGHT_DEFAULT+CONTROLS_GAP_Y);
+   int x1=INDENT_LEFT+3*(13*CONTROLS_GAP_X);
+   int y1=INDENT_TOP+3*(4*CONTROLS_GAP_Y);
    int x2=x1+WIDTH_DEFAULT;
    int y2=y1+HEIGHT_DEFAULT;
 
@@ -621,11 +627,10 @@ bool CHiLoDialog::CreateStopLoss(void)
       return false;
 
 //--- edit take profit
-   x1=INDENT_LEFT+(WIDTH_DEFAULT+CONTROLS_GAP_Y);
-   y1=(INDENT_TOP/2)+5*(HEIGHT_DEFAULT+CONTROLS_GAP_Y);
+   x1=INDENT_LEFT+3*(13*CONTROLS_GAP_X);
+   y1=(int)(INDENT_TOP+3*(5.5*CONTROLS_GAP_Y));
    x2=x1+WIDTH_DEFAULT;
    y2=y1+HEIGHT_DEFAULT;
-
    if(!m_edit_stop_loss.Create(m_chart_id,"m_edit_stop_loss",m_subwin,x1,y1,x2,y2))
       return false;
    if(!Add(m_edit_stop_loss))
@@ -640,14 +645,14 @@ bool CHiLoDialog::CreateStopLoss(void)
 bool CHiLoDialog::CreateButtonUpdateTpSl(void)
   {
 //-- button
-   int x1=INDENT_LEFT+2*(WIDTH_DEFAULT+CONTROLS_GAP_X);
-   int y1=INDENT_TOP+4*(HEIGHT_DEFAULT+CONTROLS_GAP_Y);
-   int x2=x1+WIDTH_DEFAULT;
+   int x1=INDENT_LEFT;
+   int y1=INDENT_TOP+4*(6*CONTROLS_GAP_Y);
+   int x2=(int)(x1+(1.7*WIDTH_BIG));
    int y2=y1+HEIGHT_DEFAULT;
 
    if(!m_button_update_tpsl.Create(m_chart_id,"m_button_update_tpsl",m_subwin,x1,y1,x2,y2))
       return false;
-   if(!m_button_update_tpsl.Text("Update TP/SL"))
+   if(!m_button_update_tpsl.Text("Update Take Profit / Stop Loss"))
       return false;
    if(!Add(m_button_update_tpsl))
       return false;
@@ -660,8 +665,8 @@ bool CHiLoDialog::CreateEditVolumeStatus(void)
   {
 //-- edit
    int x1=INDENT_LEFT;
-   int y1=INDENT_TOP+7*(HEIGHT_DEFAULT+CONTROLS_GAP_Y);
-   int x2=x1+3*WIDTH_DEFAULT;
+   int y1=(int)(INDENT_TOP+5*(6.2*CONTROLS_GAP_Y));
+   int x2=(int)(x1+(1.7*WIDTH_BIG));
    int y2=y1+HEIGHT_DEFAULT;
 
    if(!m_label_volume_status.Create(m_chart_id,"m_edit_volume_status",m_subwin,x1,y1,x2,y2))

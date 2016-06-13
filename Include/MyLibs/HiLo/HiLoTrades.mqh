@@ -93,7 +93,7 @@ void CHiLoTrades::OnTick(int handle,int minRatesTotal)
         }
      }
 
-   if(Time.HasPassedTime(0.5))
+   if(Time.HasPassedTime((int)0.4))
       HiLoDialog.LoadVolumeStatusToLabel();
   }
 //+------------------------------------------------------------------+
@@ -174,7 +174,7 @@ void CHiLoTrades::TradeBuyClose(void)
   {
    if(MyTrade.TradeBuyClose("TradeBuyClose"))
      {
-      HiLoDialog.CalculateVolumeForTrade();
+      HiLoDialog.CalculateVolumeFactor();
       BreakEvenHide();
      }
   }
@@ -185,7 +185,7 @@ void CHiLoTrades::TradeSellClose(void)
   {
    if(MyTrade.TradeSellClose("TradeSellClose"))
      {
-      HiLoDialog.CalculateVolumeForTrade();
+      HiLoDialog.CalculateVolumeFactor();
       BreakEvenHide();
      }
   }

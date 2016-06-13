@@ -35,7 +35,8 @@ input string          InpTradesData="------------------------------"; // -------
 input ENUM_TIMEFRAMES InpTradeTimeFrame=PERIOD_CURRENT;               // Default TimeFrame
 input int             InpTradeVolume=1;                               // Default volume to do trades operations
 input double          InpTradeVolumeFactor=2;                         // Default trade factor (martingale)
-input double          InpTradeVolumeFactorOnPrice=50;                 // Default price to calculate the next volume factor
+input bool            InpTradeVolumeFactorBreakEvenEnabled=true;      // Default to enable calculation based on breakeven points
+input double          InpTradeVolumeFactorBreakEvenPoints=50;         // Volume Factor calculation on breakeven points
 input double          InpTradeTakeProfit=200.0;                       // Default Take Profit
 input double          InpTradeStopLoss=0.0;                           // Default Stop Loss
 input double          InpTradePricePerVolume=0;                       // Default Price Per Volume
@@ -72,7 +73,7 @@ int OnInit()
       int y1=int(ChartGetInteger(0,CHART_HEIGHT_IN_PIXELS)-300);
       int y2=int(ChartGetInteger(0,CHART_HEIGHT_IN_PIXELS)-20);
 
-      if(!HiLoDialog.Create(0,"",0,20,y1,320,y2))
+      if(!HiLoDialog.Create(0,"",0,20,y1,335,y2))
          return(INIT_FAILED);
       //--- run application
 
