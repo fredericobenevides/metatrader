@@ -288,12 +288,16 @@ void CHiLoDialog::PrintAllStatus(void)
    datetime dtEnd= Time.StrToDatetime(InpTimeEnd);
    string timeEnd=TimeToString(dtEnd);
 
+   string volumeFactorBreakevenEnabled=InpTradeVolumeFactorBreakEvenEnabled? "Y" : "N";
+
    PrintFormat("Status for: %s",_Symbol);
    PrintFormat("Buy: (%s), Sell: (%s), Close P/L: (%s)",buyChecked,sellChecked,closeTpSlChecked);
    PrintFormat("Buy Trade: (%s), Sell Trade: (%s)",buyTrade,sellTrade);
    PrintFormat("Volume: (%d), Price Per Volume: (%.2f)",m_current_volume,InpTradePricePerVolume);
    PrintFormat("Take Profit: (%s - %s), Stop Loss: (%s - %s)",tpChecked,tpValue,slChecked,slValue);
    PrintFormat("Time Enabled: (%s), Time Start: (%s), Time End: (%s)",tEnabled,timeStart,timeEnd);
+   PrintFormat("Volume Factor (Martingale): (%.2f)",InpTradeVolumeFactor);
+   PrintFormat("Volume Factor BreakEven Points Enabled: (%s) Points to BreakEven: (%.2f)",volumeFactorBreakevenEnabled,InpTradeVolumeFactorBreakEvenPoints);
    PrintFormat("Finished Status for: %s",_Symbol);
   }
 //+------------------------------------------------------------------+

@@ -632,8 +632,11 @@ int CMyTrade::CalculateVolumeFactorOnBreakEven(double pointsToBreakEven,double v
 // symbolfactor: 0.2
 // points: 50
 // 83/(0.2*50)=8.3=8 volumes
-// 8 * 0.2 * 50 = 80. 80 is less than 83. So need to fix it.
-   while(volumeWithBreakEvenPoints<volumeWithBreakEvenPoints*pointsWithSymbolFactor)
+// verifying: 8 * 0.2 * 50 = 80 profit. 80 is less than 83.
+// fixing: 8 volumes + 1 = 9. 
+// 9 * 0.2 * 50 = 90. 90 is greater than 83.
+   double profitVolumeBreakEvenPoints=NormalizeDouble(volumeWithBreakEvenPoints*pointsWithSymbolFactor,digits);
+   while(profitVolumeBreakEvenPoints<m_total_profit_day)
       volumeWithBreakEvenPoints=NormalizeDouble(volumeWithBreakEvenPoints+1,digits);
 
 // after the fix. Verify if the next volume is at least the double volume from the last deal.
@@ -782,18 +785,22 @@ void CMyTrade::CurrentPositionSelect()
 // load current position
    PositionSelect(_Symbol);
    int retry=1;
+   int maxRetry=20;
 
-   while(retry<20)
+   while(retry<=maxRetry)
      {
       if(PositionGetInteger(POSITION_TYPE)==type)
          break;
 
-      Sleep(retry*200); // sleep for SelectRetryCount * 100 mS
+      Sleep(retry*200); // sleep for SelectRetryCount * X ms
       retry++;
 
       // load again the current position
       PositionSelect(_Symbol);
      }
+
+   if(retry>maxRetry)
+      Print("CurrentPositionSelect(): ERROR. Could not find current position");
   };
 //+------------------------------------------------------------------+
 //| Return the current symbol Factor                                                                  |
