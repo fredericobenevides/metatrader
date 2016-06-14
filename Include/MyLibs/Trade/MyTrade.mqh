@@ -75,8 +75,10 @@ public:
    int               CurrentTradeVolume();
    void              LoadTradeOperationFromPosition();
 
-   double            TradeLastDealSumPrice(double price,double adjustPrice=0);
-   double            TradePositionSumPrice(double price,double adjustPrice=0);
+   double            TradeLastDealSumPrice(double price);
+   double            TradePositionSumPrice(double price);
+
+   double            CorrectPriceByTickSize(double value,bool adjustPositive);
 
    void              CurrentPositionSelect();
    double            SymbolFactor();
@@ -299,56 +301,47 @@ bool CMyTrade::ModifyTpSl(double stopLoss=0,double takeProfit=0)
 
    double tickSize=SymbolInfoDouble(_Symbol,SYMBOL_TRADE_TICK_SIZE);
    bool executedModify=false;
+   bool adjustPositive=true;
 
-// Adjust the price using the tickSize.
-// Example:
-// Suppose on a market, the price is 50107. Since the step for this market
-// is 5, the correctly price should be 50100, 50105 or 50110.
-// So for each tickSize the price will be ajusting by 1 until is possible to
-// modify the position.
-   for(double i=0;i<tickSize;i++)
+   double takeProfitCalculated=0;
+   double stopLossCalculated=0;
+
+   if(takeProfit>0)
      {
-      double takeProfitCalculated=0;
-      double stopLossCalculated=0;
-      double adjustIndex=i;
-
-      if(takeProfit>0)
+      // invert the signal for sell operation
+      if(IsOnSellTrade())
         {
-         // invert the signal for sell operation
-         if(IsOnSellTrade())
-           {
-            takeProfit=NormalizeDouble(takeProfit*-1,2);
-            adjustIndex=NormalizeDouble(adjustIndex*-1,2);
-           }
-
-         takeProfitCalculated=TradeLastDealSumPrice(takeProfit,adjustIndex);
-        }
-      if(stopLoss>0)
-        {
-         // invert the signal for buy operation
-         if(IsOnBuyTrade())
-           {
-            stopLoss=NormalizeDouble(stopLoss*-1,2);
-            adjustIndex=NormalizeDouble(adjustIndex*-1,2);
-           }
-
-         stopLossCalculated=TradeLastDealSumPrice(stopLoss,adjustIndex);
+         takeProfit=NormalizeDouble(takeProfit*-1,2);
+         adjustPositive=false;
         }
 
-      ResetLastError();
-      if(m_trade.PositionModify(_Symbol,stopLossCalculated,takeProfitCalculated))
-        {
-         executedModify=true;
-         break;
-        }
-      else
-         Print("There was an error when trying to modify TP / SL position: ",GetLastError());
+      takeProfitCalculated=TradeLastDealSumPrice(takeProfit);
+      takeProfitCalculated=CorrectPriceByTickSize(takeProfitCalculated, adjustPositive);
      }
 
-   if(executedModify)
+   adjustPositive=true;
+
+   if(stopLoss>0)
+     {
+      // invert the signal for buy operation
+      if(IsOnBuyTrade())
+        {
+         stopLoss=NormalizeDouble(stopLoss*-1,2);
+         adjustPositive=false;
+        }
+
+      stopLossCalculated=TradeLastDealSumPrice(stopLoss);
+      stopLossCalculated=CorrectPriceByTickSize(stopLossCalculated, adjustPositive);
+     }
+
+   ResetLastError();
+   if(m_trade.PositionModify(_Symbol,stopLossCalculated,takeProfitCalculated))
+     {
       Print("Successfully modified the TP / SL");
+      executedModify=true;
+     }
    else
-      Print("There was ann error to modify TP / SL");
+      Print("There was an error when trying to modify TP / SL position: ",GetLastError());
 
    return executedModify;
   }
@@ -769,29 +762,71 @@ void CMyTrade::LoadTradeOperationFromPosition()
   }
 //+------------------------------------------------------------------+
 //| Sum the current last deal price with the next price.
-//| If the adjustPrice is different from 0. Minus the price with the adjustPrice.
 //+------------------------------------------------------------------+
-double CMyTrade::TradeLastDealSumPrice(double price,double adjustPrice=0)
+double CMyTrade::TradeLastDealSumPrice(double price)
   {
    double lastDealPrice=LastDealPriceOnHistory();
    int digits=(int)SymbolInfoInteger(_Symbol,SYMBOL_DIGITS);
    double point=SymbolInfoDouble(_Symbol,SYMBOL_POINT);
 
-   price=NormalizeDouble(lastDealPrice+(price*point)-(adjustPrice*point),digits);
+   price=NormalizeDouble(lastDealPrice+(price*point),digits);
    return price;
   };
 //+------------------------------------------------------------------+
 //| Sum the current position open price with the next price.
 //| If the adjustPrice is different from 0. Minus the price with the adjustPrice.                                                                 |
 //+------------------------------------------------------------------+
-double CMyTrade::TradePositionSumPrice(double price,double adjustPrice=0)
+double CMyTrade::TradePositionSumPrice(double price)
   {
    double positionPrice=PositionGetDouble(POSITION_PRICE_OPEN);
    int digits=(int)SymbolInfoInteger(_Symbol,SYMBOL_DIGITS);
    double point=SymbolInfoDouble(_Symbol,SYMBOL_POINT);
 
-   price=NormalizeDouble(positionPrice+(price*point)-(adjustPrice*point),digits);
+   price=NormalizeDouble(positionPrice+(price*point),digits);
    return price;
+  }
+//+------------------------------------------------------------------+
+//| Correct a value based on his tick size
+//| Example:
+//| Value: 50544.
+//| Value: 50544 * 0.1 = 5054.4
+//| Verifying: 50544 - 50540 = 4
+//| Tick size: 5
+//| 4 % 5 == 0? False. Fixit it.
+//| 50544 + 1 = 50545 (adjust positive as true)
+//| Verifying: 50545 - 50540 = 5
+//| 5 % 5 == 0? True. Fixed it.
+//+------------------------------------------------------------------+
+double CMyTrade::CorrectPriceByTickSize(double price,bool adjustPositive=true)
+  {
+   int digits=(int)SymbolInfoInteger(_Symbol,SYMBOL_DIGITS);
+   double tickSize=SymbolInfoDouble(_Symbol,SYMBOL_TRADE_TICK_SIZE);
+
+   int i=0;
+   double newPrice=price;
+   double mod=0;
+
+// zero the decimal: 50544 = 5054.4 = 5054 = 50540
+   double p2=NormalizeDouble((int)(price*0.1),digits); 
+   p2=NormalizeDouble(p2*10,digits); 
+
+   do
+     {
+      if(adjustPositive)
+         newPrice=NormalizeDouble((price+i),digits);
+      else
+         newPrice=NormalizeDouble((price-i),digits);
+
+      double p1=NormalizeDouble(newPrice,2);
+
+      mod= MathMod(p1-p2,tickSize); // 50544 - 50540 = 4 % 5 = 4
+      mod=NormalizeDouble(mod,digits);
+
+      i=i+1;
+     }
+   while(mod!=0 && mod!=tickSize);
+
+   return newPrice;
   }
 //+------------------------------------------------------------------+
 //| Select the current Position                                                                  
