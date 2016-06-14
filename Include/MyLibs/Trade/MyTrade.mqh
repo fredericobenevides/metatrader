@@ -532,6 +532,9 @@ void CMyTrade::CalculateProfitOrdersOnCurrentDay()
                      " with index %d. Error %d",deals,i,GetLastError());
         }
      }
+
+   PrintFormat("Total profit on current day: %.2f",m_total_profit_day);
+   Print("Total volumes on current day: ",NormalizeDouble(m_total_volumes_day,digits));
   }
 //+------------------------------------------------------------------+
 //| Calculate the current points of BreakEven for the current Symbol                                                                 
@@ -601,6 +604,8 @@ int CMyTrade::CalculateVolumeFactor(double volumeFactor)
   {
    double lastVolume=LastDealVolumeOnHistory();
    double volumeFactorCalculated=NormalizeDouble(lastVolume*volumeFactor,2);
+
+   PrintFormat("Using factor (%.2f) to calculate the volume. Volume calculated: (%.2f)",volumeFactor,volumeFactorCalculated);
    return (int)volumeFactorCalculated;
   }
 //+------------------------------------------------------------------+
@@ -620,7 +625,13 @@ int CMyTrade::CalculateVolumeFactorOnBreakEven(double pointsToBreakEven,double v
 
 // if profit still positive, only double the volume
    if(m_total_profit_day>=0)
+     {
+      PrintFormat("There is a positive profit on current day. It will adjust the next volume "+
+                  "using only the factor (%.2f). Volume calculated: (%.2f)",volumeFactor,volumeFactorCalculated);
       return (int)volumeFactorCalculated;
+     }
+   Print("There is a negative profit on current day. The next volume will be calculated based "+
+         "on Break Even points. Break Even points is (%.2f)",pointsToBreakEven);
 
 // profit is negative, calculate the next volume based on points
    double pointsWithSymbolFactor=NormalizeDouble(pointsToBreakEven*SymbolFactor(),digits);
@@ -639,11 +650,20 @@ int CMyTrade::CalculateVolumeFactorOnBreakEven(double pointsToBreakEven,double v
    while(profitVolumeBreakEvenPoints<m_total_profit_day)
       volumeWithBreakEvenPoints=NormalizeDouble(volumeWithBreakEvenPoints+1,digits);
 
+   PrintFormat("Volume calculated based on Break Even points: ",volumeWithBreakEvenPoints);
+   PrintFormat("Volume calculated based on volume factor. (%.2f)",volumeFactorCalculated);
+
 // after the fix. Verify if the next volume is at least the double volume from the last deal.
 // If it isn't. Use just the martingale.
    if(volumeWithBreakEvenPoints<volumeFactorCalculated)
+     {
+      PrintFormat("Volume factor is greater than the volume calculated based on "+
+                  "Break Even Points. It will use the volume factor");
       volumeWithBreakEvenPoints=volumeFactorCalculated;
+     }
 
+   PrintFormat("Volume factor is less than the volume calculated based on "+
+               "Break Even Points. It will use the volume calculated based on Break Even Points");
    return (int)volumeWithBreakEvenPoints;
   }
 //+------------------------------------------------------------------+
@@ -735,7 +755,7 @@ int CMyTrade::CurrentTradeVolume()
 //+------------------------------------------------------------------+
 void CMyTrade::LoadTradeOperationFromPosition()
   {
-   CurrentPositionSelect();
+   PositionSelect(_Symbol);
 
    m_current_trade_volume=(int)PositionGetDouble(POSITION_VOLUME);
    if(m_current_trade_volume!=0)
