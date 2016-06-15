@@ -79,6 +79,7 @@ public:
    double            TradePositionSumPrice(double price);
 
    double            CorrectPriceByTickSize(double value,bool adjustPositive);
+   double            CorrectValueByPointSymbol(double value);
 
    void              CurrentPositionSelect();
    double            SymbolFactor();
@@ -315,7 +316,8 @@ bool CMyTrade::ModifyTpSl(double stopLoss=0,double takeProfit=0)
          adjustPositive=false;
         }
 
-      takeProfitCalculated=TradeLastDealSumPrice(takeProfit);
+      takeProfitCalculated=CorrectValueByPointSymbol(takeProfit);
+      takeProfitCalculated=TradeLastDealSumPrice(takeProfitCalculated);
       takeProfitCalculated=CorrectPriceByTickSize(takeProfitCalculated, adjustPositive);
      }
 
@@ -330,7 +332,8 @@ bool CMyTrade::ModifyTpSl(double stopLoss=0,double takeProfit=0)
          adjustPositive=false;
         }
 
-      stopLossCalculated=TradeLastDealSumPrice(stopLoss);
+      stopLossCalculated=CorrectValueByPointSymbol(stopLoss);
+      stopLossCalculated=TradeLastDealSumPrice(stopLossCalculated);
       stopLossCalculated=CorrectPriceByTickSize(stopLossCalculated, adjustPositive);
      }
 
@@ -598,7 +601,7 @@ int CMyTrade::CalculateVolumeFactor(double volumeFactor)
    double lastVolume=LastDealVolumeOnHistory();
    double volumeFactorCalculated=NormalizeDouble(lastVolume*volumeFactor,2);
 
-   PrintFormat("Using factor (%.2f) to calculate the volume. Volume calculated: (%.2f)",volumeFactor,volumeFactorCalculated);
+   PrintFormat("Using factor (%.2f) to calculate the volume. Last used volume: (%.2f). Next Volume: (%.2f)",volumeFactor,lastVolume,volumeFactorCalculated);
    return (int)volumeFactorCalculated;
   }
 //+------------------------------------------------------------------+
@@ -619,12 +622,12 @@ int CMyTrade::CalculateVolumeFactorOnBreakEven(double pointsToBreakEven,double v
 // if profit still positive, only double the volume
    if(m_total_profit_day>=0)
      {
-      PrintFormat("There is a positive profit on current day. It will adjust the next volume "+
-                  "using only the factor (%.2f). Volume calculated: (%.2f)",volumeFactor,volumeFactorCalculated);
+      PrintFormat("There is a positive profit on current day. It will use the volume factor.  "+
+                  "Next volume will be: (%.2f)",volumeFactor,volumeFactorCalculated);
       return (int)volumeFactorCalculated;
      }
-   Print("There is a negative profit on current day. The next volume will be calculated based "+
-         "on Break Even points. Break Even points is (%.2f)",pointsToBreakEven);
+   PrintFormat("There is a negative profit on current day. The next volume will be calculated based "+
+               "on Break Even points. Break Even points is (%.2f)",pointsToBreakEven);
 
 // profit is negative, calculate the next volume based on points
    double pointsWithSymbolFactor=NormalizeDouble(pointsToBreakEven*SymbolFactor(),digits);
@@ -643,20 +646,21 @@ int CMyTrade::CalculateVolumeFactorOnBreakEven(double pointsToBreakEven,double v
    while(profitVolumeBreakEvenPoints<m_total_profit_day)
       volumeWithBreakEvenPoints=NormalizeDouble(volumeWithBreakEvenPoints+1,digits);
 
-   PrintFormat("Volume calculated based on Break Even points: ",volumeWithBreakEvenPoints);
-   PrintFormat("Volume calculated based on volume factor. (%.2f)",volumeFactorCalculated);
+   PrintFormat("Volume calculated based on Break Even points: (%.2f)",volumeWithBreakEvenPoints);
+   PrintFormat("Volume calculated based on volume factor: (%.2f)",volumeFactorCalculated);
 
 // after the fix. Verify if the next volume is at least the double volume from the last deal.
 // If it isn't. Use just the martingale.
    if(volumeWithBreakEvenPoints<volumeFactorCalculated)
      {
-      PrintFormat("Volume factor is greater than the volume calculated based on "+
-                  "Break Even Points. It will use the volume factor");
       volumeWithBreakEvenPoints=volumeFactorCalculated;
+      PrintFormat("Volume calculated based on Break Even Points is less than the Volume factor. "+
+                  "It will use the volume factor. Next volume will be: (%.2f)",volumeWithBreakEvenPoints);
      }
+   else
+      PrintFormat("Volume calculated based on Break Even Points is greater than the Volume factor. "+
+                  "It will use the volume calculated based on Break Even Points. Next volume will be: (%.2f)",volumeWithBreakEvenPoints);
 
-   PrintFormat("Volume factor is less than the volume calculated based on "+
-               "Break Even Points. It will use the volume calculated based on Break Even Points");
    return (int)volumeWithBreakEvenPoints;
   }
 //+------------------------------------------------------------------+
@@ -807,19 +811,22 @@ double CMyTrade::CorrectPriceByTickSize(double price,bool adjustPositive=true)
    double mod=0;
 
 // zero the decimal: 50544 = 5054.4 = 5054 = 50540
-   double p2=NormalizeDouble((int)(price*0.1),digits); 
-   p2=NormalizeDouble(p2*10,digits); 
+   double p2=NormalizeDouble((int)(price*0.1),digits);
+   p2=NormalizeDouble(p2*10,digits);
 
    do
      {
+      double indexPoint=CorrectValueByPointSymbol(i);
       if(adjustPositive)
-         newPrice=NormalizeDouble((price+i),digits);
+         newPrice=NormalizeDouble((price+indexPoint),digits);
       else
-         newPrice=NormalizeDouble((price-i),digits);
+         newPrice=NormalizeDouble((price-indexPoint),digits);
 
-      double p1=NormalizeDouble(newPrice,2);
+      double p1=NormalizeDouble(newPrice,digits);
 
-      mod= MathMod(p1-p2,tickSize); // 50544 - 50540 = 4 % 5 = 4
+      // calculate the mod
+      mod=NormalizeDouble(p1-p2,digits); // 50544 - 50540 = 4
+      mod=MathMod(mod,tickSize); // 4 % 5 = 4
       mod=NormalizeDouble(mod,digits);
 
       i=i+1;
@@ -827,6 +834,15 @@ double CMyTrade::CorrectPriceByTickSize(double price,bool adjustPositive=true)
    while(mod!=0 && mod!=tickSize);
 
    return newPrice;
+  }
+//+------------------------------------------------------------------+
+//| Correct a value based on his point
+//+------------------------------------------------------------------+
+double CMyTrade::CorrectValueByPointSymbol(double value)
+  {
+   int digits=(int)SymbolInfoInteger(_Symbol,SYMBOL_DIGITS);
+   double point=SymbolInfoDouble(_Symbol,SYMBOL_POINT);
+   return NormalizeDouble(value/point, digits);
   }
 //+------------------------------------------------------------------+
 //| Select the current Position                                                                  
