@@ -498,7 +498,8 @@ void CMyTrade::CalculateProfitOrdersOnCurrentDay()
    m_total_profit_day=0;
    m_total_volumes_day=0;
 
-   int deals=HistoryDealsTotal();
+   int countDeals=0;
+   int deals=HistoryDealsTotal();   
    for(int i=0; i<deals;i++)
      {
       ulong ticket=HistoryDealGetTicket(i);
@@ -519,6 +520,8 @@ void CMyTrade::CalculateProfitOrdersOnCurrentDay()
 
                int dealVolume=(int)HistoryDealGetDouble(ticket,DEAL_VOLUME);
                m_total_volumes_day=m_total_volumes_day+dealVolume;
+               
+               countDeals = countDeals +1;
               }
            }
         }
@@ -529,6 +532,7 @@ void CMyTrade::CalculateProfitOrdersOnCurrentDay()
         }
      }
 
+   PrintFormat("Total deals on current day: %d",countDeals);
    PrintFormat("Total profit on current day: %.2f",m_total_profit_day);
    Print("Total volumes on current day: ",NormalizeDouble(m_total_volumes_day,digits));
   }
