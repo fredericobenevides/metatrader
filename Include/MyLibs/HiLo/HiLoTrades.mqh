@@ -174,6 +174,7 @@ void CHiLoTrades::TradeBuyClose(void)
   {
    if(MyTrade.TradeBuyClose("TradeBuyClose"))
      {
+      Sleep(500); // give a time to update the history.
       HiLoDialog.CalculateVolumeFactor();
       BreakEvenHide();
      }
@@ -185,6 +186,7 @@ void CHiLoTrades::TradeSellClose(void)
   {
    if(MyTrade.TradeSellClose("TradeSellClose"))
      {
+      Sleep(500); // give a time to update the history.
       HiLoDialog.CalculateVolumeFactor();
       BreakEvenHide();
      }
