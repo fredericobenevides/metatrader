@@ -174,7 +174,6 @@ void CHiLoTrades::TradeBuyClose(void)
   {
    if(MyTrade.TradeBuyClose("TradeBuyClose"))
      {
-      Sleep(500); // give a time to update the history.
       HiLoDialog.CalculateVolumeFactor();
       BreakEvenHide();
      }
@@ -186,13 +185,12 @@ void CHiLoTrades::TradeSellClose(void)
   {
    if(MyTrade.TradeSellClose("TradeSellClose"))
      {
-      Sleep(500); // give a time to update the history.
       HiLoDialog.CalculateVolumeFactor();
       BreakEvenHide();
      }
   }
 //+------------------------------------------------------------------+
-//| Modify the current Buy position to config the StopLoss and TakeProfit
+//| Modify the current position to config the StopLoss and TakeProfit
 //+------------------------------------------------------------------+
 void CHiLoTrades::ModifyTpSl(void)
   {
@@ -214,7 +212,10 @@ void CHiLoTrades::ModifyTpSl(void)
      }
 
    if(executeModify)
+     {
+      Sleep(500);
       MyTrade.ModifyTpSl(stopLoss,takeProfit);
+     }
   }
 //+------------------------------------------------------------------+
 //| If has Take Profit or Stop Loss. Reset the volumes and stop the Expert closing a current Operation.
