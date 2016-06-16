@@ -6,7 +6,7 @@
 #property copyright "Copyright 2016, MetaQuotes Software Corp."
 #property link      "https://www.mql5.com"
 //+------------------------------------------------------------------+
-//| Class responsible to Show and Hide BreakEven                                                                 |
+//| Class responsible to Show and Hide BreakEven
 //+------------------------------------------------------------------+
 class CBreakEven
   {
@@ -17,7 +17,7 @@ public:
    void              Hide(void);
   };
 //+------------------------------------------------------------------+
-//| Show the BreakEven                                                                 |
+//| Show the BreakEven
 //+------------------------------------------------------------------+
 void CBreakEven::Show(int baseVolume,double pricePerVolume=0)
   {
@@ -34,7 +34,7 @@ void CBreakEven::Show(int baseVolume,double pricePerVolume=0)
    ChartRedraw();
   }
 //+------------------------------------------------------------------+
-//| Hide the BreakEven                                                                |
+//| Hide the BreakEven
 //+------------------------------------------------------------------+
 void CBreakEven::Hide()
   {
