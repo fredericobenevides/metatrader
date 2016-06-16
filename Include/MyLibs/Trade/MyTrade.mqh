@@ -499,7 +499,7 @@ void CMyTrade::CalculateProfitOrdersOnCurrentDay()
    m_total_volumes_day=0;
 
    int countDeals=0;
-   int deals=HistoryDealsTotal();   
+   int deals=HistoryDealsTotal();
    for(int i=0; i<deals;i++)
      {
       ulong ticket=HistoryDealGetTicket(i);
@@ -520,8 +520,8 @@ void CMyTrade::CalculateProfitOrdersOnCurrentDay()
 
                int dealVolume=(int)HistoryDealGetDouble(ticket,DEAL_VOLUME);
                m_total_volumes_day=m_total_volumes_day+dealVolume;
-               
-               countDeals = countDeals +1;
+
+               countDeals=countDeals+1;
               }
            }
         }
@@ -562,6 +562,7 @@ double CMyTrade::CalculateBreakEven(int baseVolume,double pricePerVolume=0)
       breakEven=NormalizeDouble(m_total_profit_day/volumeWithFactor,digits);
      }
 
+   PrintFormat("BreakEven for current trade: %.2f",breakEven);
    return breakEven;
   };
 //+------------------------------------------------------------------+
@@ -591,11 +592,15 @@ double CMyTrade::CalculateBreakEven(int baseVolume,double pricePerVolume=0)
 double CMyTrade::CalculateBreakEvenWithLastDeal(int baseVolume,double pricePerVolume=0)
   {
    double breakEven=CalculateBreakEven(baseVolume,pricePerVolume);
+   CurrentPositionSelect();
 
    if(IsOnBuyTrade())
       breakEven=NormalizeDouble(breakEven*-1,2);
 
-   return TradePositionSumPrice(breakEven);
+   double price=TradePositionSumPrice(breakEven);
+   PrintFormat("Price with BreakEven for current trade: %.2f",price);
+
+   return price;
   }
 //+------------------------------------------------------------------+
 //| Calculate the current volume factor using martingale (double the volume)
