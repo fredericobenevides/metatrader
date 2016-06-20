@@ -393,6 +393,8 @@ double CHiLoDialog::StopLoss()
 void CHiLoDialog::CalculateVolumeFactor()
   {
    Sleep(500); // give a time to update the history.
+   Print("Calculating the next volume");
+
    if(InpTradeVolumeFactorBreakEvenEnabled)
       m_current_volume=MyTrade.CalculateVolumeFactorOnBreakEven(InpTradeVolumeFactorBreakEvenPoints,InpTradeVolumeFactor,InpTradePricePerVolume);
    else
