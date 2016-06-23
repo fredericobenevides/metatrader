@@ -59,7 +59,7 @@ public:
    void              CalculateProfitOrdersOnCurrentDay();
    double            CalculateBreakEven(int baseVolume,double pricePerVolume=0);
    double            CalculateBreakEvenWithLastDeal(int baseVolume,double pricePerVolume=0);
-   int               CalculateVolumeFactor(double volumeFactor);
+   int               CalculateVolumeFactor(double volumeFactor, double lastVolume);
    int               CalculateVolumeFactorOnBreakEven(double pointsToBreakEven,double volumeFactor,double pricePerVolume=0);
 
    void              EnableSoundOnOperation(string sellSoundsName="alert",string buySoundsName="alert2");
@@ -605,9 +605,8 @@ double CMyTrade::CalculateBreakEvenWithLastDeal(int baseVolume,double pricePerVo
 //+------------------------------------------------------------------+
 //| Calculate the current volume factor using martingale (double the volume)
 //+------------------------------------------------------------------+
-int CMyTrade::CalculateVolumeFactor(double volumeFactor)
+int CMyTrade::CalculateVolumeFactor(double volumeFactor, double lastVolume)
   {
-   double lastVolume=LastDealVolumeOnHistory();
    double volumeFactorCalculated=NormalizeDouble(lastVolume*volumeFactor,2);
 
    PrintFormat("Using factor (%.2f) to calculate the volume. Last used volume: (%.2f). Next Volume: (%.2f)",volumeFactor,lastVolume,volumeFactorCalculated);
@@ -626,7 +625,8 @@ int CMyTrade::CalculateVolumeFactorOnBreakEven(double pointsToBreakEven,double v
    m_total_profit_day=NormalizeDouble(m_total_profit_day-totalPricePerVolume,6);
 
 // normal volume factor calculated (normal martingale)
-   double volumeFactorCalculated=CalculateVolumeFactor(volumeFactor);
+   double lastVolume=LastDealVolumeOnHistory();
+   double volumeFactorCalculated=CalculateVolumeFactor(volumeFactor,lastVolume);
 
 // if profit still positive, only double the volume
    if(m_total_profit_day>=0)

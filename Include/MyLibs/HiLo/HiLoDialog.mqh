@@ -117,8 +117,6 @@ protected:
    void              OnClickButtonResetToDefaults(void);
 
    void              OnChangeEditVolume(void);
-   void              OnClickButtonUpVolume(void);
-   void              OnClickButtonDownVolume(void);
 
    void              OnChangeUpdateTpSlButton(void);
   };
@@ -398,7 +396,7 @@ void CHiLoDialog::CalculateVolumeFactor()
    if(InpTradeVolumeFactorBreakEvenEnabled)
       m_current_volume=MyTrade.CalculateVolumeFactorOnBreakEven(InpTradeVolumeFactorBreakEvenPoints,InpTradeVolumeFactor,InpTradePricePerVolume);
    else
-      m_current_volume=MyTrade.CalculateVolumeFactor(InpTradeVolumeFactor);
+      m_current_volume=MyTrade.CalculateVolumeFactor(InpTradeVolumeFactor,m_current_volume);
 
    LoadVolumesToEditBox();
   }
@@ -746,24 +744,5 @@ void CHiLoDialog::OnChangeEditVolume(void)
 void CHiLoDialog::OnChangeUpdateTpSlButton(void)
   {
    HiLoTrades.ModifyTpSl();
-  }
-//+------------------------------------------------------------------+
-//| Event Up for Matingale Button
-//+------------------------------------------------------------------+
-void CHiLoDialog::OnClickButtonUpVolume(void)
-  {
-   m_current_volume=(int)(m_current_volume+1);
-   LoadVolumesToEditBox();
-  }
-//+------------------------------------------------------------------+
-//| Event Down for Matingale Button
-//+------------------------------------------------------------------+
-void CHiLoDialog::OnClickButtonDownVolume(void)
-  {
-   m_current_volume=(int)(m_current_volume-1);
-   if(m_current_volume==0)
-      m_current_volume=1;
-
-   LoadVolumesToEditBox();
   }
 //+------------------------------------------------------------------+

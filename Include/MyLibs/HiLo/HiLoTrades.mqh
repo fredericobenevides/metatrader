@@ -104,6 +104,7 @@ void CHiLoTrades::OnTradeTransaction(ENUM_TRADE_TRANSACTION_TYPE tradeType)
    if(tradeType!=TRADE_TRANSACTION_HISTORY_ADD)
       return;
 
+   Sleep(500);
 // verify on the current day
    bool hadTakeProfitOnHistory=MyTrade.HadTakeProfitOnHistory(PERIOD_D1);
    if(hadTakeProfitOnHistory)
@@ -133,7 +134,7 @@ void CHiLoTrades::TradeStop()
    bool executed=MyTrade.TradeStop("TradeStop");
    if(executed)
      {
-      HiLoDialog.ResetVolumesToDefault();
+      HiLoDialog.InitToDefaults();
       BreakEvenHide();
      }
   }
