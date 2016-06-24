@@ -13,13 +13,13 @@ class CBreakEven
 private:
    string            name;
 public:
-   void              Show(int baseVolume,double pricePerVolume);
+   void              Show(double baseVolume,double pricePerVolume);
    void              Hide(void);
   };
 //+------------------------------------------------------------------+
 //| Show the BreakEven
 //+------------------------------------------------------------------+
-void CBreakEven::Show(int baseVolume,double pricePerVolume=0)
+void CBreakEven::Show(double baseVolume,double pricePerVolume=0)
   {
    double breakEvenPrice=MyTrade.CalculateBreakEvenWithLastDeal(baseVolume,pricePerVolume);
 

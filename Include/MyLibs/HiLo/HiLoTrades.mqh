@@ -119,7 +119,7 @@ void CHiLoTrades::OnTradeTransaction(ENUM_TRADE_TRANSACTION_TYPE tradeType)
 //+------------------------------------------------------------------+
 void CHiLoTrades::TradeStart(bool buy,bool sell)
   {
-   int volume=HiLoDialog.CurrentVolume();
+   double volume=HiLoDialog.CurrentVolume();
    bool executed=MyTrade.TradeStart("TradeStart",buy,sell,volume);
    if(executed)
       ModifyTpSl();
@@ -146,7 +146,7 @@ void CHiLoTrades::TradeBuyOpen()
    if(!IsTimeToOpenOperation())
       return;
 
-   int volume=HiLoDialog.CurrentVolume();
+   double volume=HiLoDialog.CurrentVolume();
    if(MyTrade.TradeBuyOpen("TradeBuyOpen",volume))
      {
       ModifyTpSl();
@@ -161,7 +161,7 @@ void CHiLoTrades::TradeSellOpen()
    if(!IsTimeToOpenOperation())
       return;
 
-   int volume=HiLoDialog.CurrentVolume();
+   double volume=HiLoDialog.CurrentVolume();
    if(MyTrade.TradeSellOpen("TradeSellOpen",volume))
      {
       ModifyTpSl();

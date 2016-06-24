@@ -33,7 +33,7 @@ input ENUM_MA_METHOD InpCmaMethod=MODE_SMA;                           // Method
 //--- input parameters for Trades
 input string          InpTradesData="------------------------------"; // --------------- Trades ---------------
 input ENUM_TIMEFRAMES InpTradeTimeFrame=PERIOD_CURRENT;               // Default TimeFrame
-input int             InpTradeVolume=1;                               // Default volume to do trades operations
+input double          InpTradeVolume=1;                               // Default volume to do trades operations
 input double          InpTradeVolumeFactor=2;                         // Default trade factor (martingale)
 input bool            InpTradeVolumeFactorBreakEvenEnabled=false;     // Default to false to not enable calculation based on breakeven points
 input double          InpTradeVolumeFactorBreakEvenPoints=50;         // Volume Factor calculation on breakeven points

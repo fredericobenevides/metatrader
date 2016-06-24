@@ -20,7 +20,7 @@ private:
 
    bool              m_is_on_buy_trade;
    bool              m_is_on_sell_trade;
-   int               m_current_trade_volume;
+   double            m_current_trade_volume;
 
    bool              m_play_sound_on_operation;
    string            m_buy_trade_sound_name;
@@ -33,16 +33,16 @@ private:
 public:
    void              CMyTrade(void);
 
-   bool              TradeStart(string methodName,bool buy,bool sell,int volume);
+   bool              TradeStart(string methodName,bool buy,bool sell,double volume);
    bool              TradeStop(string methodName);
 
-   bool              TradeBuyOpen(string methodName,int volume);
-   bool              TradeSellOpen(string methodName,int volume);
+   bool              TradeBuyOpen(string methodName,double volume);
+   bool              TradeSellOpen(string methodName,double volume);
    bool              TradeBuyClose(string methodName);
    bool              TradeSellClose(string methodName);
 
-   bool              ExecuteBuyTrade(string methodName,int volume);
-   bool              ExecuteSellTrade(string methodName,int volume);
+   bool              ExecuteBuyTrade(string methodName,double volume);
+   bool              ExecuteSellTrade(string methodName,double volume);
 
    bool              ModifyTpSl(double stopLoss=0,double takeProfit=0);
    void              EventTpSlExecuted(void);
@@ -57,10 +57,10 @@ public:
    string            CurrentPositionStatus();
 
    void              CalculateProfitOrdersOnCurrentDay();
-   double            CalculateBreakEven(int baseVolume,double pricePerVolume=0);
-   double            CalculateBreakEvenWithLastDeal(int baseVolume,double pricePerVolume=0);
-   int               CalculateVolumeFactor(double volumeFactor, double lastVolume);
-   int               CalculateVolumeFactorOnBreakEven(double pointsToBreakEven,double volumeFactor,double pricePerVolume=0);
+   double            CalculateBreakEven(double baseVolume,double pricePerVolume=0);
+   double            CalculateBreakEvenWithLastDeal(double baseVolume,double pricePerVolume=0);
+   double            CalculateVolumeFactor(double volumeFactor,double lastVolume);
+   double            CalculateVolumeFactorOnBreakEven(double pointsToBreakEven,double volumeFactor,double pricePerVolume=0);
 
    void              EnableSoundOnOperation(string sellSoundsName="alert",string buySoundsName="alert2");
    void              PlayBuySound();
@@ -72,7 +72,7 @@ public:
    bool              IsOnTradeOperation();
    bool              IsOnBuyTrade();
    bool              IsOnSellTrade();
-   int               CurrentTradeVolume();
+   double            CurrentTradeVolume();
    void              LoadTradeOperationFromPosition();
 
    double            TradeLastDealSumPrice(double price);
@@ -108,7 +108,7 @@ CMyTrade::CMyTrade(void)
 //+------------------------------------------------------------------+
 //| Start a trade                                                                
 //+------------------------------------------------------------------+
-bool CMyTrade::TradeStart(string methodName,bool buy,bool sell,int volume)
+bool CMyTrade::TradeStart(string methodName,bool buy,bool sell,double volume)
   {
    if(IsOnTradeOperation())
      {
@@ -173,7 +173,7 @@ bool CMyTrade::TradeStop(string methodName)
 //+------------------------------------------------------------------+
 //| Open a BUY operation                                                                
 //+------------------------------------------------------------------+
-bool CMyTrade::TradeBuyOpen(string methodName,int volume)
+bool CMyTrade::TradeBuyOpen(string methodName,double volume)
   {
    if(IsOnTradeOperation())
      {
@@ -191,7 +191,7 @@ bool CMyTrade::TradeBuyOpen(string methodName,int volume)
 //+------------------------------------------------------------------+
 //| Open a Sell operation                                                                
 //+------------------------------------------------------------------+
-bool CMyTrade::TradeSellOpen(string methodName,int volume)
+bool CMyTrade::TradeSellOpen(string methodName,double volume)
   {
    if(IsOnTradeOperation())
      {
@@ -241,7 +241,7 @@ bool CMyTrade::TradeSellClose(string methodName)
 //+------------------------------------------------------------------+
 //| Execute the BUY Operation                                                                   
 //+------------------------------------------------------------------+
-bool CMyTrade::ExecuteBuyTrade(string methodName,int volume)
+bool CMyTrade::ExecuteBuyTrade(string methodName,double volume)
   {
    double price=SymbolInfoDouble(_Symbol,SYMBOL_LAST);
    string comment=methodName+"() "+(string)price;
@@ -264,7 +264,7 @@ bool CMyTrade::ExecuteBuyTrade(string methodName,int volume)
 //+------------------------------------------------------------------+
 //| Execute the BUY Operation
 //+------------------------------------------------------------------+
-bool CMyTrade::ExecuteSellTrade(string methodName,int volume)
+bool CMyTrade::ExecuteSellTrade(string methodName,double volume)
   {
    double price=SymbolInfoDouble(_Symbol,SYMBOL_LAST);
    string comment=methodName+"() "+(string)price;
@@ -539,7 +539,7 @@ void CMyTrade::CalculateProfitOrdersOnCurrentDay()
 //+------------------------------------------------------------------+
 //| Calculate the current points of BreakEven for the current Symbol                                                                 
 //+------------------------------------------------------------------+
-double CMyTrade::CalculateBreakEven(int baseVolume,double pricePerVolume=0)
+double CMyTrade::CalculateBreakEven(double baseVolume,double pricePerVolume=0)
   {
    CalculateProfitOrdersOnCurrentDay();
 
@@ -589,7 +589,7 @@ double CMyTrade::CalculateBreakEven(int baseVolume,double pricePerVolume=0)
 //| BreakEven: -60
 //| New Price wil be: 50040
 //+------------------------------------------------------------------+
-double CMyTrade::CalculateBreakEvenWithLastDeal(int baseVolume,double pricePerVolume=0)
+double CMyTrade::CalculateBreakEvenWithLastDeal(double baseVolume,double pricePerVolume=0)
   {
    double breakEven=CalculateBreakEven(baseVolume,pricePerVolume);
    CurrentPositionSelect();
@@ -605,17 +605,17 @@ double CMyTrade::CalculateBreakEvenWithLastDeal(int baseVolume,double pricePerVo
 //+------------------------------------------------------------------+
 //| Calculate the current volume factor using martingale (double the volume)
 //+------------------------------------------------------------------+
-int CMyTrade::CalculateVolumeFactor(double volumeFactor, double lastVolume)
+double CMyTrade::CalculateVolumeFactor(double volumeFactor,double lastVolume)
   {
    double volumeFactorCalculated=NormalizeDouble(lastVolume*volumeFactor,2);
 
    PrintFormat("Using factor (%.2f) to calculate the volume. Last used volume: (%.2f). Next Volume: (%.2f)",volumeFactor,lastVolume,volumeFactorCalculated);
-   return (int)volumeFactorCalculated;
+   return volumeFactorCalculated;
   }
 //+------------------------------------------------------------------+
 //| Calculate the next volume factor using the price factor                                                                 
 //+------------------------------------------------------------------+
-int CMyTrade::CalculateVolumeFactorOnBreakEven(double pointsToBreakEven,double volumeFactor,double pricePerVolume=0)
+double CMyTrade::CalculateVolumeFactorOnBreakEven(double pointsToBreakEven,double volumeFactor,double pricePerVolume=0)
   {
    CalculateProfitOrdersOnCurrentDay();
 
@@ -670,7 +670,7 @@ int CMyTrade::CalculateVolumeFactorOnBreakEven(double pointsToBreakEven,double v
       PrintFormat("Volume calculated based on Break Even Points is greater than the Volume factor. "+
                   "It will use the volume calculated based on Break Even Points. Next volume will be: (%.2f)",volumeWithBreakEvenPoints);
 
-   return (int)volumeWithBreakEvenPoints;
+   return volumeWithBreakEvenPoints;
   }
 //+------------------------------------------------------------------+
 //| Enable the sounds for BUY operation and SELL operation                                                                
@@ -752,7 +752,7 @@ bool CMyTrade::IsOnSellTrade()
 //+------------------------------------------------------------------+
 //| Return the current trade volume
 //+------------------------------------------------------------------+
-int CMyTrade::CurrentTradeVolume()
+double CMyTrade::CurrentTradeVolume()
   {
    return m_current_trade_volume;
   }

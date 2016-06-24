@@ -53,7 +53,7 @@ class CHiLoDialog : public CAppDialog
 
    CLabel            m_label_volume_status;
 
-   int               m_current_volume;
+   double            m_current_volume;
 
 public:
                      CHiLoDialog(void);
@@ -80,8 +80,8 @@ public:
    void              LoadVolumesToEditBox(void);
    void              LoadVolumeStatusToLabel(void);
 
-   int               CurrentVolume();
-   int               NextVolume();
+   double            CurrentVolume();
+   double            NextVolume();
 
    double            TakeProfit();
    double            StopLoss();
@@ -291,7 +291,7 @@ void CHiLoDialog::PrintAllStatus(void)
    PrintFormat("Status for: %s",_Symbol);
    PrintFormat("Buy: (%s), Sell: (%s), Close P/L: (%s)",buyChecked,sellChecked,closeTpSlChecked);
    PrintFormat("Buy Trade: (%s), Sell Trade: (%s)",buyTrade,sellTrade);
-   PrintFormat("Volume: (%d), Price Per Volume: (%.2f)",m_current_volume,InpTradePricePerVolume);
+   PrintFormat("Volume: (%.2f), Price Per Volume: (%.2f)",m_current_volume,InpTradePricePerVolume);
    PrintFormat("Take Profit: (%s - %s), Stop Loss: (%s - %s)",tpChecked,tpValue,slChecked,slValue);
    PrintFormat("Time Enabled: (%s), Time Start: (%s), Time End: (%s)",tEnabled,timeStart,timeEnd);
    PrintFormat("Volume Factor (Martingale): (%.2f)",InpTradeVolumeFactor);
@@ -345,7 +345,7 @@ bool CHiLoDialog::IsStopLossChecked(void)
 //+------------------------------------------------------------------+
 void CHiLoDialog::LoadVolumesToEditBox(void)
   {
-   m_edit_volume.Text(IntegerToString(m_current_volume));
+   m_edit_volume.Text(DoubleToString(m_current_volume,2));
    ChartRedraw();
   }
 //+------------------------------------------------------------------+
@@ -365,7 +365,7 @@ void CHiLoDialog::LoadVolumeStatusToLabel(void)
 //+------------------------------------------------------------------+
 //| Returns the current Volume
 //+------------------------------------------------------------------+
-int CHiLoDialog::CurrentVolume(void)
+double CHiLoDialog::CurrentVolume(void)
   {
    return m_current_volume;
   }
@@ -731,7 +731,7 @@ void CHiLoDialog::OnClickButtonResetToDefaults(void)
 //+------------------------------------------------------------------+
 void CHiLoDialog::OnChangeEditVolume(void)
   {
-   int v=(int)StringToInteger(m_edit_volume.Text());
+   double v=StringToDouble(m_edit_volume.Text());
    if(v!=m_current_volume)
      {
       m_current_volume=v;
