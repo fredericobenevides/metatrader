@@ -16,6 +16,8 @@
 #include <MyLibs\Trade\MyTrade.mqh>
 #include <MyLibs\Utils\Time.mqh>
 
+#include <MyLibs\Test\Test.mqh>
+
 //--- input parameters
 input string         InpHiLoData="------------------------------";    // --------------- HiLo ---------------
 input int            InpPeriod=1;                                     // Period
@@ -61,6 +63,9 @@ CHiLoTrades HiLoTrades;
 CBreakEven BreakEven;
 CMyTrade MyTrade;
 CTime Time;
+
+//--- global vars for test
+//CTest Test;
 //+------------------------------------------------------------------+
 //| Expert initialization function                                   |
 //+------------------------------------------------------------------+
@@ -107,12 +112,16 @@ void OnDeinit(const int reason)
 
 // hide breakEven
    BreakEven.Hide();
+
+// Generate the history report
+//Test.HistoryReport();
   }
 //+------------------------------------------------------------------+
 //| Expert tick function                                             |
 //+------------------------------------------------------------------+
 void OnTick()
   {
+//Test.RunEnvTest();
    HiLoMALoader.OnTick();
   }
 //+------------------------------------------------------------------+

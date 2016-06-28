@@ -66,6 +66,7 @@ public:
 
    void              InitToDefaults();
    void              InitWhenTradeIsOn();
+   void              InitForTest();
    void              ResetVolumesToDefault();
    void              PrintAllStatus();
 
@@ -253,6 +254,15 @@ void CHiLoDialog::InitWhenTradeIsOn()
       Print("******** Printing again the status since there is a current position ******** ");
       PrintAllStatus();
      }
+  }
+//+------------------------------------------------------------------+
+//| Init the dialog for test
+//+------------------------------------------------------------------+
+void CHiLoDialog::InitForTest()
+  {
+   m_checkbox_buy.Checked(true);
+   m_checkbox_sell.Checked(true);
+   ResetVolumesToDefault();
   }
 //+------------------------------------------------------------------+
 //| Reset the current volume to default value.                                                                 
