@@ -20,7 +20,7 @@
 
 //--- input parameters
 input string         InpHiLoData="------------------------------";    // --------------- HiLo ---------------
-input int            InpPeriod=1;                                     // Period
+input int            InpPeriod=2;                                     // Period
 input ENUM_MA_METHOD InpMaMethod=MODE_SMMA;                           // Method
 input bool           InpArrowInFirstHiLo=false;                       // Add an arrow to the first HiLo
 input bool           InpArrowInSecondHiLo=true;                       // Add an arrow to the second HiLo
@@ -29,7 +29,7 @@ input bool           InpShowHiLoLine=false;                           // Show th
 
 //--- input parameters for  Moving Average
 input string         InpCmaData="------------------------------";     // ---------- Moving Average ----------
-input int            InpCmaPeriod=13;                                 // Period                     
+input int            InpCmaPeriod=8;                                 // Period                     
 input ENUM_MA_METHOD InpCmaMethod=MODE_SMA;                           // Method
 
 //--- input parameters for Trades
@@ -51,8 +51,15 @@ input string          InpBuyTradeSound="dingdong";                    // The Sou
 //--- input parameters for Time Control
 input string          InpTimeControlData="-------------------------"; // --------------- Time Control ---------------
 input bool            InpTimeEnabled=true;                            // Enable the Time Control
-input string          InpTimeStart="09:30";                           // Default time to start the operation
-input string          InpTimeEnd="18:00";                             // Default time to end the operation
+input int             InpTimeStartHour=10;                            // Default hour time to start the operation
+input int             InpTimeStartMinute=0;                           // Default minute time to start the operation
+input int             InpTimeEndHour=12;                              // Default hour time to end the operation
+input int             InpTimeEndMinute=0;                             // Default minute time to end the operation
+
+//--- input parameters for Test
+input string          InpTestData="-------------------------";        // --------------- Test ---------------
+input bool            InpTestEnabled=false;                           // Enable operation for test environment
+input bool            InpGenerateReport=false;                        // Generate the file test.csv on tester folder
 
 //--- global vars
 int first_initialization=true; // flag indicate if is the first initialization
@@ -65,7 +72,7 @@ CMyTrade MyTrade;
 CTime Time;
 
 //--- global vars for test
-//CTest Test;
+CTest Test;
 //+------------------------------------------------------------------+
 //| Expert initialization function                                   |
 //+------------------------------------------------------------------+
@@ -114,14 +121,17 @@ void OnDeinit(const int reason)
    BreakEven.Hide();
 
 // Generate the history report
-//Test.HistoryReport();
+   if(InpGenerateReport)
+      Test.HistoryReport();
   }
 //+------------------------------------------------------------------+
 //| Expert tick function                                             |
 //+------------------------------------------------------------------+
 void OnTick()
   {
-//Test.RunEnvTest();
+   if(InpTestEnabled)
+      Test.RunEnvTest();
+
    HiLoMALoader.OnTick();
   }
 //+------------------------------------------------------------------+

@@ -253,8 +253,8 @@ bool CHiLoTrades::IsTimeToOpenOperation()
    if(!InpTimeEnabled)
       return true;
 
-   datetime start=Time.StrToDatetime(InpTimeStart);
-   datetime end=Time.StrToDatetime(InpTimeEnd);
+   datetime start=Time.IntToDatetime(InpTimeStartHour,InpTimeStartMinute);
+   datetime end=Time.IntToDatetime(InpTimeEndHour,InpTimeEndMinute);
 
    return Time.TimeTradeServerBetween(start,end);
   }

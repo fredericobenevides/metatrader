@@ -291,9 +291,9 @@ void CHiLoDialog::PrintAllStatus(void)
    string slValue=m_edit_stop_loss.Text();
 
    string tEnabled=InpTimeEnabled ? "Y" : "N";
-   datetime dtStart= Time.StrToDatetime(InpTimeStart);
+   datetime dtStart=Time.IntToDatetime(InpTimeStartHour,InpTimeStartMinute);
    string timeStart=TimeToString(dtStart);
-   datetime dtEnd= Time.StrToDatetime(InpTimeEnd);
+   datetime dtEnd=Time.IntToDatetime(InpTimeEndHour,InpTimeEndMinute);
    string timeEnd=TimeToString(dtEnd);
 
    string volumeFactorBreakevenEnabled=InpTradeVolumeFactorBreakEvenEnabled? "Y" : "N";
