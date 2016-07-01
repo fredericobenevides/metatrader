@@ -5,7 +5,7 @@
 //+------------------------------------------------------------------+
 #property copyright "Frederico Benevides"
 #property link      "fredbene@gmail.com"
-#property version   "1.56"
+#property version   "1.58"
 #property indicator_chart_window
 #property indicator_buffers 17
 #property indicator_plots   14
@@ -91,7 +91,7 @@
 
 //--- input parameters
 input string         InpHiLoData="------------------------------";    // --------------- HiLo ---------------
-input int            InpPeriod=1;                                     // Period
+input int            InpPeriod=2;                                     // Period
 input ENUM_MA_METHOD InpMaMethod=MODE_SMMA;                           // Method
 input bool           InpArrowInFirstHiLo=false;                       // Add an arrow to the first HiLo
 input bool           InpArrowInSecondHiLo=true;                       // Add an arrow to the second HiLo
@@ -100,7 +100,7 @@ input bool           InpShowHiLoLine=false;                           // Show th
 
 //--- input parameters for  Moving Average
 input string         InpCmaData="------------------------------";     // ---------- Moving Average ----------
-input int            InpCmaPeriod=13;                                 // Period                     
+input int            InpCmaPeriod=8;                                 // Period                     
 input ENUM_MA_METHOD InpCmaMethod=MODE_SMA;                          // Method
 
 //--- indicator buffers
@@ -190,7 +190,7 @@ int OnInit()
    ArraySetAsSeries(CmaBuffer,true);
 
 //--- check Period
-   Period=(int)fmax(InpPeriod,2);
+   Period=(int)fmax(InpPeriod,1);
    MaHighHandle=iMA(NULL,0,Period,0,InpMaMethod,PRICE_HIGH);
    MaLowHandle=iMA(NULL,0,Period,0,InpMaMethod,PRICE_LOW);
 
