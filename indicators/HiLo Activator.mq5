@@ -5,7 +5,7 @@
 //+------------------------------------------------------------------+
 #property copyright "Frederico Benevides"
 #property link      "fredbene@gmail.com"
-#property version   "1.30"
+#property version   "1.31"
 #property indicator_chart_window
 #property indicator_buffers 13
 #property indicator_plots   10
@@ -67,7 +67,7 @@
 
 //--- input parameters
 input string         InpHiLoData="------------------------------";    // --------------- HiLo ---------------
-input int            InpPeriod=1;                                     // Period
+input int            InpPeriod=2;                                     // Period
 input ENUM_MA_METHOD InpMaMethod=MODE_SMMA;                           // Method
 input bool           InpArrowInFirstHiLo=false;                       // Add an arrow to the first HiLo
 input bool           InpArrowInSecondHiLo=true;                       // Add an arrow to the second HiLo
@@ -94,7 +94,6 @@ int MaHighHandle;
 int MaLowHandle;
 int Period;
 int MinRatesTotal;
-
 //+------------------------------------------------------------------+
 //| Custom indicator initialization function                         |
 //+------------------------------------------------------------------+
@@ -139,7 +138,7 @@ int OnInit()
    ArraySetAsSeries(TrendBuffer,true);
 
 //--- check Period
-   Period=(int)fmax(InpPeriod,2);
+   Period=(int)fmax(InpPeriod,1);
    MaHighHandle=iMA(NULL,0,Period,0,InpMaMethod,PRICE_HIGH);
    MaLowHandle=iMA(NULL,0,Period,0,InpMaMethod,PRICE_LOW);
 
@@ -185,7 +184,7 @@ int OnCalculate(const int rates_total,
    ArraySetAsSeries(time,true);
 
    int limit=0;
-   if(prev_calculated>rates_total || prev_calculated==0)
+   if(prev_calculated>rates_total || prev_calculated<=0)
      {
       // Set the limit to calculate.
       // 100 candles
