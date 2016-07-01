@@ -15,6 +15,7 @@ private:
 public:
                      CTime(void);
    datetime          StrToDatetime(string hourMinute);
+   datetime          IntToDatetime(int hour,int minute);
 
    bool              TimeTradeServerBetween(datetime start,datetime end);
    bool              TimeTradeServerGtEnd(datetime end);
@@ -37,6 +38,23 @@ datetime CTime::StrToDatetime(string hourMinute)
   {
    string currentDateStr=TimeToString(TimeTradeServer(),TIME_DATE);
    string currentDateWithHour=currentDateStr+" "+hourMinute+":00";
+   return StringToTime(currentDateWithHour);
+  }
+//+------------------------------------------------------------------+
+//| IntToDatetime transform a int 09, 30 to datetime as "yyyy.mm.dd 09:30:00"
+//+------------------------------------------------------------------+
+datetime CTime::IntToDatetime(int hour,int minute)
+  {
+   string currentDateStr=TimeToString(TimeTradeServer(),TIME_DATE);
+
+   string sHour=""+IntegerToString(hour);
+   string sMinute=""+IntegerToString(minute);
+   if(hour<10)
+      sHour="0"+sHour;
+   if(minute<10)
+      sMinute="0"+sMinute;
+
+   string currentDateWithHour=currentDateStr+" "+sHour+":"+sMinute+":00";
    return StringToTime(currentDateWithHour);
   }
 //+------------------------------------------------------------------+
