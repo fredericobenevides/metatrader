@@ -408,6 +408,9 @@ void CHiLoDialog::CalculateVolumeFactor()
    else
       m_current_volume=MyTrade.CalculateVolumeFactor(InpTradeVolumeFactor,m_current_volume);
 
+   if(m_current_volume>InpTradeMaxVolume)
+      InitToDefaults();
+
    LoadVolumesToEditBox();
   }
 //+------------------------------------------------------------------+

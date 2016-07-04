@@ -29,13 +29,14 @@ input bool           InpShowHiLoLine=false;                           // Show th
 
 //--- input parameters for  Moving Average
 input string         InpCmaData="------------------------------";     // ---------- Moving Average ----------
-input int            InpCmaPeriod=8;                                 // Period                     
+input int            InpCmaPeriod=8;                                  // Period                     
 input ENUM_MA_METHOD InpCmaMethod=MODE_SMA;                           // Method
 
 //--- input parameters for Trades
 input string          InpTradesData="------------------------------"; // --------------- Trades ---------------
 input ENUM_TIMEFRAMES InpTradeTimeFrame=PERIOD_CURRENT;               // Default TimeFrame
 input double          InpTradeVolume=1;                               // Default volume to do trades operations
+input double          InpTradeMaxVolume=80;                           // Default max volume to stop the operation
 input double          InpTradeVolumeFactor=2;                         // Default trade factor (martingale)
 input bool            InpTradeVolumeFactorBreakEvenEnabled=false;     // Default to false to not enable calculation based on breakeven points
 input double          InpTradeVolumeFactorBreakEvenPoints=50;         // Volume Factor calculation on breakeven points
