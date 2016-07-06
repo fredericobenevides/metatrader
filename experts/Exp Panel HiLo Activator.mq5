@@ -20,7 +20,7 @@
 
 //--- input parameters
 input string         InpHiLoData="------------------------------";    // --------------- HiLo ---------------
-input int            InpPeriod=2;                                     // Period
+input int            InpPeriod=4;                                     // Period
 input ENUM_MA_METHOD InpMaMethod=MODE_SMMA;                           // Method
 input bool           InpArrowInFirstHiLo=false;                       // Add an arrow to the first HiLo
 input bool           InpArrowInSecondHiLo=true;                       // Add an arrow to the second HiLo
@@ -35,7 +35,7 @@ input ENUM_MA_METHOD InpCmaMethod=MODE_SMA;                           // Method
 //--- input parameters for Trades
 input string          InpTradesData="------------------------------"; // --------------- Trades ---------------
 input ENUM_TIMEFRAMES InpTradeTimeFrame=PERIOD_CURRENT;               // Default TimeFrame
-input double          InpTradeVolume=1;                               // Default volume to do trades operations
+input double          InpTradeVolume=5;                               // Default volume to do trades operations
 input double          InpTradeMaxVolume=80;                           // Default max volume to stop the operation
 input double          InpTradeVolumeFactor=2;                         // Default trade factor (martingale)
 input bool            InpTradeVolumeFactorBreakEvenEnabled=false;     // Default to false to not enable calculation based on breakeven points
