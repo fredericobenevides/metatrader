@@ -300,6 +300,7 @@ void CHiLoDialog::PrintAllStatus(void)
 
    PrintFormat("Status for: %s",_Symbol);
    PrintFormat("Buy: (%s), Sell: (%s), Close P/L: (%s)",buyChecked,sellChecked,closeTpSlChecked);
+   PrintFormat("Max Operations (%d)",InpTradeMaxFactorOperations);
    PrintFormat("Buy Trade: (%s), Sell Trade: (%s)",buyTrade,sellTrade);
    PrintFormat("Volume: (%.2f), Price Per Volume: (%.2f)",m_current_volume,InpTradePricePerVolume);
    PrintFormat("Take Profit: (%s - %s), Stop Loss: (%s - %s)",tpChecked,tpValue,slChecked,slValue);
@@ -408,7 +409,7 @@ void CHiLoDialog::CalculateVolumeFactor()
    else
       m_current_volume=MyTrade.CalculateVolumeFactor(InpTradeVolumeFactor,m_current_volume);
 
-   if(m_current_volume>InpTradeMaxVolume)
+   if(MyTrade.isNextVolumeGtMaxOperations(InpTradeVolume,m_current_volume,InpTradeVolumeFactor,InpTradeMaxFactorOperations))
       InitToDefaults();
 
    LoadVolumesToEditBox();

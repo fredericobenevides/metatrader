@@ -75,6 +75,8 @@ public:
    double            CurrentTradeVolume();
    void              LoadTradeOperationFromPosition();
 
+   bool              isNextVolumeGtMaxOperations(double initialVolume,double nextVolume,double martingale,int maxOperations);
+
    double            TradeLastDealSumPrice(double price);
    double            TradePositionSumPrice(double price);
 
@@ -773,6 +775,23 @@ void CMyTrade::LoadTradeOperationFromPosition()
          m_is_on_sell_trade=true;
      }
   }
+//+------------------------------------------------------------------+
+//| Verify if the current volume is greater than the max operations from parameter
+//| Formula to find the max volume based on max operations: 
+//| maxVolume = (Martingale^MaxOperations)*InitialVolume
+//+------------------------------------------------------------------+
+bool CMyTrade::isNextVolumeGtMaxOperations(double initialVolume,double nextVolume,double martingale,int maxOperations)
+  {
+   int digits=(int)SymbolInfoInteger(_Symbol,SYMBOL_DIGITS);
+
+   double powValue=pow(martingale,(maxOperations-1));
+   double maxVolume=NormalizeDouble(powValue*initialVolume,digits);
+
+   if(nextVolume>maxVolume)
+      return true;
+   else
+      return false;
+  };
 //+------------------------------------------------------------------+
 //| Sum the current last deal price with the next price.
 //+------------------------------------------------------------------+
