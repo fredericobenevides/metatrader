@@ -41,6 +41,7 @@ input double          InpTradeVolumeFactor=2;                         // Default
 input bool            InpTradeVolumeFactorBreakEvenEnabled=false;     // Default to false to not enable calculation based on breakeven points
 input double          InpTradeVolumeFactorBreakEvenPoints=50;         // Volume Factor calculation on breakeven points
 input double          InpTradeTakeProfit=200.0;                       // Default Take Profit
+input double          InpTradeMaxTakeProfit=1;                        // Default max take profit to do on a day.
 input double          InpTradeStopLoss=0.0;                           // Default Stop Loss
 input double          InpTradePricePerVolume=0;                       // Default Price Per Volume
 //--- input parameters for Trades Sound

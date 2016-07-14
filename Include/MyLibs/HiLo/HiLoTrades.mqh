@@ -18,8 +18,10 @@ private:
    double            m_low_invalid_hilo[1];
 
    datetime          m_last_time;
+   int               m_count_take_profit;
 
 public:
+   void              Init();
    void              OnTick(int handle,int minRatesTotal);
    void              OnTradeTransaction(ENUM_TRADE_TRANSACTION_TYPE tradeType);
 
@@ -42,6 +44,13 @@ public:
 
    bool              HasTimeToUpdateStatus();
   };
+//+------------------------------------------------------------------+
+//| Constructor
+//+------------------------------------------------------------------+
+void  CHiLoTrades::Init()
+  {
+   m_count_take_profit=0;
+  }
 //+------------------------------------------------------------------+
 //| Verify is there any operation for each candle. 
 //+------------------------------------------------------------------+
@@ -227,9 +236,15 @@ void CHiLoTrades::EventTpSlExecuted(void)
    MyTrade.EventTpSlExecuted();
    BreakEvenHide();
 
-// if close Take Profit is Checked. Don't open a new operation
-   if(HiLoDialog.IsCloseTpChecked())
+   m_count_take_profit=m_count_take_profit+1;
+
+// if close Take Profit is Checked and the count of take profit is equal to max take profit. 
+//Don't open a new operation
+   if(HiLoDialog.IsCloseTpChecked() && InpTradeMaxTakeProfit==m_count_take_profit)
+     {
       HiLoDialog.InitToDefaults();
+      Init();
+     }
   }
 //+------------------------------------------------------------------+
 //| Show the BreakEven on Chart                                                                 |
