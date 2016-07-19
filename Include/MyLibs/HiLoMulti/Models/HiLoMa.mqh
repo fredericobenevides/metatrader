@@ -8,6 +8,7 @@
 
 #include <Object.mqh>
 
+#include <MyLibs\Trade\Trades.mqh>
 #include <MyLibs\Utils\ChartUtils.mqh>
 #include <MyLibs\HiLoMulti\Models\EnumOperations.mqh>
 //+------------------------------------------------------------------+
@@ -36,6 +37,7 @@ class CHiLoMa : public CObject
    int               m_max_factor_operations; // Default max operations (Martingale^MaxOperations)*InitialVolume
    double            m_take_profit;
    double            m_stop_loss;
+   CTrades          *m_trades;
 
    // handle data
    int               m_hilo_custom_handle;
@@ -69,6 +71,7 @@ public:
 
    // getters and setters
    bool              IsTradeEnable();
+   CTrades          *GetTrades();
    double            GetVolume();
    double            GetTakeProfit();
    double            GetStopLoss();
@@ -78,12 +81,14 @@ public:
 //+------------------------------------------------------------------+
 CHiLoMa::CHiLoMa(void)
   {
+   m_trades=new CTrades();
   };
 //+------------------------------------------------------------------+
 //| Destructor
 //+------------------------------------------------------------------+
 CHiLoMa::~CHiLoMa(void)
   {
+   delete m_trades;
   };
 //+------------------------------------------------------------------+
 //| Destroy
@@ -115,13 +120,14 @@ void CHiLoMa::InitTradesConfig(bool enable,ENUM_TIMEFRAMES timeframe,
                                double volume,int maxFactorOperations,
                                double takeProfit,double stopLoss)
   {
-
    m_enable=enable;
    m_timeframe=timeframe;
    m_volume=volume;
    m_max_factor_operations=maxFactorOperations;
    m_take_profit=takeProfit;
    m_stop_loss=stopLoss;
+   
+   m_trades.Init(volume,takeProfit,stopLoss);
   }
 //+------------------------------------------------------------------+
 //| Init Indicator's Config
@@ -198,6 +204,13 @@ int CHiLoMa::ExecuteOperation()
 bool CHiLoMa::IsTradeEnable()
   {
    return m_enable;
+  }
+//+------------------------------------------------------------------+
+//| Return CTrades
+//+------------------------------------------------------------------+
+CTrades *CHiLoMa::GetTrades()
+  {
+   return m_trades;
   }
 //+------------------------------------------------------------------+
 //| Return the Volume

@@ -89,6 +89,10 @@ int OnInit()
 
       HiLoController.AddModel(hiloMaTrade1);
 
+
+      if(InpAllSetTradeSound)
+         HiLoController.InitTradeSound(InpAllSellTradeSound,InpAllBuyTradeSound);
+      
       return HiLoController.InitAll();
      }
 

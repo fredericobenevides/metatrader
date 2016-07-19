@@ -11,12 +11,14 @@
 #include <MyLibs\HiLoMulti\Models\HiLoMa.mqh>
 #include <MyLibs\HiLoMulti\Models\EnumOperations.mqh>
 #include <MyLibs\HiLoMulti\Views\HiLoMultiDialog.mqh>
+#include <MyLibs\Trade\TradeController.mqh>
 //+------------------------------------------------------------------+
 //| Controller for HiLo
 //+------------------------------------------------------------------+
 class CHiLoController
   {
    CList            *m_list_hilo_ma;
+   CTradeController *m_trade_controller;
 
 protected:
    CHiLoMultiDialog  m_hilo_multi_dialog;
@@ -30,6 +32,7 @@ public:
 
    void              AddModel(CHiLoMa *hiloMa);
 
+   void              InitTradeSound(string sellSoundName,string buySoundName);
    bool              InitAll();
 
 protected:
@@ -44,13 +47,22 @@ protected:
 CHiLoController::CHiLoController(void)
   {
    m_list_hilo_ma=new CList;
+   m_trade_controller=new CTradeController();
   }
 //+------------------------------------------------------------------+
 //| Destructor
 //+------------------------------------------------------------------+
 CHiLoController::~CHiLoController(void)
   {
-
+// destroy the models
+   for(int i=0;i<m_list_hilo_ma.Total();i++)
+     {
+      CHiLoMa *hma=m_list_hilo_ma.GetNodeAtIndex(i);
+      delete hma;
+     }
+     
+   delete m_list_hilo_ma;   
+   delete m_trade_controller;
   }
 //+------------------------------------------------------------------+
 //| Destroy everything
@@ -85,6 +97,13 @@ void CHiLoController::OnTick()
 void CHiLoController::AddModel(CHiLoMa *hiloMa)
   {
    m_list_hilo_ma.Add(hiloMa);
+  }
+//+------------------------------------------------------------------+
+//| Init the Trade's sound
+//+------------------------------------------------------------------+
+void CHiLoController::InitTradeSound(string sellSoundName,string buySoundName)
+  {
+   m_trade_controller.EnableSoundOnOperation(sellSoundName,buySoundName);
   }
 //+------------------------------------------------------------------+
 //| Init models and views
