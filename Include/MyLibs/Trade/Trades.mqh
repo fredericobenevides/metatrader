@@ -7,12 +7,15 @@
 #property link      "fredbene@gmail.com"
 
 #include <Trade\Trade.mqh>
+
+#include <MyLibs\Utils\Time.mqh>
 //+------------------------------------------------------------------+
 //| Model for a Trade Operation
 //+------------------------------------------------------------------+
 class CTrades
   {
    CTrade            m_trade;
+   CTime             Time;
    bool              m_initial_volume;
 
    // current operation
@@ -29,14 +32,22 @@ class CTrades
    double            m_stop_loss_points;
    double            m_stop_loss_price;
 
+   // trades time
+   int               m_time_start_hour;
+   int               m_time_start_minute;
+   int               m_time_end_hour;
+   int               m_time_end_minute;
+
 public:
                      CTrades();
    void              Init(double initialVolume,double takeProfit,double stopLoss);
+   void              InitTradesTime(int startHour,int startMinute,int endHour,int endMinute);
 
    void              Buy(int ticket,double volume);
    void              Sell(int ticket,double volume);
 
    bool              IsOnTradeOperation();
+   bool              IsTimeToOpenOperation();
    double            CurrentVolume();
   };
 //+------------------------------------------------------------------+
@@ -57,6 +68,16 @@ CTrades::Init(double initialVolume,double takeProfit,double stopLoss)
 
    m_take_profit_points=takeProfit;
    m_stop_loss_points=stopLoss;
+  }
+//+------------------------------------------------------------------+
+//| Init Trade's Time
+//+------------------------------------------------------------------+
+CTrades::InitTradesTime(int startHour,int startMinute,int endHour,int endMinute)
+  {
+   m_time_start_hour=startHour;
+   m_time_start_minute=startMinute;
+   m_time_end_hour=endHour;
+   m_time_end_minute=endMinute;
   }
 //+------------------------------------------------------------------+
 //| Buy more or sell less accordling operation.
@@ -112,6 +133,16 @@ void CTrades::Sell(int ticket,double volume)
 bool CTrades::IsOnTradeOperation(void)
   {
    return m_is_on_buy_trade || m_is_on_sell_trade;
+  }
+//+------------------------------------------------------------------+
+//| Verify if can start to open new operations
+//+------------------------------------------------------------------+
+bool CTrades::IsTimeToOpenOperation()
+  {
+   datetime start=Time.IntToDatetime(m_time_start_hour,m_time_start_minute);
+   datetime end=Time.IntToDatetime(m_time_end_hour,m_time_end_minute);
+
+   return Time.TimeTradeServerBetween(start,end);
   }
 //+------------------------------------------------------------------+
 //| Returns the current volume

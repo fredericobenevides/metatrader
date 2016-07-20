@@ -40,6 +40,11 @@ protected:
    bool              InitView();
 
    void              AddModelsToView();
+
+   void              TradeBuyOpen(void);
+   void              TradeSellOpen(void);
+   void              TradeBuyClose(void);
+   void              TradeSellClose(void);
   };
 //+------------------------------------------------------------------+
 //| Constructor
@@ -60,8 +65,8 @@ CHiLoController::~CHiLoController(void)
       CHiLoMa *hma=m_list_hilo_ma.GetNodeAtIndex(i);
       delete hma;
      }
-     
-   delete m_list_hilo_ma;   
+
+   delete m_list_hilo_ma;
    delete m_trade_controller;
   }
 //+------------------------------------------------------------------+
@@ -88,7 +93,24 @@ void CHiLoController::OnTick()
      {
       CHiLoMa *hma=m_list_hilo_ma.GetNodeAtIndex(i);
       ENUM_OPERATIONS operation=(ENUM_OPERATIONS)hma.ExecuteOperation();
-      Print("aqui"+EnumToString(operation));
+      
+      switch(operation)
+        {
+         case BUY_OPEN_OPERATION:
+            TradeBuyOpen();
+            break;
+         case SELL_OPEN_OPERATION:
+            TradeSellOpen();
+            break;
+         case BUY_CLOSE_OPERATION:
+            TradeBuyClose();
+            break;
+         case SELL_CLOSE_OPERATION:
+            TradeSellClose();
+            break;
+         default: // NO_OPERATION
+            continue;
+        }
      }
   }
 //+------------------------------------------------------------------+
@@ -179,5 +201,57 @@ void CHiLoController::AddModelsToView()
       m_hilo_multi_dialog.AddModel(current);
       current=m_list_hilo_ma.GetNextNode();
      }
+  }
+//+------------------------------------------------------------------+
+//| Open a BUY operation
+//+------------------------------------------------------------------+
+void CHiLoController::TradeBuyOpen()
+  {
+//   if(!IsTimeToOpenOperation())
+//      return;
+//
+//   double volume=HiLoDialog.CurrentVolume();
+//   if(MyTrade.TradeBuyOpen("TradeBuyOpen",volume))
+//     {
+//      ModifyTpSl();
+//      BreakEvenShow();
+//     }
+  }
+//+------------------------------------------------------------------+
+//| Open a SELL operation
+//+------------------------------------------------------------------+
+void CHiLoController::TradeSellOpen()
+  {
+//   if(!IsTimeToOpenOperation())
+//      return;
+//
+//   double volume=HiLoDialog.CurrentVolume();
+//   if(MyTrade.TradeSellOpen("TradeSellOpen",volume))
+//     {
+//      ModifyTpSl();
+//      BreakEvenShow();
+//     }
+  }
+//+------------------------------------------------------------------+
+//| Close a BUY operation|
+//+------------------------------------------------------------------+
+void CHiLoController::TradeBuyClose(void)
+  {
+//if(MyTrade.TradeBuyClose("TradeBuyClose"))
+//  {
+//   HiLoDialog.CalculateVolumeFactor();
+//   BreakEvenHide();
+//  }
+  }
+//+------------------------------------------------------------------+
+//| Close a SELL operation
+//+------------------------------------------------------------------+
+void CHiLoController::TradeSellClose(void)
+  {
+//if(MyTrade.TradeSellClose("TradeSellClose"))
+//  {
+//   HiLoDialog.CalculateVolumeFactor();
+//   BreakEvenHide();
+//  }
   }
 //+------------------------------------------------------------------+

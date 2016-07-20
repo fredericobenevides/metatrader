@@ -65,6 +65,7 @@ public:
                                       double takeProfit,double stopLoss);
 
    void              InitIndicatorHandleConfig(bool arrowFirstHiLoo,bool arrowSecondHiLo,bool arrowCurrentCandle,bool showHiLoLine);
+   void              InitTradesTime(int startHour,int startMinute,int endHour,int endMinute);
 
    bool              InitHandle();
    int               ExecuteOperation();
@@ -126,7 +127,7 @@ void CHiLoMa::InitTradesConfig(bool enable,ENUM_TIMEFRAMES timeframe,
    m_max_factor_operations=maxFactorOperations;
    m_take_profit=takeProfit;
    m_stop_loss=stopLoss;
-   
+
    m_trades.Init(volume,takeProfit,stopLoss);
   }
 //+------------------------------------------------------------------+
@@ -138,7 +139,14 @@ void CHiLoMa::InitIndicatorHandleConfig(bool arrowFirstHiLo,bool arrowSecondHiLo
    m_arrow_in_second_hilo=arrowSecondHiLo;
    m_arrow_in_current_candle=arrowCurrentCandle;
    m_show_hilo_line=showHiLoLine;
-  };
+  }
+//+------------------------------------------------------------------+
+//| Init Trade's Time
+//+------------------------------------------------------------------+
+CHiLoMa::InitTradesTime(int startHour,int startMinute,int endHour,int endMinute)
+  {
+   m_trades.InitTradesTime(startHour,startMinute,endHour,endMinute);
+  }
 //+------------------------------------------------------------------+
 //| Init HiLo Ma Indicator Handle
 //+------------------------------------------------------------------+

@@ -40,6 +40,13 @@ input int             InpTrade1MaxFactorOperations=5;                 // Default
 input double          InpTrade1TakeProfit=200.0;                      // Default Take Profit
 input double          InpTrade1StopLoss=50.0;                         // Default Stop Loss
 
+//--- input parameters for Trade 1 (Time Control)
+input string          InpTrade1TimeControlData="-------------------------"; // --------------- Trade 1 (Time Control) ---------------
+input int             InpTrade1TimeStartHour=10;                            // Default hour time to start the operation
+input int             InpTrade1TimeStartMinute=0;                           // Default minute time to start the operation
+input int             InpTrade1TimeEndHour=16;                              // Default hour time to end the operation
+input int             InpTrade1TimeEndMinute=0;                             // Default minute time to end the operation
+
 //--- input parameters for Trade 1 (HiLo and Ma Config)
 input string          InpTrade1HiLoMaData="------------------------------"; // --------------- Trade 1 (HiLo Config) ---------------
 input int             InpTrade1HiLoPeriod=2;                          // HiLo Period
@@ -78,7 +85,7 @@ int OnInit()
   {
    if(first_initialization)
      {
-      CHiLoMa *hiloMaTrade1 = new CHiLoMa();
+      CHiLoMa *hiloMaTrade1=new CHiLoMa();
       hiloMaTrade1.InitHiLoConfig(InpTrade1HiLoPeriod,InpTrade1HiLoMethod);
       hiloMaTrade1.InitMaConfig(InpTrade1MaPeriod,InpTrade1MaMethod);
       hiloMaTrade1.InitTradesConfig(InpTrade1Enabled, InpTrade1TimeFrame,
@@ -86,13 +93,13 @@ int OnInit()
                                     InpTrade1TakeProfit,InpTrade1StopLoss);
       hiloMaTrade1.InitIndicatorHandleConfig(InpAllArrowInFirstHiLo,InpAllArrowInSecondHiLo,
                                              InpAllArrowInCurrentCandle,InpAllShowHiLoLine);
-
+      hiloMaTrade1.InitTradesTime(InpTrade1TimeStartHour,InpTrade1TimeStartMinute,
+                                  InpTrade1TimeEndHour,InpTrade1TimeEndMinute);
       HiLoController.AddModel(hiloMaTrade1);
-
 
       if(InpAllSetTradeSound)
          HiLoController.InitTradeSound(InpAllSellTradeSound,InpAllBuyTradeSound);
-      
+
       return HiLoController.InitAll();
      }
 
