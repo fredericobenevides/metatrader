@@ -18,12 +18,13 @@
 
 //#include <MyLibs\Test\Test.mqh>
 
-#include <MyLibs\HiLoMulti\Models\HiLoMa.mqh>
+#include <MyLibs\Trade\Trades.mqh>
+
+#include <MyLibs\HiLoMulti\Models\HiLoMaHandle.mqh>
 #include <MyLibs\HiLoMulti\Controllers\HiLoController.mqh>
 
 //--- input parameters for All Trades
 input string          InpAllData="------------------------------";    // --------------- Trade Configs for All Trades ---------------
-input double          InpAllVolumeMartingale=2;                       // Default trade martingale for all trades
 
 input string          InpAllHiLoData="------------------------------"; // --------------- Trade HiLo Config for All Trades ---------------
 input bool            InpAllArrowInFirstHiLo=true;                    // Add an arrow to the first HiLo
@@ -32,13 +33,17 @@ input bool            InpAllArrowInCurrentCandle=true;                // Add an 
 input bool            InpAllShowHiLoLine=false;                       // Show the line of HiLo
 
 //--- input parameters for Trade 1 (Trade Config)
-input string          InpTrade1Data="------------------------------"; // --------------- Trade 1 (Trade Config) ---------------
+input string          InpTrade1Data="------------------------------"; // --------------- Trade 1 (Trade's Config) ---------------
 input bool            InpTrade1Enabled=true;                          // Default to true to enable the Trade 1
 input ENUM_TIMEFRAMES InpTrade1TimeFrame=PERIOD_CURRENT;              // Default TimeFrame for Trade 1
 input double          InpTrade1Volume=5;                              // Default volume to do trades operations
-input int             InpTrade1MaxFactorOperations=5;                 // Default max operations (Martingale^MaxOperations)*InitialVolume
 input double          InpTrade1TakeProfit=200.0;                      // Default Take Profit
 input double          InpTrade1StopLoss=50.0;                         // Default Stop Loss
+
+//--- input parameters for Trade 1 (Trade Config)
+input string          InpTrade1MartiganelData="------------------------------"; // --------------- Trade 1 (Trade's Martingale) ---------------
+input int             InpTrade1Martingale=2;                                    // Default trade martingale for all trades
+input int             InpTrade1MaxMartingaleOperations=5;                       // Default max operations (Martingale^MaxOperations)*InitialVolume
 
 //--- input parameters for Trade 1 (Time Control)
 input string          InpTrade1TimeControlData="-------------------------"; // --------------- Trade 1 (Time Control) ---------------
@@ -85,17 +90,7 @@ int OnInit()
   {
    if(first_initialization)
      {
-      CHiLoMa *hiloMaTrade1=new CHiLoMa();
-      hiloMaTrade1.InitHiLoConfig(InpTrade1HiLoPeriod,InpTrade1HiLoMethod);
-      hiloMaTrade1.InitMaConfig(InpTrade1MaPeriod,InpTrade1MaMethod);
-      hiloMaTrade1.InitTradesConfig(InpTrade1Enabled, InpTrade1TimeFrame,
-                                    InpTrade1Volume,InpTrade1MaxFactorOperations,
-                                    InpTrade1TakeProfit,InpTrade1StopLoss);
-      hiloMaTrade1.InitIndicatorHandleConfig(InpAllArrowInFirstHiLo,InpAllArrowInSecondHiLo,
-                                             InpAllArrowInCurrentCandle,InpAllShowHiLoLine);
-      hiloMaTrade1.InitTradesTime(InpTrade1TimeStartHour,InpTrade1TimeStartMinute,
-                                  InpTrade1TimeEndHour,InpTrade1TimeEndMinute);
-      HiLoController.AddModel(hiloMaTrade1);
+      InitConfigsForTrade1();
 
       if(InpAllSetTradeSound)
          HiLoController.InitTradeSound(InpAllSellTradeSound,InpAllBuyTradeSound);
@@ -149,5 +144,26 @@ void OnTradeTransaction(
                         )
   {
 //HiLoTrades.OnTradeTransaction(trans.type);
+  }
+//+------------------------------------------------------------------+
+//| Init configs for trade 1
+//+------------------------------------------------------------------+
+void InitConfigsForTrade1()
+  {
+   CHiLoMaHandle *hiloMaTrade1=new CHiLoMaHandle();
+   hiloMaTrade1.InitHiLoConfig(InpTrade1HiLoPeriod,InpTrade1HiLoMethod);
+   hiloMaTrade1.InitMaConfig(InpTrade1MaPeriod,InpTrade1MaMethod);
+   hiloMaTrade1.InitIndicatorHandleConfig(InpTrade1TimeFrame,
+                                          InpAllArrowInFirstHiLo,InpAllArrowInSecondHiLo,
+                                          InpAllArrowInCurrentCandle,InpAllShowHiLoLine);
+
+   CTrades *trades=new CTrades("Trade1");
+   trades.InitTrade(InpTrade1Enabled, InpTrade1Volume,InpTrade1TakeProfit,InpTrade1StopLoss);
+   trades.InitMartingale(InpTrade1Martingale,InpTrade1MaxMartingaleOperations);
+   trades.InitTradesTime(InpTrade1TimeStartHour,InpTrade1TimeStartMinute,
+                         InpTrade1TimeEndHour,InpTrade1TimeEndMinute);
+
+   hiloMaTrade1.AddTrades(trades);
+   HiLoController.AddModel(hiloMaTrade1);
   }
 //+------------------------------------------------------------------+

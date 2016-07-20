@@ -17,7 +17,7 @@
 // libs dependencies
 #include <Arrays\List.mqh>
 
-#include <MyLibs\HiLoMulti\Models\HiLoMa.mqh>
+#include <MyLibs\HiLoMulti\Models\HiLoMaHandle.mqh>
 
 
 //--- indents and gaps
@@ -64,7 +64,7 @@ public:
                      CHiLoMultiDialog(void);
                     ~CHiLoMultiDialog(void);
 
-   void              AddModel(CHiLoMa *hiloMa);
+   void              AddModel(CHiLoMaHandle *hiloMa);
    //--- create
    bool              Create(const long chart,const string name,const int subwin,const int x1,const int y1,const int x2,const int y2);
    //--- chart event handler
@@ -114,7 +114,7 @@ CHiLoMultiDialog::~CHiLoMultiDialog(void)
 //+------------------------------------------------------------------+
 //| Add the HiLoMa to the HiLoMulTiDialog
 //+------------------------------------------------------------------+
-void CHiLoMultiDialog::AddModel(CHiLoMa *hiloMa)
+void CHiLoMultiDialog::AddModel(CHiLoMaHandle *hiloMa)
   {
    m_list_hilo_ma.Add(hiloMa);
   }
@@ -427,15 +427,16 @@ bool CHiLoMultiDialog::CreateTradesConfig()
       if(!Add(m_trade_e_stop_loss))
          return false;
 
-      CHiLoMa *hma=m_list_hilo_ma.GetNodeAtIndex(i);
+      CHiLoMaHandle *hma=m_list_hilo_ma.GetNodeAtIndex(i);
 
-      if(hma.IsTradeEnable())
+      CTrades *trades=hma.GetTrades();
+      if(trades.IsTradeEnable())
          m_trade_c_enable.Checked(true);
 
       m_trade_e_take_profit.TextAlign(ALIGN_CENTER);
       m_trade_e_stop_loss.TextAlign(ALIGN_CENTER);
-      m_trade_e_take_profit.Text(DoubleToString(hma.GetTakeProfit(),0));
-      m_trade_e_stop_loss.Text(DoubleToString(hma.GetStopLoss(),0));
+      //m_trade_e_take_profit.Text(DoubleToString(trades.GetTakeProfit(),0));
+      //m_trade_e_stop_loss.Text(DoubleToString(trades.GetStopLoss(),0));
 
       // add the items to panel
       m_list_trade_l_name.Add(m_trade_l_name);

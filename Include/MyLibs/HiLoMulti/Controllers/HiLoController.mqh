@@ -8,17 +8,17 @@
 
 #include <Arrays\List.mqh>
 
-#include <MyLibs\HiLoMulti\Models\HiLoMa.mqh>
+#include <MyLibs\HiLoMulti\Models\HiLoMaHandle.mqh>
 #include <MyLibs\HiLoMulti\Models\EnumOperations.mqh>
 #include <MyLibs\HiLoMulti\Views\HiLoMultiDialog.mqh>
-#include <MyLibs\Trade\TradeController.mqh>
+//#include <MyLibs\Trade\TradesService.mqh>
 //+------------------------------------------------------------------+
 //| Controller for HiLo
 //+------------------------------------------------------------------+
 class CHiLoController
   {
    CList            *m_list_hilo_ma;
-   CTradeController *m_trade_controller;
+   CTradesService   *m_trades_service;
 
 protected:
    CHiLoMultiDialog  m_hilo_multi_dialog;
@@ -30,7 +30,7 @@ public:
    void              Destroy(int reason);
    void              OnTick();
 
-   void              AddModel(CHiLoMa *hiloMa);
+   void              AddModel(CHiLoMaHandle *hiloMa);
 
    void              InitTradeSound(string sellSoundName,string buySoundName);
    bool              InitAll();
@@ -41,10 +41,10 @@ protected:
 
    void              AddModelsToView();
 
-   void              TradeBuyOpen(void);
-   void              TradeSellOpen(void);
-   void              TradeBuyClose(void);
-   void              TradeSellClose(void);
+   void              TradeBuyOpen(CTrades *trades);
+   void              TradeSellOpen(CTrades *trades);
+   void              TradeBuyClose(CTrades *trades);
+   void              TradeSellClose(CTrades *trades);
   };
 //+------------------------------------------------------------------+
 //| Constructor
@@ -52,7 +52,7 @@ protected:
 CHiLoController::CHiLoController(void)
   {
    m_list_hilo_ma=new CList;
-   m_trade_controller=new CTradeController();
+   m_trades_service=new CTradesService();
   }
 //+------------------------------------------------------------------+
 //| Destructor
@@ -62,12 +62,12 @@ CHiLoController::~CHiLoController(void)
 // destroy the models
    for(int i=0;i<m_list_hilo_ma.Total();i++)
      {
-      CHiLoMa *hma=m_list_hilo_ma.GetNodeAtIndex(i);
+      CHiLoMaHandle *hma=m_list_hilo_ma.GetNodeAtIndex(i);
       delete hma;
      }
 
    delete m_list_hilo_ma;
-   delete m_trade_controller;
+   delete m_trades_service;
   }
 //+------------------------------------------------------------------+
 //| Destroy everything
@@ -80,7 +80,7 @@ CHiLoController::Destroy(int reason)
 // destroy the models
    for(int i=0;i<m_list_hilo_ma.Total();i++)
      {
-      CHiLoMa *hma=m_list_hilo_ma.GetNodeAtIndex(i);
+      CHiLoMaHandle *hma=m_list_hilo_ma.GetNodeAtIndex(i);
       hma.Destroy();
      }
   }
@@ -91,22 +91,23 @@ void CHiLoController::OnTick()
   {
    for(int i=0;i<m_list_hilo_ma.Total();i++)
      {
-      CHiLoMa *hma=m_list_hilo_ma.GetNodeAtIndex(i);
+      CHiLoMaHandle *hma=m_list_hilo_ma.GetNodeAtIndex(i);
       ENUM_OPERATIONS operation=(ENUM_OPERATIONS)hma.ExecuteOperation();
-      
+
+      CTrades *trades=hma.GetTrades();
       switch(operation)
         {
          case BUY_OPEN_OPERATION:
-            TradeBuyOpen();
+            TradeBuyOpen(trades);
             break;
          case SELL_OPEN_OPERATION:
-            TradeSellOpen();
+            TradeSellOpen(trades);
             break;
          case BUY_CLOSE_OPERATION:
-            TradeBuyClose();
+            TradeBuyClose(trades);
             break;
          case SELL_CLOSE_OPERATION:
-            TradeSellClose();
+            TradeSellClose(trades);
             break;
          default: // NO_OPERATION
             continue;
@@ -116,7 +117,7 @@ void CHiLoController::OnTick()
 //+------------------------------------------------------------------+
 //| Add the HiLoMa to the controller
 //+------------------------------------------------------------------+
-void CHiLoController::AddModel(CHiLoMa *hiloMa)
+void CHiLoController::AddModel(CHiLoMaHandle *hiloMa)
   {
    m_list_hilo_ma.Add(hiloMa);
   }
@@ -125,7 +126,7 @@ void CHiLoController::AddModel(CHiLoMa *hiloMa)
 //+------------------------------------------------------------------+
 void CHiLoController::InitTradeSound(string sellSoundName,string buySoundName)
   {
-   m_trade_controller.EnableSoundOnOperation(sellSoundName,buySoundName);
+   m_trades_service.EnableSoundOnOperation(sellSoundName,buySoundName);
   }
 //+------------------------------------------------------------------+
 //| Init models and views
@@ -151,7 +152,7 @@ bool CHiLoController::InitModels()
   {
    for(int i=0;i<m_list_hilo_ma.Total();i++)
      {
-      CHiLoMa *hma=m_list_hilo_ma.GetNodeAtIndex(i);
+      CHiLoMaHandle *hma=m_list_hilo_ma.GetNodeAtIndex(i);
 
       int handle=hma.InitHandle();
       if(handle==INVALID_HANDLE)
@@ -195,7 +196,7 @@ bool CHiLoController::InitView()
 //+------------------------------------------------------------------+
 void CHiLoController::AddModelsToView()
   {
-   CHiLoMa *current=m_list_hilo_ma.GetCurrentNode();
+   CHiLoMaHandle *current=m_list_hilo_ma.GetCurrentNode();
    while(current!=NULL)
      {
       m_hilo_multi_dialog.AddModel(current);
@@ -205,7 +206,7 @@ void CHiLoController::AddModelsToView()
 //+------------------------------------------------------------------+
 //| Open a BUY operation
 //+------------------------------------------------------------------+
-void CHiLoController::TradeBuyOpen()
+void CHiLoController::TradeBuyOpen(CTrades *trades)
   {
 //   if(!IsTimeToOpenOperation())
 //      return;
@@ -220,7 +221,7 @@ void CHiLoController::TradeBuyOpen()
 //+------------------------------------------------------------------+
 //| Open a SELL operation
 //+------------------------------------------------------------------+
-void CHiLoController::TradeSellOpen()
+void CHiLoController::TradeSellOpen(CTrades *trades)
   {
 //   if(!IsTimeToOpenOperation())
 //      return;
@@ -235,7 +236,7 @@ void CHiLoController::TradeSellOpen()
 //+------------------------------------------------------------------+
 //| Close a BUY operation|
 //+------------------------------------------------------------------+
-void CHiLoController::TradeBuyClose(void)
+void CHiLoController::TradeBuyClose(CTrades *trades)
   {
 //if(MyTrade.TradeBuyClose("TradeBuyClose"))
 //  {
@@ -246,7 +247,7 @@ void CHiLoController::TradeBuyClose(void)
 //+------------------------------------------------------------------+
 //| Close a SELL operation
 //+------------------------------------------------------------------+
-void CHiLoController::TradeSellClose(void)
+void CHiLoController::TradeSellClose(CTrades *trades)
   {
 //if(MyTrade.TradeSellClose("TradeSellClose"))
 //  {

@@ -10,7 +10,7 @@
 //+------------------------------------------------------------------+
 //| Controller for Trade Operations
 //+------------------------------------------------------------------+
-class CTradeController
+class CTradesService
   {
 private:
    CTrade            m_trade;
@@ -21,7 +21,7 @@ private:
    string            m_error_trade_sound_name;
 
 public:
-                     CTradeController();
+                     CTradesService();
 
    //bool              TradeBuyOpen(CTrades *trades,string methodName);
    //bool              TradeSellOpen(CTrades *trades,string methodName);
@@ -39,7 +39,7 @@ public:
 //+------------------------------------------------------------------+
 //| Constructor
 //+------------------------------------------------------------------+
-CTradeController::CTradeController(void)
+CTradesService::CTradesService(void)
   {
 //--- set MagicNumber for your orders identification
    int MagicNumber=123456;
@@ -57,7 +57,7 @@ CTradeController::CTradeController(void)
 //+------------------------------------------------------------------+
 //| Execute the BUY Operation                                                                   
 //+------------------------------------------------------------------+
-bool CTradeController::ExecuteBuyTrade(CTrades *trades,string methodName)
+bool CTradesService::ExecuteBuyTrade(CTrades *trades,string methodName)
   {
    double volume=trades.CurrentVolume();
 
@@ -66,14 +66,14 @@ bool CTradeController::ExecuteBuyTrade(CTrades *trades,string methodName)
 
    if(m_trade.Buy(volume,NULL,0.0,0,0,comment))
      {
-      Print("",methodName,"() method executed successfully. Return code=",m_trade.ResultRetcode()," (",m_trade.ResultRetcodeDescription(),")");
+      Print("",methodName," method executed successfully. Return code=",m_trade.ResultRetcode()," (",m_trade.ResultRetcodeDescription(),")");
       PlayBuySound();
 
       return true;
      }
    else
      {
-      Print("",methodName,"() method failed. Return code=",m_trade.ResultRetcode(),". Code description: ",m_trade.ResultRetcodeDescription());
+      Print("",methodName," method failed. Return code=",m_trade.ResultRetcode(),". Code description: ",m_trade.ResultRetcodeDescription());
       PlayErrorSound();
 
       return false;
@@ -82,7 +82,7 @@ bool CTradeController::ExecuteBuyTrade(CTrades *trades,string methodName)
 //+------------------------------------------------------------------+
 //| Enable the sounds for BUY operation and SELL operation                                                                
 //+------------------------------------------------------------------+
-void CTradeController::EnableSoundOnOperation(string sellSoundsName="alert",string buySoundsName="alert2")
+void CTradesService::EnableSoundOnOperation(string sellSoundsName="alert",string buySoundsName="alert2")
   {
    m_play_sound_on_operation=true;
    m_sell_trade_sound_name=sellSoundsName;
@@ -92,7 +92,7 @@ void CTradeController::EnableSoundOnOperation(string sellSoundsName="alert",stri
 //+------------------------------------------------------------------+
 //| Play sounds for BUY Operation                                                                 |
 //+------------------------------------------------------------------+
-void CTradeController::PlayBuySound()
+void CTradesService::PlayBuySound()
   {
    if(m_play_sound_on_operation)
       PlaySound(m_buy_trade_sound_name);
@@ -100,7 +100,7 @@ void CTradeController::PlayBuySound()
 //+------------------------------------------------------------------+
 //| Play sounds for SELL Operation                                                                |
 //+------------------------------------------------------------------+
-void CTradeController::PlaySellSound()
+void CTradesService::PlaySellSound()
   {
    if(m_play_sound_on_operation)
       PlaySound(m_sell_trade_sound_name);
@@ -108,7 +108,7 @@ void CTradeController::PlaySellSound()
 //+------------------------------------------------------------------+
 //| Play sounds for ERROR Operation                                                                |
 //+------------------------------------------------------------------+
-void CTradeController::PlayErrorSound()
+void CTradesService::PlayErrorSound()
   {
    if(m_play_sound_on_operation)
       PlaySound(m_error_trade_sound_name);

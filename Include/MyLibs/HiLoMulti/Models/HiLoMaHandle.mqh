@@ -12,9 +12,9 @@
 #include <MyLibs\Utils\ChartUtils.mqh>
 #include <MyLibs\HiLoMulti\Models\EnumOperations.mqh>
 //+------------------------------------------------------------------+
-//| Model of HiLoMa
+//| Model of CHiLoMaHandleHandle
 //+------------------------------------------------------------------+
-class CHiLoMa : public CObject
+class CHiLoMaHandle : public CObject
   {
    // hilo config
    int               m_hilo_period;
@@ -30,16 +30,8 @@ class CHiLoMa : public CObject
    bool              m_arrow_in_current_candle;
    bool              m_show_hilo_line;
 
-   // trade operations
-   bool              m_enable;
-   ENUM_TIMEFRAMES   m_timeframe;
-   double            m_volume;
-   int               m_max_factor_operations; // Default max operations (Martingale^MaxOperations)*InitialVolume
-   double            m_take_profit;
-   double            m_stop_loss;
-   CTrades          *m_trades;
-
    // handle data
+   ENUM_TIMEFRAMES   m_timeframe;
    int               m_hilo_custom_handle;
    int               m_min_rates_total;
 
@@ -49,59 +41,52 @@ class CHiLoMa : public CObject
    double            m_high_invalid_hilo[1];
    double            m_low_invalid_hilo[1];
 
+   // ctrades
+   CTrades          *m_trades;
+
    // utils
    CChartUtils       m_chart_utils;
 
 public:
-                     CHiLoMa();
-                    ~CHiLoMa();
+                     CHiLoMaHandle();
+                    ~CHiLoMaHandle();
    void              Destroy();
 
    void              InitHiLoConfig(int period,ENUM_MA_METHOD method);
    void              InitMaConfig(int period,ENUM_MA_METHOD method);
 
-   void              InitTradesConfig(bool enable,ENUM_TIMEFRAMES timeframe,
-                                      double volume,int maxFactorOperations,
-                                      double takeProfit,double stopLoss);
-
-   void              InitIndicatorHandleConfig(bool arrowFirstHiLoo,bool arrowSecondHiLo,bool arrowCurrentCandle,bool showHiLoLine);
-   void              InitTradesTime(int startHour,int startMinute,int endHour,int endMinute);
-
+   void              InitIndicatorHandleConfig(ENUM_TIMEFRAMES m_timeframe,bool arrowFirstHiLoo,bool arrowSecondHiLo,bool arrowCurrentCandle,bool showHiLoLine);
    bool              InitHandle();
    int               ExecuteOperation();
 
-   // getters and setters
-   bool              IsTradeEnable();
+   // getters and setters 
+   void              AddTrades(CTrades *trades);
    CTrades          *GetTrades();
-   double            GetVolume();
-   double            GetTakeProfit();
-   double            GetStopLoss();
   };
 //+------------------------------------------------------------------+
 //| Constructor
 //+------------------------------------------------------------------+
-CHiLoMa::CHiLoMa(void)
+CHiLoMaHandle::CHiLoMaHandle(void)
   {
-   m_trades=new CTrades();
   };
 //+------------------------------------------------------------------+
 //| Destructor
 //+------------------------------------------------------------------+
-CHiLoMa::~CHiLoMa(void)
+CHiLoMaHandle::~CHiLoMaHandle(void)
   {
    delete m_trades;
   };
 //+------------------------------------------------------------------+
 //| Destroy
 //+------------------------------------------------------------------+
-CHiLoMa::Destroy()
+CHiLoMaHandle::Destroy()
   {
    IndicatorRelease(m_hilo_custom_handle);
   }
 //+------------------------------------------------------------------+
 //| Init HiLo's Config
 //+------------------------------------------------------------------+
-void CHiLoMa::InitHiLoConfig(int period,ENUM_MA_METHOD method)
+void CHiLoMaHandle::InitHiLoConfig(int period,ENUM_MA_METHOD method)
   {
    m_hilo_period=period;
    m_hilo_method=method;
@@ -109,48 +94,26 @@ void CHiLoMa::InitHiLoConfig(int period,ENUM_MA_METHOD method)
 //+------------------------------------------------------------------+
 //| Init Ma's Config
 //+------------------------------------------------------------------+
-void CHiLoMa::InitMaConfig(int period,ENUM_MA_METHOD method)
+void CHiLoMaHandle::InitMaConfig(int period,ENUM_MA_METHOD method)
   {
    m_ma_period=period;
    m_ma_method=method;
   };
 //+------------------------------------------------------------------+
-//| Init Trade's Config
-//+------------------------------------------------------------------+
-void CHiLoMa::InitTradesConfig(bool enable,ENUM_TIMEFRAMES timeframe,
-                               double volume,int maxFactorOperations,
-                               double takeProfit,double stopLoss)
-  {
-   m_enable=enable;
-   m_timeframe=timeframe;
-   m_volume=volume;
-   m_max_factor_operations=maxFactorOperations;
-   m_take_profit=takeProfit;
-   m_stop_loss=stopLoss;
-
-   m_trades.Init(volume,takeProfit,stopLoss);
-  }
-//+------------------------------------------------------------------+
 //| Init Indicator's Config
 //+------------------------------------------------------------------+
-void CHiLoMa::InitIndicatorHandleConfig(bool arrowFirstHiLo,bool arrowSecondHiLo,bool arrowCurrentCandle,bool showHiLoLine)
+void CHiLoMaHandle::InitIndicatorHandleConfig(ENUM_TIMEFRAMES timeframe,bool arrowFirstHiLo,bool arrowSecondHiLo,bool arrowCurrentCandle,bool showHiLoLine)
   {
+   m_timeframe=timeframe;
    m_arrow_in_first_hilo=arrowFirstHiLo;
    m_arrow_in_second_hilo=arrowSecondHiLo;
    m_arrow_in_current_candle=arrowCurrentCandle;
    m_show_hilo_line=showHiLoLine;
   }
 //+------------------------------------------------------------------+
-//| Init Trade's Time
-//+------------------------------------------------------------------+
-CHiLoMa::InitTradesTime(int startHour,int startMinute,int endHour,int endMinute)
-  {
-   m_trades.InitTradesTime(startHour,startMinute,endHour,endMinute);
-  }
-//+------------------------------------------------------------------+
 //| Init HiLo Ma Indicator Handle
 //+------------------------------------------------------------------+
-bool CHiLoMa::InitHandle()
+bool CHiLoMaHandle::InitHandle()
   {
    m_hilo_custom_handle=iCustom(_Symbol,m_timeframe,"HiLo MA Activator.ex5",
                                 "",m_hilo_period,m_hilo_method,
@@ -168,7 +131,7 @@ bool CHiLoMa::InitHandle()
 //+------------------------------------------------------------------+
 //| Verify which kind of operation to execute
 //+------------------------------------------------------------------+
-int CHiLoMa::ExecuteOperation()
+int CHiLoMaHandle::ExecuteOperation()
   {
    if(BarsCalculated(m_hilo_custom_handle)<m_min_rates_total)
       return NO_OPERATION;
@@ -207,38 +170,17 @@ int CHiLoMa::ExecuteOperation()
    return NO_OPERATION;
   }
 //+------------------------------------------------------------------+
-//| Return if the trade is enable
+//| Add trades
 //+------------------------------------------------------------------+
-bool CHiLoMa::IsTradeEnable()
+void CHiLoMaHandle::AddTrades(CTrades *trades)
   {
-   return m_enable;
+   m_trades=trades;
   }
 //+------------------------------------------------------------------+
 //| Return CTrades
 //+------------------------------------------------------------------+
-CTrades *CHiLoMa::GetTrades()
+CTrades *CHiLoMaHandle::GetTrades()
   {
    return m_trades;
-  }
-//+------------------------------------------------------------------+
-//| Return the Volume
-//+------------------------------------------------------------------+
-double CHiLoMa::GetVolume(void)
-  {
-   return m_volume;
-  }
-//+------------------------------------------------------------------+
-//| Return the take profit
-//+------------------------------------------------------------------+
-double CHiLoMa::GetTakeProfit()
-  {
-   return m_take_profit;
-  }
-//+------------------------------------------------------------------+
-//| Return the stop loss
-//+------------------------------------------------------------------+
-double CHiLoMa::GetStopLoss()
-  {
-   return m_stop_loss;
   }
 //+------------------------------------------------------------------+
