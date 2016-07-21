@@ -17,8 +17,9 @@
 // libs dependencies
 #include <Arrays\List.mqh>
 
+// my libs
+#include <MyLibs\Trade\Trades.mqh>
 #include <MyLibs\HiLoMulti\Models\HiLoMaHandle.mqh>
-
 
 //--- indents and gaps
 #define INDENT_LEFT                         (15)      // indent from left (with allowance for border width)
@@ -52,6 +53,8 @@ class CHiLoMultiDialog : public CAppDialog
    CList             m_list_trade_c_enable;        // CCheckBox
    CList             m_list_trade_l_volume;        // CLabel
    CList             m_list_trade_e_volume;        // CEdit
+   CList             m_list_trade_l_next_volume;   // CLabel
+   CList             m_list_trade_e_next_volume;   // CEdit
    CList             m_list_trade_l_take_profit;   // CLabel
    CList             m_list_trade_e_take_profit;   // CEdit
    CList             m_list_trade_l_stop_loss;     // CLabel
@@ -72,6 +75,7 @@ public:
    bool              ChartEvent(const int id,const long &lparam,const double &dparam,const string &sparam);
 
    void              InitToDefaults();
+   void              UpdateDialog(int index,CTrades *trades);
 
 protected:
    //--- create dependent controls
@@ -188,6 +192,43 @@ bool CHiLoMultiDialog::ChartEvent(const int id,const long &lparam,const double &
 //     }
 
    return true;
+  }
+//+------------------------------------------------------------------+
+//| Init the defaults values
+//+------------------------------------------------------------------+
+void CHiLoMultiDialog::InitToDefaults(void)
+  {
+//ResetVolumesToDefault();
+
+   m_checkbox_buy.Checked(false);
+   m_checkbox_sell.Checked(false);
+   m_checkbox_close_on_hilo.Checked(false);
+   m_checkbox_close_on_tp.Checked(true);
+
+// trade 1
+   m_checkbox_trade1_enabled.Checked(true);
+
+//PrintAllStatus();
+  }
+//+------------------------------------------------------------------+
+//| Update dialog based on CTrades
+//+------------------------------------------------------------------+
+void CHiLoMultiDialog::UpdateDialog(int index,CTrades *trades)
+  {
+   if(trades.IsTradeEnable())
+     {
+      CCheckBox *m_trade_c_enable=m_list_trade_c_enable.GetNodeAtIndex(index);
+      m_trade_c_enable.Checked(true);
+     }
+
+   CEdit *m_edit_e_volume=m_list_trade_e_volume.GetNodeAtIndex(index);
+   m_edit_e_volume.Text(DoubleToString(trades.CurrentVolume(),0));
+
+   CEdit *m_edit_e_next_volume=m_list_trade_e_next_volume.GetNodeAtIndex(index);
+   m_edit_e_next_volume.Text(DoubleToString(trades.NextVolume(),0));
+
+//m_trade_e_take_profit.Text(DoubleToString(trades.GetTakeProfit(),0));
+//m_trade_e_stop_loss.Text(DoubleToString(trades.GetStopLoss(),0));
   }
 //+------------------------------------------------------------------+
 //| Create the Buy CheckBox
@@ -430,13 +471,11 @@ bool CHiLoMultiDialog::CreateTradesConfig()
       CHiLoMaHandle *hma=m_list_hilo_ma.GetNodeAtIndex(i);
 
       CTrades *trades=hma.GetTrades();
-      if(trades.IsTradeEnable())
-         m_trade_c_enable.Checked(true);
 
       m_trade_e_take_profit.TextAlign(ALIGN_CENTER);
       m_trade_e_stop_loss.TextAlign(ALIGN_CENTER);
-      //m_trade_e_take_profit.Text(DoubleToString(trades.GetTakeProfit(),0));
-      //m_trade_e_stop_loss.Text(DoubleToString(trades.GetStopLoss(),0));
+
+      UpdateDialog(i,trades);
 
       // add the items to panel
       m_list_trade_l_name.Add(m_trade_l_name);
@@ -448,22 +487,5 @@ bool CHiLoMultiDialog::CreateTradesConfig()
      }
 
    return true;
-  }
-//+------------------------------------------------------------------+
-//| Init the defaults values
-//+------------------------------------------------------------------+
-void CHiLoMultiDialog::InitToDefaults(void)
-  {
-//ResetVolumesToDefault();
-
-   m_checkbox_buy.Checked(false);
-   m_checkbox_sell.Checked(false);
-   m_checkbox_close_on_hilo.Checked(false);
-   m_checkbox_close_on_tp.Checked(true);
-
-// trade 1
-   m_checkbox_trade1_enabled.Checked(true);
-
-//PrintAllStatus();
   }
 //+------------------------------------------------------------------+

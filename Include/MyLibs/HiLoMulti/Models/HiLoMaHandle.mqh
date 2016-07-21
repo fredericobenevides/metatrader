@@ -7,6 +7,7 @@
 #property link      "fredbene@gmail.com"
 
 #include <Object.mqh>
+#include <Arrays\ArrayInt.mqh>
 
 #include <MyLibs\Trade\Trades.mqh>
 #include <MyLibs\Utils\ChartUtils.mqh>
@@ -16,6 +17,9 @@
 //+------------------------------------------------------------------+
 class CHiLoMaHandle : public CObject
   {
+   CTrades          *m_trades;
+   CChartUtils       m_chart_utils;
+
    // hilo config
    int               m_hilo_period;
    ENUM_MA_METHOD    m_hilo_method;
@@ -41,12 +45,6 @@ class CHiLoMaHandle : public CObject
    double            m_high_invalid_hilo[1];
    double            m_low_invalid_hilo[1];
 
-   // ctrades
-   CTrades          *m_trades;
-
-   // utils
-   CChartUtils       m_chart_utils;
-
 public:
                      CHiLoMaHandle();
                     ~CHiLoMaHandle();
@@ -57,7 +55,7 @@ public:
 
    void              InitIndicatorHandleConfig(ENUM_TIMEFRAMES m_timeframe,bool arrowFirstHiLoo,bool arrowSecondHiLo,bool arrowCurrentCandle,bool showHiLoLine);
    bool              InitHandle();
-   int               ExecuteOperation();
+   CArrayInt         *VerifyTypeOperation();
 
    // getters and setters 
    void              AddTrades(CTrades *trades);
@@ -131,43 +129,48 @@ bool CHiLoMaHandle::InitHandle()
 //+------------------------------------------------------------------+
 //| Verify which kind of operation to execute
 //+------------------------------------------------------------------+
-int CHiLoMaHandle::ExecuteOperation()
+CArrayInt *CHiLoMaHandle::VerifyTypeOperation()
   {
+   CArrayInt *listOperations=new CArrayInt;
+
    if(BarsCalculated(m_hilo_custom_handle)<m_min_rates_total)
-      return NO_OPERATION;
+      return NULL;
 
    if(m_chart_utils.IsNewBar(m_timeframe))
      {
       if(CopyBuffer(m_hilo_custom_handle,4,0,1,m_high_hilo)<=0)
-         return NO_OPERATION;
+         return NULL;
 
       if(CopyBuffer(m_hilo_custom_handle,5,0,1,m_low_hilo)<=0)
-         return NO_OPERATION;
+         return NULL;
 
       if(CopyBuffer(m_hilo_custom_handle,8,0,1,m_high_invalid_hilo)<=0)
-         return NO_OPERATION;
+         return NULL;
 
       if(CopyBuffer(m_hilo_custom_handle,9,0,1,m_low_invalid_hilo)<=0)
-         return NO_OPERATION;
+         return NULL;
 
       //--- close operation if there is a valid and invalid HiLo.
       if(m_high_hilo[0]!=EMPTY_VALUE || m_high_invalid_hilo[0]!=EMPTY_VALUE)
-         return BUY_CLOSE_OPERATION;
+         listOperations.Add(BUY_CLOSE_OPERATION);
 
       //--- open operation only if is a valid HiLo
       if(m_high_hilo[0]!=EMPTY_VALUE)
-         return SELL_OPEN_OPERATION;
+         listOperations.Add(SELL_OPEN_OPERATION);
 
       //--- close operation if there is a valid and invalid HiLo.
       if(m_low_hilo[0]!=EMPTY_VALUE || m_low_invalid_hilo[0]!=EMPTY_VALUE)
-         return SELL_CLOSE_OPERATION;
+         listOperations.Add(SELL_CLOSE_OPERATION);
 
       //--- open operation only if is a valid HiLo
       if(m_low_hilo[0]!=EMPTY_VALUE)
-         return BUY_OPEN_OPERATION;
+         listOperations.Add(BUY_OPEN_OPERATION);
      }
 
-   return NO_OPERATION;
+   if(listOperations.Total()==0)
+      return NULL;
+
+   return listOperations;
   }
 //+------------------------------------------------------------------+
 //| Add trades

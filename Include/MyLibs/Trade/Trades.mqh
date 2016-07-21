@@ -19,11 +19,14 @@ class CTrades
    CTime             Time;
    CTradesService   *m_trades_service;
 
-   // current operation
+   // trade info
    string            m_name;
    bool              m_enable_trade;
+
+   // volumes
    double            m_initial_volume;
    double            m_current_volume;
+   double            m_next_volume;
    int               m_ticket_current_deal;
 
    // martingale
@@ -56,13 +59,15 @@ public:
    void              InitMartingale(int martingale,int maxMartingaleOperations);
    void              InitTradesTime(int startHour,int startMinute,int endHour,int endMinute);
 
-   void              Buy(int ticket,double volume);
-   void              Sell(int ticket,double volume);
+   bool              BuyOpen(string methodName);
+   bool              SellOpen(string methodName);
+   bool              BuyClose(string methodName);
+   bool              SellClose(string methodName);
 
-   bool              BuyOpen();
-   bool              SellOpen();
-   bool              BuyClose();
-   bool              SellClose();
+   void              UpdateNextVolumeUsingMartingale(string methodName);
+   void              UpdateVolumeFromNextVolume();
+   void              UpdateNextVolumeFromInitialVolume();
+   void              ResetVolumeToZero();
 
    bool              IsOnTradeOperation();
    bool              IsTimeToOpenOperation();
@@ -71,8 +76,10 @@ public:
    void              DisableTrade();
    bool              IsTradeEnable();
 
-   string            Name();
+   bool              IsEnable();
+   string            Name();   
    double            CurrentVolume();
+   double            NextVolume();
   };
 //+------------------------------------------------------------------+
 //| Constructor
@@ -100,7 +107,8 @@ CTrades::InitTrade(bool enableTrade,double initialVolume,double takeProfit,doubl
    m_enable_trade=enableTrade;
 
    m_initial_volume=initialVolume;
-   m_current_volume=m_initial_volume;
+   m_current_volume=0;
+   m_next_volume=initialVolume;
 
    m_take_profit_points=takeProfit;
    m_stop_loss_points=stopLoss;
@@ -124,132 +132,121 @@ CTrades::InitTradesTime(int startHour,int startMinute,int endHour,int endMinute)
    m_time_end_minute=endMinute;
   }
 //+------------------------------------------------------------------+
-//| Buy more or sell less accordling operation.
+//| Open a BUY operation
 //+------------------------------------------------------------------+
-void CTrades::Buy(int ticket,double volume)
+bool CTrades::BuyOpen(string methodName="BuyOpen()")
   {
-   m_ticket_current_deal=ticket;
+   PrintFormat("%s will be executed with volume: %.2f",methodName,m_current_volume);
 
-   if(m_is_on_buy_trade)
-      m_current_volume+=volume;
-
-   if(m_is_on_sell_trade)
-      m_current_volume-=volume;
-
-// buy close a sell operation
-   if(m_current_volume==0)
-      m_is_on_sell_trade=false;
-
-// still buying.
-   if(m_current_volume>0)
+   bool result=false;
+   if(m_trades_service.ExecuteBuyTrade(m_current_volume,methodName))
+     {
+      PrintFormat("%s operation executed: true",methodName);
       m_is_on_buy_trade=true;
+      result=true;
+     }
+   else
+      PrintFormat("%s operation executed: false",methodName);
 
-// now it's selling
-   if(m_current_volume<0)
-      m_is_on_sell_trade=true;
+   return result;
   }
 //+------------------------------------------------------------------+
-//| Sell more or buy less accordling operation.
+//| Open a SELL operation
 //+------------------------------------------------------------------+
-void CTrades::Sell(int ticket,double volume)
+bool CTrades::SellOpen(string methodName="SellOpen()")
   {
-   if(m_is_on_buy_trade)
-      m_current_volume-=volume;
+   PrintFormat("%s will be executed with volume: %.2f",methodName,m_current_volume);
 
-   if(m_is_on_sell_trade)
-      m_current_volume+=volume;
+   bool result=false;
+   if(m_trades_service.ExecuteSellTrade(m_current_volume,methodName))
+     {
+      PrintFormat("%s operation executed: true",methodName);
+      m_is_on_sell_trade=true;
+      result=true;
+     }
+   else
+      PrintFormat("%s operation executed: false",methodName);
 
-// sell close a buy operation
-   if(m_current_volume==0)
+   return result;
+  }
+//+------------------------------------------------------------------+
+//| Close a BUY operation
+//+------------------------------------------------------------------+
+bool CTrades::BuyClose(string methodName="BuyClose()")
+  {
+   if(!m_is_on_buy_trade)
+      return false;
+
+   PrintFormat("%s will be executed with volume: %.2f",methodName,m_current_volume);
+
+   bool result=false;
+   if(m_trades_service.ExecuteSellTrade(m_current_volume,methodName))
+     {
+      PrintFormat("%s operation executed: true",methodName);
       m_is_on_buy_trade=false;
-
-// still selling.
-   if(m_current_volume>0)
-      m_is_on_sell_trade=true;
-
-// now it's buying
-   if(m_current_volume<0)
-      m_is_on_buy_trade=true;
-  }
-//+------------------------------------------------------------------+
-//| Buy Open Operations
-//+------------------------------------------------------------------+
-bool CTrades::BuyOpen()
-  {
-   if(!IsTimeToOpenOperation())
-      return false;
-
-   string methodName=m_name+"::TradeBuyOpen()";
-   PrintFormat("%s will be executed",methodName);
-
-   if(m_trades_service.ExecuteBuyTrade(this,methodName))
-     {
-      m_is_on_buy_trade=true;
-      PrintFormat("%s operation executed: true",methodName);
+      result=true;
      }
+   else
+      PrintFormat("%s operation executed: false",methodName);
 
-   PrintFormat("%s operation executed: false",methodName);
-   return false;
+   return result;
   }
 //+------------------------------------------------------------------+
-//| Sell Open Operations
+//| Close a SELL operation
 //+------------------------------------------------------------------+
-bool CTrades::SellOpen()
+bool CTrades::SellClose(string methodName="SellClose()")
   {
-   if(!IsTimeToOpenOperation())
+   if(!m_is_on_sell_trade)
       return false;
 
-   string methodName=m_name+"::TradeSellOpen()";
-   PrintFormat("%s will be executed",methodName);
+   PrintFormat("%s will be executed with volume: %.2f",methodName,m_current_volume);
 
-   if(m_trades_service.ExecuteBuyTrade(this,methodName))
+   bool result=false;
+   if(m_trades_service.ExecuteBuyTrade(m_current_volume,methodName))
      {
-      m_is_on_sell_trade=true;
       PrintFormat("%s operation executed: true",methodName);
-     }
-
-   PrintFormat("%s operation executed: false",methodName);
-   return false;
-  }
-//+------------------------------------------------------------------+
-//| Buy Close Operations
-//+------------------------------------------------------------------+
-bool CTrades::BuyClose()
-  {
-   if(!IsTimeToOpenOperation())
-      return false;
-
-   string methodName=m_name+"::TradeBuyClose()";
-   PrintFormat("%s will be executed",methodName);
-
-   if(m_trades_service.ExecuteBuyTrade(this,methodName))
-     {
-      m_is_on_buy_trade=false;
-      PrintFormat("%s operation executed: true",methodName);
-     }
-
-   PrintFormat("%s operation executed: false",methodName);
-   return false;
-  }
-//+------------------------------------------------------------------+
-//| Sell Close Operations
-//+------------------------------------------------------------------+
-bool CTrades::SellClose()
-  {
-   if(!IsTimeToOpenOperation())
-      return false;
-
-   string methodName=m_name+"::TradeSellClose()";
-   PrintFormat("%s will be executed",methodName);
-
-   if(m_trades_service.ExecuteBuyTrade(this,methodName))
-     {
       m_is_on_sell_trade=false;
-      PrintFormat("%s operation executed: true",methodName);
+      result=true;
      }
+   else
+      PrintFormat("%s operation executed: false",methodName);
 
-   PrintFormat("%s operation executed: false",methodName);
-   return false;
+   return result;
+  }
+//+------------------------------------------------------------------+
+//| Update the volume based on martingale
+//+------------------------------------------------------------------+
+void CTrades::UpdateNextVolumeUsingMartingale(string methodName="UpdateNextVolumeUsingMartingale")
+  {
+// current volume is not setup, use initial volume
+   if(m_current_volume==0)
+      m_current_volume=m_initial_volume;
+
+   double volumeCalculated=NormalizeDouble(m_current_volume*m_martingale,2);
+
+   PrintFormat("%s using martingale (%.2f) to calculate the volume. Last used volume: (%.2f). Next Volume: (%.2f)",methodName,m_martingale,m_current_volume,volumeCalculated);
+   m_next_volume=volumeCalculated;
+  }
+//+------------------------------------------------------------------+
+//| Update volume using the volume from next volume
+//+------------------------------------------------------------------+
+void CTrades::UpdateVolumeFromNextVolume()
+  {
+   m_current_volume=m_next_volume;
+  }
+//+------------------------------------------------------------------+
+//| Update the next volume to use initial volume
+//+------------------------------------------------------------------+
+void CTrades::UpdateNextVolumeFromInitialVolume()
+  {
+   m_next_volume=m_initial_volume;
+  }
+//+------------------------------------------------------------------+
+//| Reset the current volume to value 0
+//+------------------------------------------------------------------+
+void CTrades::ResetVolumeToZero()
+  {
+   m_current_volume=0;
   }
 //+------------------------------------------------------------------+
 //| Verify if is on trade operation
@@ -302,5 +299,12 @@ string CTrades::Name()
 double CTrades::CurrentVolume()
   {
    return m_current_volume;
+  }
+//+------------------------------------------------------------------+
+//| Returns the next volume
+//+------------------------------------------------------------------+
+double CTrades::NextVolume()
+  {
+   return m_next_volume;
   }
 //+------------------------------------------------------------------+

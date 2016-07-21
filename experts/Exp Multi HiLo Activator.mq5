@@ -120,8 +120,7 @@ void OnTick()
   {
 //   if(InpTestEnabled)
 //      Test.RunEnvTest();
-//
-//HiLoMultiMALoader.OnTick();
+
    HiLoController.OnTick();
   }
 //+------------------------------------------------------------------+

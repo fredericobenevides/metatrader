@@ -6,6 +6,7 @@
 #property copyright "Frederico Benevides"
 #property link      "fredbene@gmail.com"
 
+#include <Arrays\ArrayInt.mqh>
 #include <Arrays\List.mqh>
 
 #include <MyLibs\HiLoMulti\Models\HiLoMaHandle.mqh>
@@ -89,29 +90,46 @@ CHiLoController::Destroy(int reason)
 //+------------------------------------------------------------------+
 void CHiLoController::OnTick()
   {
+// verify operation for each trade
    for(int i=0;i<m_list_hilo_ma.Total();i++)
      {
+      PrintFormat("índice %d",i);
       CHiLoMaHandle *hma=m_list_hilo_ma.GetNodeAtIndex(i);
-      ENUM_OPERATIONS operation=(ENUM_OPERATIONS)hma.ExecuteOperation();
-
       CTrades *trades=hma.GetTrades();
-      switch(operation)
+
+      CArrayInt *listOperations=hma.VerifyTypeOperation();
+
+      // there isn't current operation for current trade
+      if(listOperations==NULL)
+         continue;
+
+      // verify what type of operation for current trade
+      for(int j=0;j<listOperations.Total();j++)
         {
-         case BUY_OPEN_OPERATION:
-            TradeBuyOpen(trades);
-            break;
-         case SELL_OPEN_OPERATION:
-            TradeSellOpen(trades);
-            break;
-         case BUY_CLOSE_OPERATION:
-            TradeBuyClose(trades);
-            break;
-         case SELL_CLOSE_OPERATION:
-            TradeSellClose(trades);
-            break;
-         default: // NO_OPERATION
-            continue;
+         ENUM_OPERATIONS operation=(ENUM_OPERATIONS)listOperations.At(j);
+         PrintFormat("chegou aqui %d",j);
+         PrintFormat("chegou aqui2 %s",EnumToString(operation));
+         switch(operation)
+           {
+            case BUY_OPEN_OPERATION:
+               TradeBuyOpen(trades);
+               break;
+            case SELL_OPEN_OPERATION:
+               TradeSellOpen(trades);
+               break;
+            case BUY_CLOSE_OPERATION:
+               TradeBuyClose(trades);
+               break;
+            case SELL_CLOSE_OPERATION:
+               TradeSellClose(trades);
+               break;
+            default: // NO_OPERATION
+               continue;
+           }
         }
+
+      // remove this list operation
+      listOperations.Shutdown();
      }
   }
 //+------------------------------------------------------------------+
@@ -208,6 +226,21 @@ void CHiLoController::AddModelsToView()
 //+------------------------------------------------------------------+
 void CHiLoController::TradeBuyOpen(CTrades *trades)
   {
+   if(!trades.IsTradeEnable())
+      return;
+
+   if(!trades.IsTimeToOpenOperation())
+      return;
+
+   trades.UpdateVolumeFromNextVolume();
+   trades.UpdateNextVolumeUsingMartingale();
+
+   string methodName=trades.Name()+"::TradeBuyOpen()";
+   if(trades.BuyOpen(methodName))
+     {
+      Print("Inserir take profit");
+     }
+
 //   if(!IsTimeToOpenOperation())
 //      return;
 //
@@ -223,6 +256,21 @@ void CHiLoController::TradeBuyOpen(CTrades *trades)
 //+------------------------------------------------------------------+
 void CHiLoController::TradeSellOpen(CTrades *trades)
   {
+   if(!trades.IsTradeEnable())
+      return;
+
+   if(!trades.IsTimeToOpenOperation())
+      return;
+
+   trades.UpdateVolumeFromNextVolume();
+   trades.UpdateNextVolumeUsingMartingale();
+
+   string methodName=trades.Name()+"::TradeSellOpen()";
+   if(trades.SellOpen(methodName))
+     {
+      Print("Inserir take profit");
+     }
+
 //   if(!IsTimeToOpenOperation())
 //      return;
 //
@@ -238,6 +286,12 @@ void CHiLoController::TradeSellOpen(CTrades *trades)
 //+------------------------------------------------------------------+
 void CHiLoController::TradeBuyClose(CTrades *trades)
   {
+   string methodName=trades.Name()+"::TradeBuyClose()";
+   if(trades.BuyClose(methodName))
+     {
+      Print("calcular volume factor");
+     }
+
 //if(MyTrade.TradeBuyClose("TradeBuyClose"))
 //  {
 //   HiLoDialog.CalculateVolumeFactor();
@@ -249,6 +303,12 @@ void CHiLoController::TradeBuyClose(CTrades *trades)
 //+------------------------------------------------------------------+
 void CHiLoController::TradeSellClose(CTrades *trades)
   {
+   string methodName=trades.Name()+"::TradeSellClose()";
+   if(trades.SellClose(methodName))
+     {
+      Print("calcular volume factor");
+     }
+
 //if(MyTrade.TradeSellClose("TradeSellClose"))
 //  {
 //   HiLoDialog.CalculateVolumeFactor();

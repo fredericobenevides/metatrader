@@ -23,13 +23,8 @@ private:
 public:
                      CTradesService();
 
-   //bool              TradeBuyOpen(CTrades *trades,string methodName);
-   //bool              TradeSellOpen(CTrades *trades,string methodName);
-   //bool              TradeBuyClose(CTrades *trades,string methodName);
-   //bool              TradeSellClose(CTrades *trades,string methodName);
-
-   bool              ExecuteBuyTrade(CTrades *trades,string methodName);
-   bool              ExecuteSellTrade(CTrades *trades,string methodName);
+   bool              ExecuteBuyTrade(double volume,string methodName);
+   bool              ExecuteSellTrade(double volume,string methodName);
 
    void              EnableSoundOnOperation(string sellSoundsName="alert",string buySoundsName="alert2");
    void              PlayBuySound();
@@ -57,10 +52,8 @@ CTradesService::CTradesService(void)
 //+------------------------------------------------------------------+
 //| Execute the BUY Operation                                                                   
 //+------------------------------------------------------------------+
-bool CTradesService::ExecuteBuyTrade(CTrades *trades,string methodName)
+bool CTradesService::ExecuteBuyTrade(double volume,string methodName)
   {
-   double volume=trades.CurrentVolume();
-
    double price=SymbolInfoDouble(_Symbol,SYMBOL_LAST);
    string comment=methodName+"() "+(string)price;
 
@@ -74,6 +67,29 @@ bool CTradesService::ExecuteBuyTrade(CTrades *trades,string methodName)
    else
      {
       Print("",methodName," method failed. Return code=",m_trade.ResultRetcode(),". Code description: ",m_trade.ResultRetcodeDescription());
+      PlayErrorSound();
+
+      return false;
+     }
+  }
+//+------------------------------------------------------------------+
+//| Execute the SELL Operation
+//+------------------------------------------------------------------+
+bool CTradesService::ExecuteSellTrade(double volume,string methodName)
+  {
+   double price=SymbolInfoDouble(_Symbol,SYMBOL_LAST);
+   string comment=methodName+"() "+(string)price;
+
+   if(m_trade.Sell(volume,NULL,0.0,0,0,comment))
+     {
+      Print("",methodName,"() method executed successfully. Return code=",m_trade.ResultRetcode()," (",m_trade.ResultRetcodeDescription(),")");
+      PlaySellSound();
+
+      return true;
+     }
+   else
+     {
+      Print("",methodName,"() method failed. Return code=",m_trade.ResultRetcode(),". Code description: ",m_trade.ResultRetcodeDescription());
       PlayErrorSound();
 
       return false;
