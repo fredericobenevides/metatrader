@@ -7,6 +7,8 @@
 #property link      "fredbene@gmail.com"
 
 #include <Trade\Trade.mqh>
+
+#include <MyLibs\Trade\TradesUtils.mqh>
 #include <MyLibs\Trade\TradesService.mqh>
 
 #include <MyLibs\Utils\Time.mqh>
@@ -16,7 +18,8 @@
 class CTrades
   {
    CTrade            m_trade;
-   CTime             Time;
+   CTime             m_time;
+   CTradesUtils      m_utils;
    CTradesService   *m_trades_service;
 
    // trade info
@@ -27,7 +30,7 @@ class CTrades
    double            m_initial_volume;
    double            m_current_volume;
    double            m_next_volume;
-   int               m_ticket_current_deal;
+   ulong             m_ticket_deal_open;
 
    // martingale
    int               m_martingale;
@@ -40,10 +43,12 @@ class CTrades
    // take profit
    double            m_take_profit_points;
    double            m_take_profit_price;
+   ulong             m_ticket_take_profit;
 
    // stop loss
    double            m_stop_loss_points;
    double            m_stop_loss_price;
+   ulong             m_ticket_stop_loss;
 
    // trades time
    int               m_time_start_hour;
@@ -64,6 +69,11 @@ public:
    bool              BuyClose(string methodName);
    bool              SellClose(string methodName);
 
+   bool              PlaceTakeProfitOrder(string methodName);
+   bool              PlaceStopLossOrder(string methodName);
+   bool              DestroyTakeProfitOrder(string methodName);
+   bool              DestroyStopLossOrder(string methodName);
+
    void              UpdateNextVolumeUsingMartingale(string methodName);
    void              UpdateVolumeFromNextVolume();
    void              UpdateNextVolumeFromInitialVolume();
@@ -81,6 +91,11 @@ public:
    string            Name();
    double            CurrentVolume();
    double            NextVolume();
+
+private:
+
+   void              SaveOpenDealTicket();
+   void              CleanOpenDealTicket();
   };
 //+------------------------------------------------------------------+
 //| Constructor
@@ -144,6 +159,8 @@ bool CTrades::BuyOpen(string methodName="BuyOpen()")
      {
       PrintFormat("%s operation executed: true",methodName);
       m_is_on_buy_trade=true;
+      SaveOpenDealTicket();
+
       result=true;
      }
    else
@@ -163,6 +180,8 @@ bool CTrades::SellOpen(string methodName="SellOpen()")
      {
       PrintFormat("%s operation executed: true",methodName);
       m_is_on_sell_trade=true;
+      SaveOpenDealTicket();
+
       result=true;
      }
    else
@@ -185,6 +204,8 @@ bool CTrades::BuyClose(string methodName="BuyClose()")
      {
       PrintFormat("%s operation executed: true",methodName);
       m_is_on_buy_trade=false;
+      CleanOpenDealTicket();
+
       result=true;
      }
    else
@@ -207,12 +228,38 @@ bool CTrades::SellClose(string methodName="SellClose()")
      {
       PrintFormat("%s operation executed: true",methodName);
       m_is_on_sell_trade=false;
+      CleanOpenDealTicket();
+
       result=true;
      }
    else
       PrintFormat("%s operation executed: false",methodName);
 
    return result;
+  }
+//+------------------------------------------------------------------+
+//| Place Take Profit Order
+//+------------------------------------------------------------------+
+bool CTrades::PlaceTakeProfitOrder(string methodName)
+  {
+  }
+//+------------------------------------------------------------------+
+//| Place Take Profit Order
+//+------------------------------------------------------------------+
+bool CTrades::PlaceStopLossOrder(string methodName)
+  {
+  }
+//+------------------------------------------------------------------+
+//| Destroy Take Profit Order
+//+------------------------------------------------------------------+
+bool CTrades::DestroyTakeProfitOrder(string methodName)
+  {
+  }
+//+------------------------------------------------------------------+
+//| Destroy Take Profit Order
+//+------------------------------------------------------------------+
+bool CTrades::DestroyStopLossOrder(string methodName)
+  {
   }
 //+------------------------------------------------------------------+
 //| Update the volume based on martingale
@@ -261,10 +308,10 @@ bool CTrades::IsOnTradeOperation(void)
 //+------------------------------------------------------------------+
 bool CTrades::IsTimeToOpenOperation()
   {
-   datetime start=Time.IntToDatetime(m_time_start_hour,m_time_start_minute);
-   datetime end=Time.IntToDatetime(m_time_end_hour,m_time_end_minute);
+   datetime start=m_time.IntToDatetime(m_time_start_hour,m_time_start_minute);
+   datetime end=m_time.IntToDatetime(m_time_end_hour,m_time_end_minute);
 
-   return Time.TimeTradeServerBetween(start,end);
+   return m_time.TimeTradeServerBetween(start,end);
   }
 //+------------------------------------------------------------------+
 //| Enable trade operation
@@ -298,7 +345,7 @@ void CTrades::DisableOnMaxMartingaleOperations()
    double powValue=pow(m_martingale,(m_max_martingale_operations-1));
    double maxVolume=NormalizeDouble(powValue*m_initial_volume,digits);
 
-   if(m_current_volume>maxVolume)
+   if(m_current_volume>=maxVolume)
       DisableTrade();
   }
 //+------------------------------------------------------------------+
@@ -321,5 +368,19 @@ double CTrades::CurrentVolume()
 double CTrades::NextVolume()
   {
    return m_next_volume;
+  }
+//+------------------------------------------------------------------+
+//| Save the open deal ticket
+//+------------------------------------------------------------------+
+void CTrades::SaveOpenDealTicket()
+  {
+   m_ticket_deal_open=m_trades_service.ResultTicketDeal();
+  }
+//+------------------------------------------------------------------+
+//| Save the open deal ticket
+//+------------------------------------------------------------------+
+void CTrades::CleanOpenDealTicket()
+  {
+   m_ticket_deal_open=0;
   }
 //+------------------------------------------------------------------+

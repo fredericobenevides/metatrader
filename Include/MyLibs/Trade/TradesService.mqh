@@ -26,6 +26,8 @@ public:
    bool              ExecuteBuyTrade(double volume,string methodName);
    bool              ExecuteSellTrade(double volume,string methodName);
 
+   ulong             ResultTicketDeal();
+
    void              EnableSoundOnOperation(string sellSoundsName="alert",string buySoundsName="alert2");
    void              PlayBuySound();
    void              PlaySellSound();
@@ -94,6 +96,13 @@ bool CTradesService::ExecuteSellTrade(double volume,string methodName)
 
       return false;
      }
+  }
+//+------------------------------------------------------------------+
+//| Request ticket order
+//+------------------------------------------------------------------+
+ulong CTradesService::ResultTicketDeal()
+  {
+   return m_trade.ResultOrder();
   }
 //+------------------------------------------------------------------+
 //| Enable the sounds for BUY operation and SELL operation                                                                

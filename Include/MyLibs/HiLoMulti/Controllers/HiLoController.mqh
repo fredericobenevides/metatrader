@@ -235,11 +235,11 @@ void CHiLoController::TradeBuyOpen(int index,CTrades *trades)
    trades.UpdateVolumeFromNextVolume();
    trades.UpdateNextVolumeUsingMartingale();
    trades.DisableOnMaxMartingaleOperations();
+   m_hilo_multi_dialog.UpdateDialog(index,trades);
 
    string methodName=trades.Name()+"::TradeBuyOpen()";
    if(trades.BuyOpen(methodName))
      {
-      m_hilo_multi_dialog.UpdateDialog(index,trades);
       Print("Inserir take profit");
      }
 
@@ -267,11 +267,11 @@ void CHiLoController::TradeSellOpen(int index,CTrades *trades)
    trades.UpdateVolumeFromNextVolume();
    trades.UpdateNextVolumeUsingMartingale();
    trades.DisableOnMaxMartingaleOperations();
+   m_hilo_multi_dialog.UpdateDialog(index,trades);
 
    string methodName=trades.Name()+"::TradeSellOpen()";
    if(trades.SellOpen(methodName))
      {
-      m_hilo_multi_dialog.UpdateDialog(index,trades);
       Print("Inserir take profit");
      }
 

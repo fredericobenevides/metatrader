@@ -215,11 +215,11 @@ void CHiLoMultiDialog::InitToDefaults(void)
 //+------------------------------------------------------------------+
 void CHiLoMultiDialog::UpdateDialog(int index,CTrades *trades)
   {
+   CCheckBox *m_trade_c_enable=m_list_trade_c_enable.GetNodeAtIndex(index);
    if(trades.IsTradeEnable())
-     {
-      CCheckBox *m_trade_c_enable=m_list_trade_c_enable.GetNodeAtIndex(index);
       m_trade_c_enable.Checked(true);
-     }
+   else
+      m_trade_c_enable.Checked(false);
 
    CEdit *m_edit_e_volume=m_list_trade_e_volume.GetNodeAtIndex(index);
    m_edit_e_volume.Text(DoubleToString(trades.CurrentVolume(),0));
