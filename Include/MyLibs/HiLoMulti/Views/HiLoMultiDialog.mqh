@@ -357,12 +357,18 @@ bool CHiLoMultiDialog::CreateTradesConfig()
    for(int i=0;i<m_list_hilo_ma.Total();i++)
      {
       int indexNameTrade=i+1;
+      int y1=int(INDENT_TOP+2*(2.4*CONTROLS_GAP_Y));
+
+      CHiLoMaHandle *hma=m_list_hilo_ma.GetNodeAtIndex(i);
+      CTrades *trades=hma.GetTrades();
 
       CLabel *m_trade_l_name=new CLabel();
       CCheckBox *m_trade_c_enable=new CCheckBox();
 
       CLabel *m_trade_l_volume=new CLabel();
       CEdit *m_trade_e_volume=new CEdit();
+      CLabel *m_trade_l_next_volume=new CLabel();
+      CEdit *m_trade_e_next_volume=new CEdit();
 
       CLabel *m_trade_l_take_profit=new CLabel();
       CEdit *m_trade_e_take_profit=new CEdit();
@@ -371,21 +377,18 @@ bool CHiLoMultiDialog::CreateTradesConfig()
 
       //--- label trade's name
       int x1=INDENT_LEFT;
-      int y1=INDENT_TOP+2*(2*CONTROLS_GAP_Y);
       int x2=x1+WIDTH_DEFAULT;
       int y2=y1+HEIGHT_DEFAULT;
 
-
       if(!m_trade_l_name.Create(m_chart_id,"m_trade_l_name"+IntegerToString(indexNameTrade),m_subwin,x1,y1,x2,y2))
          return false;
-      if(!m_trade_l_name.Text("Trade "+IntegerToString(indexNameTrade)))
+      if(!m_trade_l_name.Text(trades.Name()))
          return false;
       if(!Add(m_trade_l_name))
          return false;
 
       //--- checkbox enabled
-      x1=INDENT_LEFT+2*(3*CONTROLS_GAP_X);
-      y1=INDENT_TOP+2*(2*CONTROLS_GAP_Y);
+      x1=INDENT_LEFT+2*(2*CONTROLS_GAP_X);
       x2=x1+WIDTH_DEFAULT;
       y2=y1+HEIGHT_DEFAULT;
 
@@ -397,21 +400,19 @@ bool CHiLoMultiDialog::CreateTradesConfig()
          return false;
 
       //--- Label Volume
-      x1=INDENT_LEFT+3*(7*CONTROLS_GAP_X);
-      y1=INDENT_TOP+2*(2*CONTROLS_GAP_Y);
+      x1=int(INDENT_LEFT+3*(6*CONTROLS_GAP_X));
       x2=x1+WIDTH_DEFAULT;
       y2=y1+HEIGHT_DEFAULT;
 
       if(!m_trade_l_volume.Create(m_chart_id,"m_trade_l_volume"+IntegerToString(indexNameTrade),m_subwin,x1,y1,x2,y2))
          return false;
-      if(!m_trade_l_volume.Text("Volume"))
+      if(!m_trade_l_volume.Text("Vol."))
          return false;
       if(!Add(m_trade_l_volume))
          return false;
 
       //--- Edit Volume
-      x1=INDENT_LEFT+4*(6*CONTROLS_GAP_X);
-      y1=INDENT_TOP+2*(2*CONTROLS_GAP_Y);
+      x1=int(INDENT_LEFT+3*(7.8*CONTROLS_GAP_X));
       x2=x1+WIDTH_SHORT;
       y2=y1+HEIGHT_DEFAULT;
 
@@ -420,9 +421,30 @@ bool CHiLoMultiDialog::CreateTradesConfig()
       if(!Add(m_trade_e_volume))
          return false;
 
+      //--- Label Next Volume
+      x1=int(INDENT_LEFT+4*(8.2*CONTROLS_GAP_X));
+      x2=x1+WIDTH_DEFAULT;
+      y2=y1+HEIGHT_DEFAULT;
+
+      if(!m_trade_l_next_volume.Create(m_chart_id,"m_trade_l_next_volume"+IntegerToString(indexNameTrade),m_subwin,x1,y1,x2,y2))
+         return false;
+      if(!m_trade_l_next_volume.Text("N Vol."))
+         return false;
+      if(!Add(m_trade_l_next_volume))
+         return false;
+
+      //--- Edit Next Volume
+      x1=int(INDENT_LEFT+4*(10.2*CONTROLS_GAP_X));
+      x2=x1+WIDTH_SHORT;
+      y2=y1+HEIGHT_DEFAULT;
+
+      if(!m_trade_e_next_volume.Create(m_chart_id,"m_trade_e_next_volume"+IntegerToString(indexNameTrade),m_subwin,x1,y1,x2,y2))
+         return false;
+      if(!Add(m_trade_e_next_volume))
+         return false;
+
       //--- Label Take Profit
-      x1=INDENT_LEFT+5*(7*CONTROLS_GAP_X);
-      y1=INDENT_TOP+2*(2*CONTROLS_GAP_Y);
+      x1=INDENT_LEFT+5*(10*CONTROLS_GAP_X);
       x2=x1+WIDTH_DEFAULT;
       y2=y1+HEIGHT_DEFAULT;
 
@@ -434,8 +456,7 @@ bool CHiLoMultiDialog::CreateTradesConfig()
          return false;
 
       //--- Edit Take Profit
-      x1=INDENT_LEFT+6*(6*CONTROLS_GAP_X);
-      y1=INDENT_TOP+2*(2*CONTROLS_GAP_Y);
+      x1=int(INDENT_LEFT+5*(10.8*CONTROLS_GAP_X));
       x2=x1+WIDTH_SHORT;
       y2=y1+HEIGHT_DEFAULT;
 
@@ -445,8 +466,7 @@ bool CHiLoMultiDialog::CreateTradesConfig()
          return false;
 
       //--- Label Stop Loss
-      x1=INDENT_LEFT+7*(7*CONTROLS_GAP_X);
-      y1=INDENT_TOP+2*(2*CONTROLS_GAP_Y);
+      x1=int(INDENT_LEFT+6*(10.5*CONTROLS_GAP_X));
       x2=x1+WIDTH_DEFAULT;
       y2=y1+HEIGHT_DEFAULT;
 
@@ -458,8 +478,7 @@ bool CHiLoMultiDialog::CreateTradesConfig()
          return false;
 
       //--- Edit Stop Loss
-      x1=INDENT_LEFT+8*(6*CONTROLS_GAP_X);
-      y1=INDENT_TOP+2*(2*CONTROLS_GAP_Y);
+      x1=int(INDENT_LEFT+6*(11.2*CONTROLS_GAP_X));
       x2=x1+WIDTH_SHORT;
       y2=y1+HEIGHT_DEFAULT;
 
@@ -468,22 +487,24 @@ bool CHiLoMultiDialog::CreateTradesConfig()
       if(!Add(m_trade_e_stop_loss))
          return false;
 
-      CHiLoMaHandle *hma=m_list_hilo_ma.GetNodeAtIndex(i);
 
-      CTrades *trades=hma.GetTrades();
 
       m_trade_e_take_profit.TextAlign(ALIGN_CENTER);
       m_trade_e_stop_loss.TextAlign(ALIGN_CENTER);
 
-      UpdateDialog(i,trades);
-
       // add the items to panel
       m_list_trade_l_name.Add(m_trade_l_name);
       m_list_trade_c_enable.Add(m_trade_c_enable);
-      m_list_trade_l_take_profit.Add(m_trade_l_take_profit);
-      m_list_trade_e_take_profit.Add(m_trade_e_take_profit);
-      m_list_trade_l_stop_loss.Add(m_trade_l_stop_loss);
-      m_list_trade_e_stop_loss.Add(m_trade_e_stop_loss);
+      m_list_trade_l_volume.Add(m_trade_l_volume);
+      m_list_trade_e_volume.Add(m_trade_e_volume);
+      m_list_trade_l_next_volume.Add(m_trade_l_next_volume);
+      m_list_trade_e_next_volume.Add(m_trade_e_next_volume);
+      //m_list_trade_l_take_profit.Add(m_trade_l_take_profit);
+      //m_list_trade_e_take_profit.Add(m_trade_e_take_profit);
+      //m_list_trade_l_stop_loss.Add(m_trade_l_stop_loss);
+      //m_list_trade_e_stop_loss.Add(m_trade_e_stop_loss);
+
+      UpdateDialog(i,trades);
      }
 
    return true;

@@ -55,7 +55,7 @@ public:
 
    void              InitIndicatorHandleConfig(ENUM_TIMEFRAMES m_timeframe,bool arrowFirstHiLoo,bool arrowSecondHiLo,bool arrowCurrentCandle,bool showHiLoLine);
    bool              InitHandle();
-   CArrayInt         *VerifyTypeOperation();
+   CArrayInt        *VerifyTypeOperation();
 
    // getters and setters 
    void              AddTrades(CTrades *trades);

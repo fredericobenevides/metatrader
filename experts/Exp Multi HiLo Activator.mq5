@@ -156,7 +156,7 @@ void InitConfigsForTrade1()
                                           InpAllArrowInFirstHiLo,InpAllArrowInSecondHiLo,
                                           InpAllArrowInCurrentCandle,InpAllShowHiLoLine);
 
-   CTrades *trades=new CTrades("Trade1");
+   CTrades *trades=new CTrades("T1");
    trades.InitTrade(InpTrade1Enabled, InpTrade1Volume,InpTrade1TakeProfit,InpTrade1StopLoss);
    trades.InitMartingale(InpTrade1Martingale,InpTrade1MaxMartingaleOperations);
    trades.InitTradesTime(InpTrade1TimeStartHour,InpTrade1TimeStartMinute,

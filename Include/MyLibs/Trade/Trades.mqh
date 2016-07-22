@@ -75,9 +75,10 @@ public:
    void              EnableTrade();
    void              DisableTrade();
    bool              IsTradeEnable();
+   void              DisableOnMaxMartingaleOperations();
 
    bool              IsEnable();
-   string            Name();   
+   string            Name();
    double            CurrentVolume();
    double            NextVolume();
   };
@@ -285,6 +286,20 @@ void CTrades::DisableTrade(void)
 bool CTrades::IsTradeEnable(void)
   {
    return m_enable_trade;
+  }
+//+------------------------------------------------------------------+
+//| Disable the trade if is on max martingale operations
+//| Formula: (Martingale^MaxOperations)*InitialVolume
+//+------------------------------------------------------------------+
+void CTrades::DisableOnMaxMartingaleOperations()
+  {
+   int digits=(int)SymbolInfoInteger(_Symbol,SYMBOL_DIGITS);
+
+   double powValue=pow(m_martingale,(m_max_martingale_operations-1));
+   double maxVolume=NormalizeDouble(powValue*m_initial_volume,digits);
+
+   if(m_current_volume>maxVolume)
+      DisableTrade();
   }
 //+------------------------------------------------------------------+
 //| Returns the trades name
