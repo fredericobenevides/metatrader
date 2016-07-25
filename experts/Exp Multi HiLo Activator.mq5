@@ -142,7 +142,7 @@ void OnTradeTransaction(
                         const MqlTradeResult&      result        // result structure
                         )
   {
-//HiLoTrades.OnTradeTransaction(trans.type);
+   HiLoController.OnTradeTransaction(trans,request,result);
   }
 //+------------------------------------------------------------------+
 //| Init configs for trade 1

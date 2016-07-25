@@ -30,7 +30,10 @@ class CTrades
    double            m_initial_volume;
    double            m_current_volume;
    double            m_next_volume;
-   ulong             m_ticket_deal_open;
+
+   // result from open trades
+   ulong             m_result_ticket_open_trade;
+   double            m_result_open_price;
 
    // martingale
    int               m_martingale;
@@ -42,12 +45,10 @@ class CTrades
 
    // take profit
    double            m_take_profit_points;
-   double            m_take_profit_price;
    ulong             m_ticket_take_profit;
 
    // stop loss
    double            m_stop_loss_points;
-   double            m_stop_loss_price;
    ulong             m_ticket_stop_loss;
 
    // trades time
@@ -71,8 +72,11 @@ public:
 
    bool              PlaceTakeProfitOrder(string methodName);
    bool              PlaceStopLossOrder(string methodName);
-   bool              DestroyTakeProfitOrder(string methodName);
-   bool              DestroyStopLossOrder(string methodName);
+   bool              DeleteTakeProfitOrder(string methodName);
+   bool              DeleteStopLossOrder(string methodName);
+
+   bool              VerifyIfExistTakeProfitTicket(ulong ticket);
+   bool              VerifyIfExistStopLossTicket(ulong ticket);
 
    void              UpdateNextVolumeUsingMartingale(string methodName);
    void              UpdateVolumeFromNextVolume();
@@ -94,8 +98,16 @@ public:
 
 private:
 
-   void              SaveOpenDealTicket();
-   void              CleanOpenDealTicket();
+   double            CalculateTakeProfitPrice();
+   double            CalculateStopLossPrice();
+
+   void              SaveOpenDealResult();
+   void              DeleteOpenDealResult();
+
+   void              SaveTakeProfitTicket();
+   void              SaveStopLossTicket();
+   void              DeleteTakeProfitTicket();
+   void              DeleteStopLossTicket();
   };
 //+------------------------------------------------------------------+
 //| Constructor
@@ -159,7 +171,7 @@ bool CTrades::BuyOpen(string methodName="BuyOpen()")
      {
       PrintFormat("%s operation executed: true",methodName);
       m_is_on_buy_trade=true;
-      SaveOpenDealTicket();
+      SaveOpenDealResult();
 
       result=true;
      }
@@ -180,7 +192,7 @@ bool CTrades::SellOpen(string methodName="SellOpen()")
      {
       PrintFormat("%s operation executed: true",methodName);
       m_is_on_sell_trade=true;
-      SaveOpenDealTicket();
+      SaveOpenDealResult();
 
       result=true;
      }
@@ -204,7 +216,7 @@ bool CTrades::BuyClose(string methodName="BuyClose()")
      {
       PrintFormat("%s operation executed: true",methodName);
       m_is_on_buy_trade=false;
-      CleanOpenDealTicket();
+      DeleteOpenDealResult();
 
       result=true;
      }
@@ -228,7 +240,7 @@ bool CTrades::SellClose(string methodName="SellClose()")
      {
       PrintFormat("%s operation executed: true",methodName);
       m_is_on_sell_trade=false;
-      CleanOpenDealTicket();
+      DeleteOpenDealResult();
 
       result=true;
      }
@@ -242,24 +254,114 @@ bool CTrades::SellClose(string methodName="SellClose()")
 //+------------------------------------------------------------------+
 bool CTrades::PlaceTakeProfitOrder(string methodName)
   {
+   if(m_take_profit_points==0.0)
+      return false;
+
+   double price=CalculateTakeProfitPrice();
+   PrintFormat("%s will be executed the take profit with price: %.2f",methodName,price);
+
+   bool result=false;
+   if(m_trades_service.ExecuteBuySellLimit(m_is_on_buy_trade,m_current_volume,price,methodName))
+     {
+      PrintFormat("%s operation executed: true",methodName);
+      SaveTakeProfitTicket();
+
+      result=true;
+     }
+   else
+      PrintFormat("%s operation executed: false",methodName);
+
+   return result;
   }
 //+------------------------------------------------------------------+
 //| Place Take Profit Order
 //+------------------------------------------------------------------+
 bool CTrades::PlaceStopLossOrder(string methodName)
   {
+   if(m_stop_loss_points==0.0)
+      return false;
+
+   double price=CalculateStopLossPrice();
+   PrintFormat("%s will be executed the stop loss with price: %.2f",methodName,price);
+
+   bool result=false;
+   if(m_trades_service.ExecuteBuySellStop(m_is_on_buy_trade,m_current_volume,price,methodName))
+     {
+      PrintFormat("%s operation executed: true",methodName);
+      SaveStopLossTicket();
+
+      result=true;
+     }
+   else
+      PrintFormat("%s operation executed: false",methodName);
+
+   return result;
   }
 //+------------------------------------------------------------------+
-//| Destroy Take Profit Order
+//| Delete the take profit ticket
 //+------------------------------------------------------------------+
-bool CTrades::DestroyTakeProfitOrder(string methodName)
+bool CTrades::DeleteTakeProfitOrder(string methodName)
   {
+   if(m_ticket_take_profit==0)
+      return false;
+
+   PrintFormat("%s will delete take profit order with the ticket: %d",methodName,m_ticket_take_profit);
+
+   bool result=false;
+   if(m_trades_service.ExecuteOrderDelete(m_ticket_take_profit,methodName))
+     {
+      PrintFormat("%s operation executed: true",methodName);
+      DeleteTakeProfitTicket();
+
+      result=true;
+     }
+   else
+      PrintFormat("%s operation executed: false",methodName);
+
+   return result;
   }
 //+------------------------------------------------------------------+
-//| Destroy Take Profit Order
+//| Delete the stop loss ticket
 //+------------------------------------------------------------------+
-bool CTrades::DestroyStopLossOrder(string methodName)
+bool CTrades::DeleteStopLossOrder(string methodName)
   {
+   if(m_ticket_stop_loss==0)
+      return  false;
+
+   PrintFormat("%s will delete stop loss order with the ticket: %d",methodName,m_ticket_stop_loss);
+
+   bool result=false;
+   if(m_trades_service.ExecuteOrderDelete(m_ticket_stop_loss,methodName))
+     {
+      PrintFormat("%s operation executed: true",methodName);
+      DeleteStopLossTicket();
+
+      result=true;
+     }
+   else
+      PrintFormat("%s operation executed: false",methodName);
+
+   return result;
+  }
+//+------------------------------------------------------------------+
+//| Verify if the ticket of take profit exist for current operation
+//+------------------------------------------------------------------+
+bool CTrades::VerifyIfExistTakeProfitTicket(ulong ticket)
+  {
+   if(ticket==m_ticket_take_profit)
+      return true;
+
+   return false;
+  }
+//+------------------------------------------------------------------+
+//|  Verify if the ticket of stop loss exist for current operation
+//+------------------------------------------------------------------+
+bool CTrades::VerifyIfExistStopLossTicket(ulong ticket)
+  {
+   if(ticket==m_ticket_stop_loss)
+      return true;
+
+   return false;
   }
 //+------------------------------------------------------------------+
 //| Update the volume based on martingale
@@ -370,17 +472,73 @@ double CTrades::NextVolume()
    return m_next_volume;
   }
 //+------------------------------------------------------------------+
-//| Save the open deal ticket
+//| Calculate the take profit price using the current price
 //+------------------------------------------------------------------+
-void CTrades::SaveOpenDealTicket()
+double CTrades::CalculateTakeProfitPrice()
   {
-   m_ticket_deal_open=m_trades_service.ResultTicketDeal();
+   double takeProfitPrice=0;
+   if(m_is_on_buy_trade)
+      takeProfitPrice=m_result_open_price+m_take_profit_points;
+   else
+      takeProfitPrice=m_result_open_price-m_take_profit_points;
+
+   return takeProfitPrice;
   }
 //+------------------------------------------------------------------+
-//| Save the open deal ticket
+//| Calculate the stop loss price using the current price
 //+------------------------------------------------------------------+
-void CTrades::CleanOpenDealTicket()
+double CTrades::CalculateStopLossPrice()
   {
-   m_ticket_deal_open=0;
+   double stopLossPrice=0;
+   if(m_is_on_buy_trade)
+      stopLossPrice=m_result_open_price-m_stop_loss_points;
+   else
+      stopLossPrice=m_result_open_price+m_stop_loss_points;
+
+   return stopLossPrice;
+  }
+//+------------------------------------------------------------------+
+//| Save the open deal result
+//+------------------------------------------------------------------+
+void CTrades::SaveOpenDealResult()
+  {
+   m_result_ticket_open_trade=m_trades_service.ResultTicket();
+   m_result_open_price=m_trades_service.ResultPrice();
+  }
+//+------------------------------------------------------------------+
+//| Delete the open deal result
+//+------------------------------------------------------------------+
+void CTrades::DeleteOpenDealResult()
+  {
+   m_result_ticket_open_trade=0;
+   m_result_open_price=0;
+  }
+//+------------------------------------------------------------------+
+//| Save Take Profit Ticket
+//+------------------------------------------------------------------+
+void CTrades::SaveTakeProfitTicket()
+  {
+   m_ticket_take_profit=m_trades_service.ResultTicket();
+  }
+//+------------------------------------------------------------------+
+//| Save Stop Loss Ticket
+//+------------------------------------------------------------------+
+void CTrades::SaveStopLossTicket()
+  {
+   m_ticket_stop_loss=m_trades_service.ResultTicket();
+  }
+//+------------------------------------------------------------------+
+//| Delete the open deal ticket
+//+------------------------------------------------------------------+
+void CTrades::DeleteTakeProfitTicket()
+  {
+   m_ticket_take_profit=0;
+  }
+//+------------------------------------------------------------------+
+//| Delete the open deal ticket
+//+------------------------------------------------------------------+
+void CTrades::DeleteStopLossTicket()
+  {
+   m_ticket_stop_loss=0;
   }
 //+------------------------------------------------------------------+
