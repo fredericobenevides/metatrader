@@ -31,6 +31,7 @@ public:
    void              Destroy(int reason);
    void              OnTick();
    void              OnTradeTransaction(const MqlTradeTransaction &trans,const MqlTradeRequest &request,const MqlTradeResult &result);
+   void              OnChartEvent(const int id,const long &lparam,const double &dparam,const string &sparam);
 
    void              AddModel(CHiLoMaHandle *hiloMa);
 
@@ -45,8 +46,8 @@ protected:
 
    void              TradeBuyOpen(int index,CTrades *trades);
    void              TradeSellOpen(int index,CTrades *trades);
-   void              TradeBuyClose(CTrades *trades);
-   void              TradeSellClose(CTrades *trades);
+   void              TradeBuyClose(int index,CTrades *trades);
+   void              TradeSellClose(int index,CTrades *trades);
 
    void              DestroyTpSlIfTicketAddedToHistory(ulong ticket);
   };
@@ -118,10 +119,10 @@ void CHiLoController::OnTick()
                TradeSellOpen(i,trades);
                break;
             case BUY_CLOSE_OPERATION:
-               TradeBuyClose(trades);
+               TradeBuyClose(i,trades);
                break;
             case SELL_CLOSE_OPERATION:
-               TradeSellClose(trades);
+               TradeSellClose(i,trades);
                break;
             default: // NO_OPERATION
                continue;
@@ -135,13 +136,13 @@ void CHiLoController::OnTick()
 //+------------------------------------------------------------------+
 //| Event onTradeTransaction to find a trade runned by a Take Profit or Stop Loss
 //+------------------------------------------------------------------+
-void  CHiLoController::OnTradeTransaction(const MqlTradeTransaction &trans,
-                                          const MqlTradeRequest &request,
-                                          const MqlTradeResult &result)
+void CHiLoController::OnTradeTransaction(const MqlTradeTransaction &trans,
+                                         const MqlTradeRequest &request,
+                                         const MqlTradeResult &result)
   {
    if(trans.type==TRADE_TRANSACTION_HISTORY_ADD)
      {
-      if(trans.order_type== ORDER_TYPE_BUY_LIMIT
+      if(trans.order_type==ORDER_TYPE_BUY_LIMIT
          || trans.order_type== ORDER_TYPE_BUY_STOP
          || trans.order_type== ORDER_TYPE_SELL_LIMIT
          || trans.order_type== ORDER_TYPE_SELL_STOP)
@@ -149,6 +150,16 @@ void  CHiLoController::OnTradeTransaction(const MqlTradeTransaction &trans,
          DestroyTpSlIfTicketAddedToHistory(trans.order);
         }
      }
+  }
+//+------------------------------------------------------------------+
+//| Chart event
+//+------------------------------------------------------------------+
+void  CHiLoController::OnChartEvent(const int id,// event ID  
+                                    const long& lparam,   // event parameter of the long type
+                                    const double& dparam, // event parameter of the double type
+                                    const string& sparam) // event parameter of the string type
+  {
+   m_hilo_multi_dialog.ChartEvent(id,lparam,dparam,sparam);
   }
 //+------------------------------------------------------------------+
 //| Add the HiLoMa to the controller
@@ -202,28 +213,13 @@ bool CHiLoController::InitModels()
 //+------------------------------------------------------------------+
 bool CHiLoController::InitView()
   {
-
-// Add models to view
-//CHiLoMa *current=m_list_hilo_ma.GetCurrentNode();
-//while(current!=NULL)
-//  {
-//   HiLoMultiDialog.AddModel(current);
-//  }
-
    int y1=int(ChartGetInteger(0,CHART_HEIGHT_IN_PIXELS)-250);
    int y2=int(ChartGetInteger(0,CHART_HEIGHT_IN_PIXELS)-20);
 
    if(!m_hilo_multi_dialog.Create(0,"",0,20,y1,450,y2))
       return(INIT_FAILED);
 
-//      //if(!HiLoMALoader.Init())
-//      //   return(INIT_FAILED);
-
    m_hilo_multi_dialog.Run();
-//
-//      //if(InpAllSetTradeSound)
-//      //   MyTrade.EnableSoundOnOperation(InpAllSellTradeSound,InpAllBuyTradeSound);
-//     }
 
    return(INIT_SUCCEEDED);
   }
@@ -252,14 +248,19 @@ void CHiLoController::TradeBuyOpen(int index,CTrades *trades)
 
    trades.UpdateVolumeFromNextVolume();
    trades.UpdateNextVolumeUsingMartingale();
+
+   trades.ResetNextVolumeToInitialVolumeOnMaxMartingale();
    trades.DisableOnMaxMartingaleOperations();
+
    m_hilo_multi_dialog.UpdateDialog(index,trades);
 
    string methodName=trades.Name()+"::TradeBuyOpen()";
    if(trades.BuyOpen(methodName))
      {
-      Print("Inserir take profit");
+      methodName=trades.Name()+"::TradeBuyOpen::TP()";
       trades.PlaceTakeProfitOrder(methodName);
+
+      methodName=trades.Name()+"::TradeBuyOpen::SL()";
       trades.PlaceStopLossOrder(methodName);
      }
 
@@ -286,14 +287,19 @@ void CHiLoController::TradeSellOpen(int index,CTrades *trades)
 
    trades.UpdateVolumeFromNextVolume();
    trades.UpdateNextVolumeUsingMartingale();
+
+   trades.ResetNextVolumeToInitialVolumeOnMaxMartingale();
    trades.DisableOnMaxMartingaleOperations();
+
    m_hilo_multi_dialog.UpdateDialog(index,trades);
 
    string methodName=trades.Name()+"::TradeSellOpen()";
    if(trades.SellOpen(methodName))
      {
-      Print("Inserir take profit");
+      methodName=trades.Name()+"::TradeSellOpen::TP()";
       trades.PlaceTakeProfitOrder(methodName);
+
+      methodName=trades.Name()+"::TradeSellOpen::SL()";
       trades.PlaceStopLossOrder(methodName);
      }
 
@@ -310,14 +316,19 @@ void CHiLoController::TradeSellOpen(int index,CTrades *trades)
 //+------------------------------------------------------------------+
 //| Close a BUY operation|
 //+------------------------------------------------------------------+
-void CHiLoController::TradeBuyClose(CTrades *trades)
+void CHiLoController::TradeBuyClose(int index,CTrades *trades)
   {
    string methodName=trades.Name()+"::TradeBuyClose()";
    if(trades.BuyClose(methodName))
      {
-      Print("calcular volume factor");
+      methodName=trades.Name()+"::TradeBuyClose::DTP()";
       trades.DeleteTakeProfitOrder(methodName);
+
+      methodName=trades.Name()+"::TradeBuyClose::DSL()";
       trades.DeleteStopLossOrder(methodName);
+
+      trades.ResetVolumeToZeroIfNextVolumeIsInitialVolume();
+      m_hilo_multi_dialog.UpdateDialog(index,trades);
      }
 
 //if(MyTrade.TradeBuyClose("TradeBuyClose"))
@@ -329,14 +340,19 @@ void CHiLoController::TradeBuyClose(CTrades *trades)
 //+------------------------------------------------------------------+
 //| Close a SELL operation
 //+------------------------------------------------------------------+
-void CHiLoController::TradeSellClose(CTrades *trades)
+void CHiLoController::TradeSellClose(int index,CTrades *trades)
   {
    string methodName=trades.Name()+"::TradeSellClose()";
    if(trades.SellClose(methodName))
      {
-      Print("calcular volume factor");
+      methodName=trades.Name()+"::TradeSellClose::DTP()";
       trades.DeleteTakeProfitOrder(methodName);
+
+      methodName=trades.Name()+"::TradeSellClose::DSL()";
       trades.DeleteStopLossOrder(methodName);
+
+      trades.ResetVolumeToZeroIfNextVolumeIsInitialVolume();
+      m_hilo_multi_dialog.UpdateDialog(index,trades);
      }
 
 //if(MyTrade.TradeSellClose("TradeSellClose"))
@@ -350,7 +366,6 @@ void CHiLoController::TradeSellClose(CTrades *trades)
 //+------------------------------------------------------------------+
 void CHiLoController::DestroyTpSlIfTicketAddedToHistory(ulong ticketOrder)
   {
-
 // verify operation for each trade
    for(int i=0;i<m_list_hilo_ma.Total();i++)
      {
@@ -362,11 +377,18 @@ void CHiLoController::DestroyTpSlIfTicketAddedToHistory(ulong ticketOrder)
 
       // take profit order was executed, remove stop loss
       if(existTakeProfitTicket)
-         trades.DeleteStopLossOrder("DestroyTpSlIfTicketAddedToHistory");
+        {
+         string methodName=trades.Name()+"::DestroySlIfExistTp";
+         trades.DeleteStopLossOrder(methodName);
+         trades.DisableOnMaxTakeProfitOperations();
+        }
 
       // stop loss was executed, remove take profit order
       if(existStopLossTicket)
-         trades.DeleteTakeProfitOrder("DestroyTpSlIfTicketAddedToHistory");
+        {
+         string methodName=trades.Name()+"::DestroyTpIfExistSl";
+         trades.DeleteTakeProfitOrder(methodName);
+        }
      }
   }
 //+------------------------------------------------------------------+

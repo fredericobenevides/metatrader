@@ -43,10 +43,8 @@ class CHiLoMultiDialog : public CAppDialog
   {
    CList             m_list_hilo_ma;
 
-   CCheckBox         m_checkbox_buy;
-   CCheckBox         m_checkbox_sell;
-   CCheckBox         m_checkbox_close_on_hilo;
-   CCheckBox         m_checkbox_close_on_tp;
+   CButton           m_button_enable_all;
+   CButton           m_button_disable_all;
 
    // hilo items
    CList             m_list_trade_l_name;          // CLabel
@@ -79,12 +77,8 @@ public:
 
 protected:
    //--- create dependent controls
-   bool              CreateCheckBoxBuy(void);
-   bool              CreateCheckBoxSell(void);
-   bool              CreateCheckBoxCloseOnHiLo(void);
-   bool              CreateCheckBoxCloseOnTp(void);
+   bool              CreateEnableDisableButtons(void);
 
-   bool              CreateConfigsTrade1();
    bool              CreateTradesConfig();
   };
 //+------------------------------------------------------------------+
@@ -130,41 +124,12 @@ bool CHiLoMultiDialog::Create(const long chart,const string name,const int subwi
    if(!CAppDialog::Create(chart,name,subwin,x1,y1,x2,y2))
       return false;
 
-   if(!CreateCheckBoxBuy())
+   if(!CreateEnableDisableButtons())
       return false;
-   if(!CreateCheckBoxSell())
-      return false;
-   if(!CreateCheckBoxCloseOnHiLo())
-      return false;
-   if(!CreateCheckBoxCloseOnTp())
-      return false;
-
-//if(!CreateConfigsTrade1())
-//   return false;
 
    if(!CreateTradesConfig())
       return false;
-//
-//   if(!CreateButtonStart())
-//      return false;
-//   if(!CreateButtonStop())
-//      return false;
-//   if(!CreateButtonResetToDefaults())
-//      return false;
-//
-//   if(!CreateEditVolume())
-//      return false;
-//
-//   if(!CreateTakeProfit())
-//      return false;
-//   if(!CreateStopLoss())
-//      return false;
-//   if(!CreateButtonUpdateTpSl())
-//      return false;
-//
-//   if(!CreateEditVolumeStatus())
-//      return false;
-//
+
    InitToDefaults();
 //   InitWhenTradeIsOn();
 
@@ -176,7 +141,7 @@ bool CHiLoMultiDialog::Create(const long chart,const string name,const int subwi
 bool CHiLoMultiDialog::ChartEvent(const int id,const long &lparam,const double &dparam,const string &sparam)
   {
 //--- Run the parent ChartEvent
-//   CAppDialog::ChartEvent(id,lparam,dparam,sparam);
+   CAppDialog::ChartEvent(id,lparam,dparam,sparam);
 //
 //   if(id==CHARTEVENT_CLICK)
 //     {
@@ -200,13 +165,8 @@ void CHiLoMultiDialog::InitToDefaults(void)
   {
 //ResetVolumesToDefault();
 
-   m_checkbox_buy.Checked(false);
-   m_checkbox_sell.Checked(false);
-   m_checkbox_close_on_hilo.Checked(false);
-   m_checkbox_close_on_tp.Checked(true);
-
 // trade 1
-   m_checkbox_trade1_enabled.Checked(true);
+//m_checkbox_trade1_enabled.Checked(true);
 
 //PrintAllStatus();
   }
@@ -227,122 +187,42 @@ void CHiLoMultiDialog::UpdateDialog(int index,CTrades *trades)
    CEdit *m_edit_e_next_volume=m_list_trade_e_next_volume.GetNodeAtIndex(index);
    m_edit_e_next_volume.Text(DoubleToString(trades.NextVolume(),0));
 
-//m_trade_e_take_profit.Text(DoubleToString(trades.GetTakeProfit(),0));
-//m_trade_e_stop_loss.Text(DoubleToString(trades.GetStopLoss(),0));
+   CEdit *m_edit_e_take_profit=m_list_trade_e_take_profit.GetNodeAtIndex(index);
+   m_edit_e_take_profit.Text(DoubleToString(trades.TakeProfitPoints(),0));
+
+   CEdit *m_edit_e_stop_loss=m_list_trade_e_stop_loss.GetNodeAtIndex(index);
+   m_edit_e_stop_loss.Text(DoubleToString(trades.StopLossPoints(),0));
   }
 //+------------------------------------------------------------------+
-//| Create the Buy CheckBox
+//| Create the Enable and Disable Buttons
 //+------------------------------------------------------------------+
-bool CHiLoMultiDialog::CreateCheckBoxBuy(void)
+bool CHiLoMultiDialog::CreateEnableDisableButtons(void)
   {
-//--- coordinates
+//--- button enable all
    int x1=INDENT_LEFT;
    int y1=INDENT_TOP;
    int x2=x1+WIDTH_DEFAULT;
    int y2=y1+HEIGHT_DEFAULT;
 
-//--- create
-   if(!m_checkbox_buy.Create(m_chart_id,"m_checkbox_buy",m_subwin,x1,y1,x2,y2))
+   if(!m_button_enable_all.Create(m_chart_id,"m_button_enable_all",m_subwin,x1,y1,x2,y2))
       return false;
-   if(!m_checkbox_buy.Text("Buy"))
+   if(!m_button_enable_all.Text("Enable All"))
       return false;
-   if(!Add(m_checkbox_buy))
-      return false;
-
-   return true;
-  }
-//+------------------------------------------------------------------+
-//| Create the Sell CheckBox
-//+------------------------------------------------------------------+
-bool CHiLoMultiDialog::CreateCheckBoxSell(void)
-  {
-//--- coordinates
-   int x1=INDENT_LEFT+2*(5*CONTROLS_GAP_X);
-   int y1=INDENT_TOP;
-   int x2=x1+WIDTH_DEFAULT;
-   int y2=y1+HEIGHT_DEFAULT;
-
-//--- create
-   if(!m_checkbox_sell.Create(m_chart_id,"m_checkbox_sell",m_subwin,x1,y1,x2,y2))
-      return false;
-   if(!m_checkbox_sell.Text("Sell"))
-      return false;
-   if(!Add(m_checkbox_sell))
+   if(!Add(m_button_enable_all))
       return false;
 
-   return true;
-  }
-//+------------------------------------------------------------------+
-//| Create the Close If Profit / Loss CheckBox
-//+------------------------------------------------------------------+
-bool CHiLoMultiDialog::CreateCheckBoxCloseOnHiLo(void)
-  {
-//--- coordinates
-   int x1=INDENT_LEFT+3*(7*CONTROLS_GAP_X);
-   int y1=INDENT_TOP;
-   int x2=x1+WIDTH_DEFAULT+WIDTH_ADJUST;
-   int y2=y1+HEIGHT_DEFAULT;
-
-//--- create
-   if(!m_checkbox_close_on_hilo.Create(m_chart_id,"m_checkbox_close_on_hilo",m_subwin,x1,y1,x2,y2))
-      return false;
-   if(!m_checkbox_close_on_hilo.Text("Close HiLo"))
-      return false;
-   if(!Add(m_checkbox_close_on_hilo))
-      return false;
-//--- succeed
-   return true;
-  }
-//+------------------------------------------------------------------+
-//| Create the Close If Profit / Loss CheckBox
-//+------------------------------------------------------------------+
-bool CHiLoMultiDialog::CreateCheckBoxCloseOnTp(void)
-  {
-//--- coordinates
-   int x1=INDENT_LEFT+4*(10*CONTROLS_GAP_X);
-   int y1=INDENT_TOP;
-   int x2=x1+1*WIDTH_DEFAULT;
-   int y2=y1+HEIGHT_DEFAULT;
-
-//--- create
-   if(!m_checkbox_close_on_tp.Create(m_chart_id,"m_checkbox_close_on_tp",m_subwin,x1,y1,x2,y2))
-      return false;
-   if(!m_checkbox_close_on_tp.Text("Close Tp"))
-      return false;
-   if(!Add(m_checkbox_close_on_tp))
-      return false;
-//--- succeed
-   return true;
-  }
-//+------------------------------------------------------------------+
-//| Create buttons config for Trade 1
-//+------------------------------------------------------------------+
-bool CHiLoMultiDialog::CreateConfigsTrade1()
-  {
-//--- label enabled
-   int x1=INDENT_LEFT;
-   int y1=INDENT_TOP+2*(2*CONTROLS_GAP_Y);
-   int x2=x1+WIDTH_DEFAULT;
-   int y2=y1+HEIGHT_DEFAULT;
-
-   if(!m_label_trade1_info.Create(m_chart_id,"m_label_trade1_info",m_subwin,x1,y1,x2,y2))
-      return false;
-   if(!m_label_trade1_info.Text("Trade 1"))
-      return false;
-   if(!Add(m_label_trade1_info))
-      return false;
-
-//--- checkbox enabled
-   x1=INDENT_LEFT+2*(2*CONTROLS_GAP_X);
-   y1=INDENT_TOP+2*(2*CONTROLS_GAP_Y);
-   x2=x1+WIDTH_DEFAULT;
+//--- button disable all
+   x1=INDENT_LEFT+4*(10*CONTROLS_GAP_X);
+   y1=INDENT_TOP;
+   x2=x1+1*WIDTH_DEFAULT;
    y2=y1+HEIGHT_DEFAULT;
 
-   if(!m_checkbox_trade1_enabled.Create(m_chart_id,"m_checkbox_trade1_enabled",m_subwin,x1,y1,x2,y2))
+//--- create
+   if(!m_button_disable_all.Create(m_chart_id,"m_button_disable_all",m_subwin,x1,y1,x2,y2))
       return false;
-   if(!m_checkbox_trade1_enabled.Text("Enable"))
+   if(!m_button_disable_all.Text("Disable All"))
       return false;
-   if(!Add(m_checkbox_trade1_enabled))
+   if(!Add(m_button_disable_all))
       return false;
 
    return true;
@@ -487,22 +367,22 @@ bool CHiLoMultiDialog::CreateTradesConfig()
       if(!Add(m_trade_e_stop_loss))
          return false;
 
-
-
       m_trade_e_take_profit.TextAlign(ALIGN_CENTER);
       m_trade_e_stop_loss.TextAlign(ALIGN_CENTER);
 
       // add the items to panel
       m_list_trade_l_name.Add(m_trade_l_name);
       m_list_trade_c_enable.Add(m_trade_c_enable);
+
       m_list_trade_l_volume.Add(m_trade_l_volume);
       m_list_trade_e_volume.Add(m_trade_e_volume);
       m_list_trade_l_next_volume.Add(m_trade_l_next_volume);
       m_list_trade_e_next_volume.Add(m_trade_e_next_volume);
-      //m_list_trade_l_take_profit.Add(m_trade_l_take_profit);
-      //m_list_trade_e_take_profit.Add(m_trade_e_take_profit);
-      //m_list_trade_l_stop_loss.Add(m_trade_l_stop_loss);
-      //m_list_trade_e_stop_loss.Add(m_trade_e_stop_loss);
+
+      m_list_trade_l_take_profit.Add(m_trade_l_take_profit);
+      m_list_trade_e_take_profit.Add(m_trade_e_take_profit);
+      m_list_trade_l_stop_loss.Add(m_trade_l_stop_loss);
+      m_list_trade_e_stop_loss.Add(m_trade_e_stop_loss);
 
       UpdateDialog(i,trades);
      }

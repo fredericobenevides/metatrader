@@ -37,7 +37,8 @@ class CTrades
 
    // martingale
    int               m_martingale;
-   int               m_max_martingale_operations; // Default max operations (Martingale^MaxOperations)*InitialVolume   
+   int               m_max_martingale_operations;
+   double            m_max_volume_martingale_operations;
 
    //--- type of operation
    bool              m_is_on_buy_trade;
@@ -46,6 +47,8 @@ class CTrades
    // take profit
    double            m_take_profit_points;
    ulong             m_ticket_take_profit;
+   int               m_count_take_profit_operations;
+   int               m_max_take_profit_operations;
 
    // stop loss
    double            m_stop_loss_points;
@@ -61,7 +64,8 @@ public:
                      CTrades(string name);
                     ~CTrades();
 
-   void              InitTrade(bool enableTrade,double initialVolume,double takeProfit,double stopLoss);
+   void              InitTrade(bool enableTrade,double initialVolume,double takeProfit,int maxTakeProfitOperations,
+                               double stopLoss);
    void              InitMartingale(int martingale,int maxMartingaleOperations);
    void              InitTradesTime(int startHour,int startMinute,int endHour,int endMinute);
 
@@ -81,7 +85,10 @@ public:
    void              UpdateNextVolumeUsingMartingale(string methodName);
    void              UpdateVolumeFromNextVolume();
    void              UpdateNextVolumeFromInitialVolume();
+
    void              ResetVolumeToZero();
+   void              ResetVolumeToZeroIfNextVolumeIsInitialVolume();
+   void              ResetNextVolumeToInitialVolumeOnMaxMartingale();
 
    bool              IsOnTradeOperation();
    bool              IsTimeToOpenOperation();
@@ -89,17 +96,22 @@ public:
    void              EnableTrade();
    void              DisableTrade();
    bool              IsTradeEnable();
+
    void              DisableOnMaxMartingaleOperations();
+   void              DisableOnMaxTakeProfitOperations();
 
    bool              IsEnable();
    string            Name();
    double            CurrentVolume();
    double            NextVolume();
+   double            TakeProfitPoints();
+   double            StopLossPoints();
 
 private:
 
    double            CalculateTakeProfitPrice();
    double            CalculateStopLossPrice();
+   double            CalculateCurrentVolumeWithMaxMartingale();
 
    void              SaveOpenDealResult();
    void              DeleteOpenDealResult();
@@ -130,7 +142,8 @@ CTrades::~CTrades()
 //+------------------------------------------------------------------+
 //| Init CTrades
 //+------------------------------------------------------------------+
-CTrades::InitTrade(bool enableTrade,double initialVolume,double takeProfit,double stopLoss)
+CTrades::InitTrade(bool enableTrade,double initialVolume,double takeProfit,int maxTakeProfitOperations,
+                   double stopLoss)
   {
    m_enable_trade=enableTrade;
 
@@ -139,6 +152,8 @@ CTrades::InitTrade(bool enableTrade,double initialVolume,double takeProfit,doubl
    m_next_volume=initialVolume;
 
    m_take_profit_points=takeProfit;
+   m_max_take_profit_operations=maxTakeProfitOperations;
+
    m_stop_loss_points=stopLoss;
   }
 //+------------------------------------------------------------------+
@@ -148,6 +163,7 @@ void CTrades::InitMartingale(int martingale,int maxMartingaleOperations)
   {
    m_martingale=martingale;
    m_max_martingale_operations=maxMartingaleOperations;
+   m_max_volume_martingale_operations=CalculateCurrentVolumeWithMaxMartingale();
   }
 //+------------------------------------------------------------------+
 //| Init Trade's Time
@@ -298,6 +314,19 @@ bool CTrades::PlaceStopLossOrder(string methodName)
    return result;
   }
 //+------------------------------------------------------------------+
+//| Calculate the volume using using the max martingale operations
+//| Formula: (Martingale^MaxOperations)*InitialVolume
+//+------------------------------------------------------------------+
+double CTrades::CalculateCurrentVolumeWithMaxMartingale()
+  {
+   int digits=(int)SymbolInfoInteger(_Symbol,SYMBOL_DIGITS);
+
+   double powValue=pow(m_martingale,(m_max_martingale_operations-1));
+   double maxVolume=NormalizeDouble(powValue*m_initial_volume,digits);
+
+   return maxVolume;
+  }
+//+------------------------------------------------------------------+
 //| Delete the take profit ticket
 //+------------------------------------------------------------------+
 bool CTrades::DeleteTakeProfitOrder(string methodName)
@@ -378,6 +407,20 @@ void CTrades::UpdateNextVolumeUsingMartingale(string methodName="UpdateNextVolum
    m_next_volume=volumeCalculated;
   }
 //+------------------------------------------------------------------+
+//| Return Take Profit points
+//+------------------------------------------------------------------+
+double CTrades::TakeProfitPoints()
+  {
+   return m_take_profit_points;
+  }
+//+------------------------------------------------------------------+
+//| Return Stop Loss points
+//+------------------------------------------------------------------+
+double CTrades::StopLossPoints()
+  {
+   return m_stop_loss_points;
+  }
+//+------------------------------------------------------------------+
 //| Update volume using the volume from next volume
 //+------------------------------------------------------------------+
 void CTrades::UpdateVolumeFromNextVolume()
@@ -397,6 +440,23 @@ void CTrades::UpdateNextVolumeFromInitialVolume()
 void CTrades::ResetVolumeToZero()
   {
    m_current_volume=0;
+  }
+//+------------------------------------------------------------------+
+//| Reset the current volume to value 0 if the next volume has the value of initial volume
+//+------------------------------------------------------------------+
+void CTrades::ResetVolumeToZeroIfNextVolumeIsInitialVolume()
+  {
+   if(m_current_volume==m_initial_volume)
+      m_current_volume=0;
+  }
+//+------------------------------------------------------------------+
+//| If current volume is equal than the max volume operations. 
+//| Reset the next volume to be the initial volume
+//+------------------------------------------------------------------+
+void CTrades::ResetNextVolumeToInitialVolumeOnMaxMartingale()
+  {
+   if(m_current_volume>=m_max_volume_martingale_operations)
+      m_next_volume=m_initial_volume;
   }
 //+------------------------------------------------------------------+
 //| Verify if is on trade operation
@@ -442,12 +502,15 @@ bool CTrades::IsTradeEnable(void)
 //+------------------------------------------------------------------+
 void CTrades::DisableOnMaxMartingaleOperations()
   {
-   int digits=(int)SymbolInfoInteger(_Symbol,SYMBOL_DIGITS);
-
-   double powValue=pow(m_martingale,(m_max_martingale_operations-1));
-   double maxVolume=NormalizeDouble(powValue*m_initial_volume,digits);
-
-   if(m_current_volume>=maxVolume)
+   if(m_current_volume>=m_max_volume_martingale_operations)
+      DisableTrade();
+  }
+//+------------------------------------------------------------------+
+//| Disable the trade if is on the max take profit operations
+//+------------------------------------------------------------------+
+void CTrades::DisableOnMaxTakeProfitOperations()
+  {
+   if(m_count_take_profit_operations>=m_max_take_profit_operations)
       DisableTrade();
   }
 //+------------------------------------------------------------------+

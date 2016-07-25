@@ -37,18 +37,17 @@ input string          InpTrade1Data="------------------------------"; // -------
 input bool            InpTrade1Enabled=true;                          // Default to true to enable the Trade 1
 input ENUM_TIMEFRAMES InpTrade1TimeFrame=PERIOD_CURRENT;              // Default TimeFrame for Trade 1
 input double          InpTrade1Volume=5;                              // Default volume to do trades operations
-input double          InpTrade1TakeProfit=200.0;                      // Default Take Profit
-input double          InpTrade1StopLoss=50.0;                         // Default Stop Loss
-
-//--- input parameters for Trade 1 (Trade Config)
-input string          InpTrade1MartiganelData="------------------------------"; // --------------- Trade 1 (Trade's Martingale) ---------------
-input int             InpTrade1Martingale=2;                                    // Default trade martingale for all trades
-input int             InpTrade1MaxMartingaleOperations=5;                       // Default max operations (Martingale^MaxOperations)*InitialVolume
+input double          InpTrade1TakeProfit=200.0;                      // Default Take Profit (0 disable)
+input int             InpTrade1MaxTakeProfit=1;                       // Default Max Take Profit  (0 disable)
+input double          InpTrade1StopLoss=50.0;                         // Default Stop Loss  (0 disable)
+input int             InpTrade1MaxStopLoss=0;                         // Default Max Stop Loss  (0 disable)
+input int             InpTrade1Martingale=2;                          // Default trade martingale for all trades
+input int             InpTrade1MaxMartingaleOperations=5;             // Default max operations  (0 disable)
 
 //--- input parameters for Trade 1 (Time Control)
 input string          InpTrade1TimeControlData="-------------------------"; // --------------- Trade 1 (Time Control) ---------------
-input int             InpTrade1TimeStartHour=10;                            // Default hour time to start the operation
-input int             InpTrade1TimeStartMinute=0;                           // Default minute time to start the operation
+input int             InpTrade1TimeStartHour=9;                             // Default hour time to start the operation
+input int             InpTrade1TimeStartMinute=5;                           // Default minute time to start the operation
 input int             InpTrade1TimeEndHour=16;                              // Default hour time to end the operation
 input int             InpTrade1TimeEndMinute=0;                             // Default minute time to end the operation
 
@@ -157,7 +156,8 @@ void InitConfigsForTrade1()
                                           InpAllArrowInCurrentCandle,InpAllShowHiLoLine);
 
    CTrades *trades=new CTrades("T1");
-   trades.InitTrade(InpTrade1Enabled, InpTrade1Volume,InpTrade1TakeProfit,InpTrade1StopLoss);
+   trades.InitTrade(InpTrade1Enabled,InpTrade1Volume,InpTrade1TakeProfit,InpTrade1MaxTakeProfit,
+                    InpTrade1StopLoss);
    trades.InitMartingale(InpTrade1Martingale,InpTrade1MaxMartingaleOperations);
    trades.InitTradesTime(InpTrade1TimeStartHour,InpTrade1TimeStartMinute,
                          InpTrade1TimeEndHour,InpTrade1TimeEndMinute);
