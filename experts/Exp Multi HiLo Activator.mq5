@@ -24,8 +24,6 @@
 #include <MyLibs\HiLoMulti\Controllers\HiLoController.mqh>
 
 //--- input parameters for All Trades
-input string          InpAllData="------------------------------";    // ------- Trade Configs for All Trades -------
-
 input string          InpAllHiLoData="------------------------------"; // ------- Trade HiLo Config for All Trades -------
 input bool            InpAllArrowInFirstHiLo=true;                    // Add an arrow to the first HiLo
 input bool            InpAllArrowInSecondHiLo=true;                   // Add an arrow to the second HiLo
@@ -39,7 +37,7 @@ input ENUM_TIMEFRAMES InpTrade1TimeFrame=PERIOD_CURRENT;              // Default
 input double          InpTrade1Volume=3;                              // Default volume to do trades operations
 input double          InpTrade1TakeProfit=200.0;                      // Default Take Profit (0 disable)
 input int             InpTrade1MaxTakeProfit=1;                       // Default Max Take Profit  (0 disable)
-input double          InpTrade1StopLoss=0.0;                          // Default Stop Loss  (0 disable)
+input double          InpTrade1StopLoss=0;                            // Default Stop Loss  (0 disable)
 input int             InpTrade1MaxStopLoss=0;                         // Default Max Stop Loss  (0 disable)
 input int             InpTrade1Martingale=2;                          // Default trade martingale for all trades
 input int             InpTrade1MaxMartingaleOperations=5;             // Default max operations  (0 disable)
@@ -67,7 +65,7 @@ input ENUM_TIMEFRAMES InpTrade2TimeFrame=PERIOD_CURRENT;              // Default
 input double          InpTrade2Volume=2;                              // Default volume to do trades operations
 input double          InpTrade2TakeProfit=200.0;                      // Default Take Profit (0 disable)
 input int             InpTrade2MaxTakeProfit=1;                       // Default Max Take Profit  (0 disable)
-input double          InpTrade2StopLoss=0.0;                          // Default Stop Loss  (0 disable)
+input double          InpTrade2StopLoss=0;                            // Default Stop Loss  (0 disable)
 input int             InpTrade2MaxStopLoss=0;                         // Default Max Stop Loss  (0 disable)
 input int             InpTrade2Martingale=2;                          // Default trade martingale for all trades
 input int             InpTrade2MaxMartingaleOperations=5;             // Default max operations  (0 disable)
@@ -85,7 +83,6 @@ input int             InpTrade2TimeStartHour=9;                       // Default
 input int             InpTrade2TimeStartMinute=5;                     // Default minute time to start the operation
 input int             InpTrade2TimeEndHour=16;                        // Default hour time to end the operation
 input int             InpTrade2TimeEndMinute=0;                       // Default minute time to end the operation
-
 
 
 
@@ -198,7 +195,7 @@ void InitConfigsForTrade1()
    hiloMaTrade1.AddTrades(trades);
    HiLoController.AddModel(hiloMaTrade1);
   }
-  //+------------------------------------------------------------------+
+//+------------------------------------------------------------------+
 //| Init configs for trade 1
 //+------------------------------------------------------------------+
 void InitConfigsForTrade2()

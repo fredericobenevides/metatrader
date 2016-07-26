@@ -34,8 +34,8 @@ public:
 
    bool              ExecuteOrderDelete(ulong ticket,string methodName);
 
-   ulong             ResultTicket();
-   double            ResultPrice();
+   ulong             OrderTicket(string methodName);
+   double            OrderPrice(string methodName);
 
    void              EnableSoundOnOperation(string sellSoundsName="alert",string buySoundsName="alert2");
    void              PlayBuySound();
@@ -208,18 +208,40 @@ bool CTradesService::ExecuteOrderDelete(ulong ticket,string methodName)
    return result;
   }
 //+------------------------------------------------------------------+
-//| Result ticket order
+//| Returns the order ticket from specific methodName
 //+------------------------------------------------------------------+
-ulong CTradesService::ResultTicket()
+ulong CTradesService::OrderTicket(string methodName)
   {
-   return m_trade.ResultOrder();
+   int total=OrdersTotal();
+   for(int i=0;i<total;i++)
+     {
+      ulong ticket=OrderGetTicket(i);
+      if(OrderSelect(ticket))
+        {
+         string comment=OrderGetString(ORDER_COMMENT);
+         if(StringFind(comment,methodName,0)!=-1)
+            return OrderGetInteger(ORDER_TICKET);
+        }
+     }
+   return -1;
   }
 //+------------------------------------------------------------------+
-//| Result price order
+//| Returns the order price from specific methodName
 //+------------------------------------------------------------------+
-double  CTradesService::ResultPrice()
+double CTradesService::OrderPrice(string methodName)
   {
-   return m_trade.ResultPrice();
+   int total=OrdersTotal();
+   for(int i=0;i<total;i++)
+     {
+      ulong ticket=OrderGetTicket(i);
+      if(OrderSelect(ticket))
+        {
+         string comment=OrderGetString(ORDER_COMMENT);
+         if(StringFind(comment,methodName,0)!=-1)
+            return OrderGetDouble(ORDER_PRICE_OPEN);
+        }
+     }
+   return -1;
   }
 //+------------------------------------------------------------------+
 //| Enable the sounds for BUY operation and SELL operation                                                                

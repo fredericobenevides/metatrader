@@ -140,19 +140,19 @@ bool CHiLoMultiDialog::ChartEvent(const int id,const long &lparam,const double &
 //--- Run the parent ChartEvent
    CAppDialog::ChartEvent(id,lparam,dparam,sparam);
 
-   //if(id==CHARTEVENT_CLICK)
-   //  {
-   //   if(sparam=="m_button_enable_all")
-   //     {
-   //      OnClickEnableAllTrades();
-   //      ChartRedraw();
-   //     }
-   //   if(sparam=="m_button_disable_all")
-   //     {
-   //      OnClickDisableAllTrades();
-   //      ChartRedraw();
-   //     }
-   //  }
+//if(id==CHARTEVENT_CLICK)
+//  {
+//   if(sparam=="m_button_enable_all")
+//     {
+//      OnClickEnableAllTrades();
+//      ChartRedraw();
+//     }
+//   if(sparam=="m_button_disable_all")
+//     {
+//      OnClickDisableAllTrades();
+//      ChartRedraw();
+//     }
+//  }
 
    return true;
   }
@@ -237,12 +237,16 @@ bool CHiLoMultiDialog::CreateEnableDisableButtons(void)
 //+------------------------------------------------------------------+
 bool CHiLoMultiDialog::CreateTradesConfig()
   {
-  int total=m_list_hilo_ma.Total();
+   double yGap=2.6;
+
+   int total=m_list_hilo_ma.Total();
    for(int i=0;i<m_list_hilo_ma.Total();i++)
      {
       int indexNameTrade=i+1;
       int yIndex=2+i;
-      int y1=int(INDENT_TOP+yIndex*(2.8*CONTROLS_GAP_Y));
+      yGap+=0.8;
+
+      int y1=int(INDENT_TOP+yIndex*(yGap*CONTROLS_GAP_Y));
 
       CHiLoMaHandle *hma=m_list_hilo_ma.GetNodeAtIndex(i);
       CTrades *trades=hma.GetTrades();
