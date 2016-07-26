@@ -228,11 +228,10 @@ bool CHiLoController::InitView()
 //+------------------------------------------------------------------+
 void CHiLoController::AddModelsToView()
   {
-   CHiLoMaHandle *current=m_list_hilo_ma.GetCurrentNode();
-   while(current!=NULL)
+   for(int i=0;i<m_list_hilo_ma.Total();i++)
      {
-      m_hilo_multi_dialog.AddModel(current);
-      current=m_list_hilo_ma.GetNextNode();
+      CHiLoMaHandle *hma=m_list_hilo_ma.GetNodeAtIndex(i);
+      m_hilo_multi_dialog.AddModel(hma);
      }
   }
 //+------------------------------------------------------------------+
@@ -249,10 +248,13 @@ void CHiLoController::TradeBuyOpen(int index,CTrades *trades)
    trades.UpdateVolumeFromNextVolume();
    trades.UpdateNextVolumeUsingMartingale();
 
-   trades.ResetNextVolumeToInitialVolumeOnMaxMartingale();
-   trades.DisableOnMaxMartingaleOperations();
+   trades.ResetNextVolumeToZeroOnMaxMartingale();
+   trades.ResetNextVolumeToInitialVolumeOnMaxTakeProfit();
 
-   m_hilo_multi_dialog.UpdateDialog(index,trades);
+   trades.DisableOnMaxMartingaleOperations();
+   trades.DisableOnMaxTakeProfitOperations();
+
+   m_hilo_multi_dialog.UpdateAllDialog(index,trades);
 
    string methodName=trades.Name()+"::TradeBuyOpen()";
    if(trades.BuyOpen(methodName))
@@ -288,10 +290,13 @@ void CHiLoController::TradeSellOpen(int index,CTrades *trades)
    trades.UpdateVolumeFromNextVolume();
    trades.UpdateNextVolumeUsingMartingale();
 
-   trades.ResetNextVolumeToInitialVolumeOnMaxMartingale();
-   trades.DisableOnMaxMartingaleOperations();
+   trades.ResetNextVolumeToZeroOnMaxMartingale();
+   trades.ResetNextVolumeToInitialVolumeOnMaxTakeProfit();
 
-   m_hilo_multi_dialog.UpdateDialog(index,trades);
+   trades.DisableOnMaxMartingaleOperations();
+   trades.DisableOnMaxTakeProfitOperations();
+
+   m_hilo_multi_dialog.UpdateAllDialog(index,trades);
 
    string methodName=trades.Name()+"::TradeSellOpen()";
    if(trades.SellOpen(methodName))
@@ -328,7 +333,7 @@ void CHiLoController::TradeBuyClose(int index,CTrades *trades)
       trades.DeleteStopLossOrder(methodName);
 
       trades.ResetVolumeToZeroIfNextVolumeIsInitialVolume();
-      m_hilo_multi_dialog.UpdateDialog(index,trades);
+      m_hilo_multi_dialog.UpdateAllDialog(index,trades);
      }
 
 //if(MyTrade.TradeBuyClose("TradeBuyClose"))
@@ -352,7 +357,7 @@ void CHiLoController::TradeSellClose(int index,CTrades *trades)
       trades.DeleteStopLossOrder(methodName);
 
       trades.ResetVolumeToZeroIfNextVolumeIsInitialVolume();
-      m_hilo_multi_dialog.UpdateDialog(index,trades);
+      m_hilo_multi_dialog.UpdateAllDialog(index,trades);
      }
 
 //if(MyTrade.TradeSellClose("TradeSellClose"))
@@ -380,6 +385,8 @@ void CHiLoController::DestroyTpSlIfTicketAddedToHistory(ulong ticketOrder)
         {
          string methodName=trades.Name()+"::DestroySlIfExistTp";
          trades.DeleteStopLossOrder(methodName);
+
+         trades.UpdateCountTakeProfitOperations();
          trades.DisableOnMaxTakeProfitOperations();
         }
 
@@ -388,6 +395,12 @@ void CHiLoController::DestroyTpSlIfTicketAddedToHistory(ulong ticketOrder)
         {
          string methodName=trades.Name()+"::DestroyTpIfExistSl";
          trades.DeleteTakeProfitOrder(methodName);
+        }
+
+      if(existTakeProfitTicket || existStopLossTicket)
+        {
+         trades.ResetVolumeToZero();
+         m_hilo_multi_dialog.UpdateAllDialog(i,trades);
         }
      }
   }

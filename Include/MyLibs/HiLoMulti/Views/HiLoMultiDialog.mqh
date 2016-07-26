@@ -73,29 +73,26 @@ public:
    bool              ChartEvent(const int id,const long &lparam,const double &dparam,const string &sparam);
 
    void              InitToDefaults();
-   void              UpdateDialog(int index,CTrades *trades);
+   void              UpdateAllDialog(int index,CTrades *trades);
+   void              UpdateEnableDisableTrades(int index,CTrades *trades);
 
 protected:
    //--- create dependent controls
    bool              CreateEnableDisableButtons(void);
 
    bool              CreateTradesConfig();
+
+   void              OnClickEnableAllTrades();
+   void              OnClickDisableAllTrades();
   };
 //+------------------------------------------------------------------+
 //| Event Handling                                                   |
 //+------------------------------------------------------------------+
 EVENT_MAP_BEGIN(CHiLoMultiDialog)
-//ON_EVENT(ON_CHANGE,m_checkbox_buy,OnChangeCheckBoxBuy)
-//ON_EVENT(ON_CHANGE,m_checkbox_sell,OnChangeCheckBoxSell)
-//ON_EVENT(ON_CHANGE,m_checkbox_close_on_hilo,OnChangeCheckBoxCloseHiLo)
-//
-//ON_EVENT(ON_CLICK,m_button_start,OnClickButtonStart)
-//ON_EVENT(ON_CLICK,m_button_stop,OnClickButtonStop)
-//ON_EVENT(ON_CLICK,m_button_reset_to_defaults,OnClickButtonResetToDefaults)
-//
-//ON_EVENT(ON_CHANGE,m_edit_volume,OnChangeEditVolume)
-//
-//ON_EVENT(ON_CLICK,m_button_update_tpsl,OnChangeUpdateTpSlButton)
+
+ON_EVENT(ON_CLICK,m_button_enable_all,OnClickEnableAllTrades)
+ON_EVENT(ON_CLICK,m_button_disable_all,OnClickDisableAllTrades)
+
 EVENT_MAP_END(CAppDialog)
 //+------------------------------------------------------------------+
 //| Constructor
@@ -142,19 +139,20 @@ bool CHiLoMultiDialog::ChartEvent(const int id,const long &lparam,const double &
   {
 //--- Run the parent ChartEvent
    CAppDialog::ChartEvent(id,lparam,dparam,sparam);
-//
-//   if(id==CHARTEVENT_CLICK)
-//     {
-//      if(sparam=="m_button_start")
-//         OnClickButtonStart();
-//      if(sparam=="m_button_stop")
-//         OnClickButtonStop();
-//     }
-//   if(sparam=="m_edit_volume")
-//     {
-//      OnChangeEditVolume();
-//      ChartRedraw();
-//     }
+
+   //if(id==CHARTEVENT_CLICK)
+   //  {
+   //   if(sparam=="m_button_enable_all")
+   //     {
+   //      OnClickEnableAllTrades();
+   //      ChartRedraw();
+   //     }
+   //   if(sparam=="m_button_disable_all")
+   //     {
+   //      OnClickDisableAllTrades();
+   //      ChartRedraw();
+   //     }
+   //  }
 
    return true;
   }
@@ -173,13 +171,9 @@ void CHiLoMultiDialog::InitToDefaults(void)
 //+------------------------------------------------------------------+
 //| Update dialog based on CTrades
 //+------------------------------------------------------------------+
-void CHiLoMultiDialog::UpdateDialog(int index,CTrades *trades)
+void CHiLoMultiDialog::UpdateAllDialog(int index,CTrades *trades)
   {
-   CCheckBox *m_trade_c_enable=m_list_trade_c_enable.GetNodeAtIndex(index);
-   if(trades.IsTradeEnable())
-      m_trade_c_enable.Checked(true);
-   else
-      m_trade_c_enable.Checked(false);
+   UpdateEnableDisableTrades(index,trades);
 
    CEdit *m_edit_e_volume=m_list_trade_e_volume.GetNodeAtIndex(index);
    m_edit_e_volume.Text(DoubleToString(trades.CurrentVolume(),0));
@@ -192,6 +186,17 @@ void CHiLoMultiDialog::UpdateDialog(int index,CTrades *trades)
 
    CEdit *m_edit_e_stop_loss=m_list_trade_e_stop_loss.GetNodeAtIndex(index);
    m_edit_e_stop_loss.Text(DoubleToString(trades.StopLossPoints(),0));
+  }
+//+------------------------------------------------------------------+
+//| Update Enable and Disable Trades
+//+------------------------------------------------------------------+
+void CHiLoMultiDialog::UpdateEnableDisableTrades(int index,CTrades *trades)
+  {
+   CCheckBox *m_trade_c_enable=m_list_trade_c_enable.GetNodeAtIndex(index);
+   if(trades.IsTradeEnable())
+      m_trade_c_enable.Checked(true);
+   else
+      m_trade_c_enable.Checked(false);
   }
 //+------------------------------------------------------------------+
 //| Create the Enable and Disable Buttons
@@ -212,7 +217,7 @@ bool CHiLoMultiDialog::CreateEnableDisableButtons(void)
       return false;
 
 //--- button disable all
-   x1=INDENT_LEFT+4*(10*CONTROLS_GAP_X);
+   x1=INDENT_LEFT+2*(9*CONTROLS_GAP_X);
    y1=INDENT_TOP;
    x2=x1+1*WIDTH_DEFAULT;
    y2=y1+HEIGHT_DEFAULT;
@@ -232,12 +237,12 @@ bool CHiLoMultiDialog::CreateEnableDisableButtons(void)
 //+------------------------------------------------------------------+
 bool CHiLoMultiDialog::CreateTradesConfig()
   {
-//CMdJumper *currentMd=m_md_jumpers.GetCurrentNode();
-// while(currentMd!=NULL)
+  int total=m_list_hilo_ma.Total();
    for(int i=0;i<m_list_hilo_ma.Total();i++)
      {
       int indexNameTrade=i+1;
-      int y1=int(INDENT_TOP+2*(2.4*CONTROLS_GAP_Y));
+      int yIndex=2+i;
+      int y1=int(INDENT_TOP+yIndex*(2.8*CONTROLS_GAP_Y));
 
       CHiLoMaHandle *hma=m_list_hilo_ma.GetNodeAtIndex(i);
       CTrades *trades=hma.GetTrades();
@@ -384,9 +389,37 @@ bool CHiLoMultiDialog::CreateTradesConfig()
       m_list_trade_l_stop_loss.Add(m_trade_l_stop_loss);
       m_list_trade_e_stop_loss.Add(m_trade_e_stop_loss);
 
-      UpdateDialog(i,trades);
+      UpdateAllDialog(i,trades);
      }
 
    return true;
+  }
+//+------------------------------------------------------------------+
+//| Enable All trades
+//+------------------------------------------------------------------+
+void CHiLoMultiDialog::OnClickEnableAllTrades()
+  {
+   for(int i=0;i<m_list_hilo_ma.Total();i++)
+     {
+      CHiLoMaHandle *hma=m_list_hilo_ma.GetNodeAtIndex(i);
+      CTrades *trades=hma.GetTrades();
+
+      trades.EnableTrade();
+      UpdateEnableDisableTrades(i,trades);
+     }
+  }
+//+------------------------------------------------------------------+
+//| Disable All trades
+//+------------------------------------------------------------------+
+void CHiLoMultiDialog::OnClickDisableAllTrades()
+  {
+   for(int i=0;i<m_list_hilo_ma.Total();i++)
+     {
+      CHiLoMaHandle *hma=m_list_hilo_ma.GetNodeAtIndex(i);
+      CTrades *trades=hma.GetTrades();
+
+      trades.DisableTrade();
+      UpdateEnableDisableTrades(i,trades);
+     }
   }
 //+------------------------------------------------------------------+
