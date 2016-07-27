@@ -34,6 +34,8 @@ public:
 
    bool              ExecuteOrderDelete(ulong ticket,string methodName);
 
+   ulong             PositionTicket(string methodName);
+   double            PositionPrice(string methodName);
    ulong             OrderTicket(string methodName);
    double            OrderPrice(string methodName);
 
@@ -206,6 +208,42 @@ bool CTradesService::ExecuteOrderDelete(ulong ticket,string methodName)
       Print("",methodName," method failed. Return code=",m_trade.ResultRetcode(),". Code description: ",m_trade.ResultRetcodeDescription());
 
    return result;
+  }
+//+------------------------------------------------------------------+
+//| Returns the position ticket from specific methodName
+//+------------------------------------------------------------------+
+ulong CTradesService::PositionTicket(string methodName)
+  {
+   int total=PositionsTotal();
+   for(int i=0;i<total;i++)
+     {
+      ulong ticket=PositionGetTicket(i);
+      if(PositionSelectByTicket(ticket))
+        {
+         string comment=PositionGetString(POSITION_COMMENT);
+         if(StringFind(comment,methodName,0)!=-1)
+            return PositionGetInteger(POSITION_TICKET);
+        }
+     }
+   return -1;
+  }
+//+------------------------------------------------------------------+
+//| Returns the position price from specific methodName
+//+------------------------------------------------------------------+
+double CTradesService::PositionPrice(string methodName)
+  {
+   int total=PositionsTotal();
+   for(int i=0;i<total;i++)
+     {
+      ulong ticket=PositionGetTicket(i);
+      if(PositionSelectByTicket(ticket))
+        {
+         string comment=PositionGetString(POSITION_COMMENT);
+         if(StringFind(comment,methodName,0)!=-1)
+            return PositionGetDouble(POSITION_PRICE_OPEN);
+        }
+     }
+   return -1;
   }
 //+------------------------------------------------------------------+
 //| Returns the order ticket from specific methodName

@@ -583,8 +583,8 @@ double CTrades::CalculateCurrentVolumeWithMaxMartingale()
 //+------------------------------------------------------------------+
 void CTrades::SaveOpenDealResult(string methodName)
   {
-   m_result_ticket_open_trade=m_trades_service.OrderTicket(methodName);
-   m_result_open_price=m_trades_service.OrderPrice(methodName);
+   m_result_ticket_open_trade=m_trades_service.PositionTicket(methodName);
+   m_result_open_price=m_trades_service.PositionPrice(methodName);
   }
 //+------------------------------------------------------------------+
 //| Delete the open deal result
