@@ -12,7 +12,9 @@
 #include <MyLibs\HiLoMulti\Models\HiLoMaHandle.mqh>
 #include <MyLibs\HiLoMulti\Models\EnumOperations.mqh>
 #include <MyLibs\HiLoMulti\Views\HiLoMultiDialog.mqh>
-//#include <MyLibs\Trade\TradesService.mqh>
+
+#include <MyLibs\Trade\TradesUtils.mqh>
+#include <MyLibs\Trade\TradesService.mqh>
 //+------------------------------------------------------------------+
 //| Controller for HiLo
 //+------------------------------------------------------------------+
@@ -20,6 +22,7 @@ class CHiLoController
   {
    CList            *m_list_hilo_ma;
    CTradesService   *m_trades_service;
+   CTradesUtils      m_utils;
 
 protected:
    CHiLoMultiDialog  m_hilo_multi_dialog;
@@ -57,7 +60,9 @@ protected:
 CHiLoController::CHiLoController(void)
   {
    m_list_hilo_ma=new CList;
-   m_trades_service=new CTradesService();
+
+   long magicNumber=m_utils.GenerateMagicNumber();
+   m_trades_service=new CTradesService(magicNumber);
   }
 //+------------------------------------------------------------------+
 //| Destructor
@@ -166,6 +171,7 @@ void  CHiLoController::OnChartEvent(const int id,// event ID
 //+------------------------------------------------------------------+
 void CHiLoController::AddModel(CHiLoMaHandle *hiloMa)
   {
+   hiloMa.GetTrades().AddTradesService(m_trades_service);
    m_list_hilo_ma.Add(hiloMa);
   }
 //+------------------------------------------------------------------+

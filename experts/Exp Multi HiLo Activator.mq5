@@ -30,6 +30,18 @@ input bool            InpAllArrowInSecondHiLo=true;                   // Add an 
 input bool            InpAllArrowInCurrentCandle=true;                // Add an arrow to the current candle
 input bool            InpAllShowHiLoLine=false;                       // Show the line of HiLo
 
+//--- input parameters for All Trades Sound
+input string          InpAllTradesSoundData="------------------------------"; // -------------- Trades Sound --------------
+input bool            InpAllSetTradeSound=false;                        // Play sound for each operation on Buy or Sell trades.
+input string          InpAllSellTradeSound="dinkdink";                  // The Sound's name for Sell trade operations.
+input string          InpAllBuyTradeSound="dingdong";                   // The Sound's name for Buy trade operations.
+
+
+
+
+
+
+
 //--- input parameters for Trade 1 (Trade Config)
 input string          InpTrade1Data="------------------------------"; // ------- Trade 1 (Trade's Config) -------
 input bool            InpTrade1Enabled=true;                          // Default to true to enable the Trade
@@ -53,8 +65,11 @@ input ENUM_MA_METHOD  InpTrade1MaMethod=MODE_SMA;                     // Ma Meth
 input string          InpTrade1TimeControlData="-------------------------"; // ------- Trade 1 (Time Control) -------
 input int             InpTrade1TimeStartHour=9;                       // Default hour time to start the operation
 input int             InpTrade1TimeStartMinute=5;                     // Default minute time to start the operation
-input int             InpTrade1TimeEndHour=16;                        // Default hour time to end the operation
+input int             InpTrade1TimeEndHour=18;                        // Default hour time to end the operation
 input int             InpTrade1TimeEndMinute=0;                       // Default minute time to end the operation
+
+
+
 
 
 
@@ -81,17 +96,14 @@ input ENUM_MA_METHOD  InpTrade2MaMethod=MODE_SMA;                     // Ma Meth
 input string          InpTrade2TimeControlData="-------------------------"; // ------- Trade 2 (Time Control) -------
 input int             InpTrade2TimeStartHour=9;                       // Default hour time to start the operation
 input int             InpTrade2TimeStartMinute=5;                     // Default minute time to start the operation
-input int             InpTrade2TimeEndHour=16;                        // Default hour time to end the operation
+input int             InpTrade2TimeEndHour=18;                        // Default hour time to end the operation
 input int             InpTrade2TimeEndMinute=0;                       // Default minute time to end the operation
 
 
 
 
-//--- input parameters for All Trades Sound
-input string          InpAllTradesSoundData="------------------------------"; // -------------- Trades Sound --------------
-input bool            InpAllSetTradeSound=false;                        // Play sound for each operation on Buy or Sell trades.
-input string          InpAllSellTradeSound="dinkdink";                  // The Sound's name for Sell trade operations.
-input string          InpAllBuyTradeSound="dingdong";                   // The Sound's name for Buy trade operations.
+
+
 
 //--- input parameters for Test
 input string          InpTestData="-------------------------";        // -------------- Test --------------

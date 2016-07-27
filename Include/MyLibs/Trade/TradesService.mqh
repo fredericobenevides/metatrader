@@ -17,6 +17,7 @@ class CTradesService
 private:
    CTrade            m_trade;
    CTradesUtils      m_utils;
+   long              m_magic;
 
    bool              m_play_sound_on_operation;
    string            m_buy_trade_sound_name;
@@ -24,7 +25,7 @@ private:
    string            m_error_trade_sound_name;
 
 public:
-                     CTradesService();
+                     CTradesService(long magic);
 
    bool              ExecuteBuyTrade(double volume,string methodName);
    bool              ExecuteSellTrade(double volume,string methodName);
@@ -43,15 +44,19 @@ public:
    void              PlayBuySound();
    void              PlaySellSound();
    void              PlayErrorSound();
+
+protected:
+   ulong             LoadPositionTicket(string methodName);
+   ulong             LoadOrderTicket(string methodName);
   };
 //+------------------------------------------------------------------+
 //| Constructor
 //+------------------------------------------------------------------+
-CTradesService::CTradesService(void)
+CTradesService::CTradesService(long magic)
   {
 //--- set MagicNumber for your orders identification
-   int MagicNumber=123456;
-   m_trade.SetExpertMagicNumber(MagicNumber);
+   m_magic=magic;
+   m_trade.SetExpertMagicNumber(magic);
 //--- set available slippage in points when buying/selling
    int deviation=50;
    m_trade.SetDeviationInPoints(deviation);
@@ -215,17 +220,20 @@ bool CTradesService::ExecuteOrderDelete(ulong ticket,string methodName)
 ulong CTradesService::PositionTicket(string methodName)
   {
    int total=PositionsTotal();
-   for(int i=0;i<total;i++)
-     {
-      ulong ticket=PositionGetTicket(i);
-      if(PositionSelectByTicket(ticket))
-        {
-         string comment=PositionGetString(POSITION_COMMENT);
-         if(StringFind(comment,methodName,0)!=-1)
-            return PositionGetInteger(POSITION_TICKET);
-        }
-     }
-   return -1;
+
+   Print("position total ticket");
+   Print(total);
+
+   ulong ticket=LoadPositionTicket(methodName);
+
+   Print("position total after ticket");
+   Print(ticket);
+
+   if(PositionSelectByTicket(ticket))
+      return PositionGetInteger(POSITION_TICKET);
+
+
+   return 0;
   }
 //+------------------------------------------------------------------+
 //| Returns the position price from specific methodName
@@ -233,17 +241,19 @@ ulong CTradesService::PositionTicket(string methodName)
 double CTradesService::PositionPrice(string methodName)
   {
    int total=PositionsTotal();
-   for(int i=0;i<total;i++)
-     {
-      ulong ticket=PositionGetTicket(i);
-      if(PositionSelectByTicket(ticket))
-        {
-         string comment=PositionGetString(POSITION_COMMENT);
-         if(StringFind(comment,methodName,0)!=-1)
-            return PositionGetDouble(POSITION_PRICE_OPEN);
-        }
-     }
-   return -1;
+
+   Print("position total price");
+   Print(total);
+
+   ulong ticket=LoadPositionTicket(methodName);
+
+   Print("position total after ticket");
+   Print(ticket);
+
+   if(PositionSelectByTicket(ticket))
+      return PositionGetDouble(POSITION_PRICE_OPEN);
+
+   return 0;
   }
 //+------------------------------------------------------------------+
 //| Returns the order ticket from specific methodName
@@ -251,17 +261,19 @@ double CTradesService::PositionPrice(string methodName)
 ulong CTradesService::OrderTicket(string methodName)
   {
    int total=OrdersTotal();
-   for(int i=0;i<total;i++)
-     {
-      ulong ticket=OrderGetTicket(i);
-      if(OrderSelect(ticket))
-        {
-         string comment=OrderGetString(ORDER_COMMENT);
-         if(StringFind(comment,methodName,0)!=-1)
-            return OrderGetInteger(ORDER_TICKET);
-        }
-     }
-   return -1;
+
+   Print("order total ticket");
+   Print(total);
+
+   ulong ticket=LoadOrderTicket(methodName);
+
+   Print("order total after ticket");
+   Print(total);
+
+   if(OrderSelect(ticket))
+      return OrderGetInteger(ORDER_TICKET);
+
+   return 0;
   }
 //+------------------------------------------------------------------+
 //| Returns the order price from specific methodName
@@ -269,17 +281,18 @@ ulong CTradesService::OrderTicket(string methodName)
 double CTradesService::OrderPrice(string methodName)
   {
    int total=OrdersTotal();
-   for(int i=0;i<total;i++)
-     {
-      ulong ticket=OrderGetTicket(i);
-      if(OrderSelect(ticket))
-        {
-         string comment=OrderGetString(ORDER_COMMENT);
-         if(StringFind(comment,methodName,0)!=-1)
-            return OrderGetDouble(ORDER_PRICE_OPEN);
-        }
-     }
-   return -1;
+   Print("order total price");
+   Print(total);
+
+   ulong ticket=LoadOrderTicket(methodName);
+
+   Print("order total after price");
+   Print(ticket);
+
+   if(OrderSelect(ticket))
+      return OrderGetDouble(ORDER_PRICE_OPEN);
+
+   return 0;
   }
 //+------------------------------------------------------------------+
 //| Enable the sounds for BUY operation and SELL operation                                                                
@@ -314,5 +327,73 @@ void CTradesService::PlayErrorSound()
   {
    if(m_play_sound_on_operation)
       PlaySound(m_error_trade_sound_name);
+  }
+//+------------------------------------------------------------------+
+//| Load the total of positions
+//+------------------------------------------------------------------+
+ulong CTradesService::LoadPositionTicket(string methodName)
+  {
+   int retry=1;
+   int maxRetry=20;
+
+   int total=PositionsTotal();
+
+   while(retry<=maxRetry)
+     {
+      for(int i=0;i<total;i++)
+        {
+         ulong ticket=PositionGetTicket(i);
+         if(PositionSelectByTicket(ticket))
+           {
+            long magic=PositionGetInteger(POSITION_MAGIC);
+            string comment=PositionGetString(POSITION_COMMENT);
+
+            if(m_magic==magic && StringFind(comment,methodName,0)!=-1)
+               return ticket;
+           }
+        }
+
+      Sleep(retry*100); // sleep for SelectRetryCount * X ms
+      retry++;
+
+      total=PositionsTotal();
+     } // end of while
+
+   Print("Positions not found with the comment: "+methodName);
+   return 0;
+  }
+//+------------------------------------------------------------------+
+//| Load the total of orders
+//+------------------------------------------------------------------+
+ulong CTradesService::LoadOrderTicket(string methodName)
+  {
+   int retry=1;
+   int maxRetry=20;
+
+   int total=OrdersTotal();
+
+   while(retry<=maxRetry)
+     {
+      for(int i=0;i<total;i++)
+        {
+         ulong ticket=OrderGetTicket(i);
+         if(OrderSelect(ticket))
+           {
+            long magic=OrderGetInteger(ORDER_MAGIC);
+            string comment=OrderGetString(ORDER_COMMENT);
+
+            if(m_magic==magic && StringFind(comment,methodName,0)!=-1)
+               return ticket;
+           }
+        }
+
+      Sleep(retry*100); // sleep for SelectRetryCount * X ms
+      retry++;
+
+      total=OrdersTotal();
+     } // end of while
+
+   Print("Orders not found with the comment: "+methodName);
+   return 0;
   }
 //+------------------------------------------------------------------+

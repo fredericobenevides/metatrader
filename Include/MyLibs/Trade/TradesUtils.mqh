@@ -12,7 +12,8 @@ class CTradesUtils
   {
 public:
 
-   double            CTradesUtils::FixPriceByTickSize(double price,bool adjustPositive=true);
+   double            FixPriceByTickSize(double price,bool adjustPositive=true);
+   long              GenerateMagicNumber();
   };
 //+------------------------------------------------------------------+
 //| Fix a value based on his tick size
@@ -58,5 +59,13 @@ double CTradesUtils::FixPriceByTickSize(double price,bool adjustPositive=true)
    while(mod!=0 && mod!=tickSize);
 
    return newPrice;
+  }
+//+------------------------------------------------------------------+
+//| Generate the magic number
+//+------------------------------------------------------------------+
+long CTradesUtils::GenerateMagicNumber()
+  {
+   MathSrand(20);
+   return (MathRand()%99999)+1;
   }
 //+------------------------------------------------------------------+

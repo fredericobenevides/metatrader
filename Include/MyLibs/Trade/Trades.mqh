@@ -32,6 +32,7 @@ class CTrades
    double            m_next_volume;
 
    // result from open trades
+   int               m_total_positions_open;
    ulong             m_result_ticket_open_trade;
    double            m_result_open_price;
 
@@ -45,12 +46,14 @@ class CTrades
    bool              m_is_on_sell_trade;
 
    // take profit
+   int               m_take_profit_total_orders;
    double            m_take_profit_points;
    ulong             m_ticket_take_profit;
    int               m_count_take_profit_operations;
    int               m_max_take_profit_operations;
 
    // stop loss
+   int               m_stop_loss_total_orders;
    double            m_stop_loss_points;
    ulong             m_ticket_stop_loss;
 
@@ -68,6 +71,8 @@ public:
                                double stopLoss);
    void              InitMartingale(int martingale,int maxMartingaleOperations);
    void              InitTradesTime(int startHour,int startMinute,int endHour,int endMinute);
+
+   void              AddTradesService(CTradesService *tradesService);
 
    bool              BuyOpen(string methodName);
    bool              SellOpen(string methodName);
@@ -118,10 +123,10 @@ private:
    void              SaveOpenDealResult(string methodName);
    void              DeleteOpenDealResult();
 
-   void              SaveTakeProfitTicket(string methodName);
-   void              SaveStopLossTicket(string methodName);
-   void              DeleteTakeProfitTicket();
-   void              DeleteStopLossTicket();
+   void              SaveTakeProfitResult(string methodName);
+   void              SaveStopLossResult(string methodName);
+   void              DeleteTakeProfitResult();
+   void              DeleteStopLossResult();
   };
 //+------------------------------------------------------------------+
 //| Constructor
@@ -132,14 +137,12 @@ CTrades::CTrades(string name="trade")
 
    m_is_on_buy_trade=false;
    m_is_on_sell_trade=false;
-   m_trades_service=new CTradesService();
   }
 //+------------------------------------------------------------------+
 //| Destructor
 //+------------------------------------------------------------------+
 CTrades::~CTrades()
   {
-   delete m_trades_service;
   }
 //+------------------------------------------------------------------+
 //| Init CTrades
@@ -170,12 +173,19 @@ void CTrades::InitMartingale(int martingale,int maxMartingaleOperations)
 //+------------------------------------------------------------------+
 //| Init Trade's Time
 //+------------------------------------------------------------------+
-CTrades::InitTradesTime(int startHour,int startMinute,int endHour,int endMinute)
+void CTrades::InitTradesTime(int startHour,int startMinute,int endHour,int endMinute)
   {
    m_time_start_hour=startHour;
    m_time_start_minute=startMinute;
    m_time_end_hour=endHour;
    m_time_end_minute=endMinute;
+  }
+//+------------------------------------------------------------------+
+//| Add Trades Service
+//+------------------------------------------------------------------+
+void CTrades::AddTradesService(CTradesService *tradesService)
+  {
+   m_trades_service=tradesService;
   }
 //+------------------------------------------------------------------+
 //| Open a BUY operation
@@ -282,7 +292,7 @@ bool CTrades::PlaceTakeProfitOrder(string methodName)
    if(m_trades_service.ExecuteBuySellLimit(m_is_on_buy_trade,m_current_volume,price,methodName))
      {
       PrintFormat("%s operation executed: true",methodName);
-      SaveTakeProfitTicket(methodName);
+      SaveTakeProfitResult(methodName);
 
       result=true;
      }
@@ -306,7 +316,7 @@ bool CTrades::PlaceStopLossOrder(string methodName)
    if(m_trades_service.ExecuteBuySellStop(m_is_on_buy_trade,m_current_volume,price,methodName))
      {
       PrintFormat("%s operation executed: true",methodName);
-      SaveStopLossTicket(methodName);
+      SaveStopLossResult(methodName);
 
       result=true;
      }
@@ -329,7 +339,7 @@ bool CTrades::DeleteTakeProfitOrder(string methodName)
    if(m_trades_service.ExecuteOrderDelete(m_ticket_take_profit,methodName))
      {
       PrintFormat("%s operation executed: true",methodName);
-      DeleteTakeProfitTicket();
+      DeleteTakeProfitResult();
 
       result=true;
      }
@@ -352,7 +362,7 @@ bool CTrades::DeleteStopLossOrder(string methodName)
    if(m_trades_service.ExecuteOrderDelete(m_ticket_stop_loss,methodName))
      {
       PrintFormat("%s operation executed: true",methodName);
-      DeleteStopLossTicket();
+      DeleteStopLossResult();
 
       result=true;
      }
@@ -583,6 +593,7 @@ double CTrades::CalculateCurrentVolumeWithMaxMartingale()
 //+------------------------------------------------------------------+
 void CTrades::SaveOpenDealResult(string methodName)
   {
+   m_total_positions_open=1;
    m_result_ticket_open_trade=m_trades_service.PositionTicket(methodName);
    m_result_open_price=m_trades_service.PositionPrice(methodName);
   }
@@ -591,35 +602,40 @@ void CTrades::SaveOpenDealResult(string methodName)
 //+------------------------------------------------------------------+
 void CTrades::DeleteOpenDealResult()
   {
+   m_total_positions_open=0;
    m_result_ticket_open_trade=0;
    m_result_open_price=0;
   }
 //+------------------------------------------------------------------+
 //| Save Take Profit Ticket
 //+------------------------------------------------------------------+
-void CTrades::SaveTakeProfitTicket(string methodName)
+void CTrades::SaveTakeProfitResult(string methodName)
   {
+   m_take_profit_total_orders=1;
    m_ticket_take_profit=m_trades_service.OrderTicket(methodName);
   }
 //+------------------------------------------------------------------+
 //| Save Stop Loss Ticket
 //+------------------------------------------------------------------+
-void CTrades::SaveStopLossTicket(string methodName)
+void CTrades::SaveStopLossResult(string methodName)
   {
+   m_stop_loss_total_orders=1;
    m_ticket_stop_loss=m_trades_service.OrderTicket(methodName);
   }
 //+------------------------------------------------------------------+
 //| Delete the open deal ticket
 //+------------------------------------------------------------------+
-void CTrades::DeleteTakeProfitTicket()
+void CTrades::DeleteTakeProfitResult()
   {
+   m_take_profit_total_orders=0;
    m_ticket_take_profit=0;
   }
 //+------------------------------------------------------------------+
 //| Delete the open deal ticket
 //+------------------------------------------------------------------+
-void CTrades::DeleteStopLossTicket()
+void CTrades::DeleteStopLossResult()
   {
+   m_stop_loss_total_orders=0;
    m_ticket_stop_loss=0;
   }
 //+------------------------------------------------------------------+
