@@ -58,8 +58,8 @@ public:
    CArrayInt        *VerifyTypeOperation();
 
    // getters and setters 
-   void              AddTrades(CTrades *trades);
-   CTrades          *GetTrades();
+   void              AddTrades(CTrades *trades) { m_trades=trades; }
+   CTrades          *GetTrades() { return m_trades; }
   };
 //+------------------------------------------------------------------+
 //| Constructor
@@ -171,19 +171,5 @@ CArrayInt *CHiLoMaHandle::VerifyTypeOperation()
       return NULL;
 
    return listOperations;
-  }
-//+------------------------------------------------------------------+
-//| Add trades
-//+------------------------------------------------------------------+
-void CHiLoMaHandle::AddTrades(CTrades *trades)
-  {
-   m_trades=trades;
-  }
-//+------------------------------------------------------------------+
-//| Return CTrades
-//+------------------------------------------------------------------+
-CTrades *CHiLoMaHandle::GetTrades()
-  {
-   return m_trades;
   }
 //+------------------------------------------------------------------+
