@@ -41,7 +41,6 @@ input string          InpAllBuyTradeSound="dingdong";                   // The S
 
 
 
-
 //--- input parameters for Trade 1 (Trade Config)
 input string          InpTrade1Data="------------------------------"; // ------- Trade 1 (Trade's Config) -------
 input bool            InpTrade1Enabled=true;                          // Default to true to enable the Trade
@@ -67,7 +66,7 @@ input int             InpTrade1TimeStartHour=9;                       // Default
 input int             InpTrade1TimeStartMinute=5;                     // Default minute time to start the operation
 input int             InpTrade1TimeEndHour=18;                        // Default hour time to end the operation
 input int             InpTrade1TimeEndMinute=0;                       // Default minute time to end the operation
-
+input string          InpTrade1EndData="------------------------------"; // ------- End of Trade 1 -------
 
 
 
@@ -98,7 +97,7 @@ input int             InpTrade2TimeStartHour=9;                       // Default
 input int             InpTrade2TimeStartMinute=5;                     // Default minute time to start the operation
 input int             InpTrade2TimeEndHour=18;                        // Default hour time to end the operation
 input int             InpTrade2TimeEndMinute=0;                       // Default minute time to end the operation
-
+input string          InpTrade2EndData="------------------------------"; // ------- End of Trade 2 -------
 
 
 

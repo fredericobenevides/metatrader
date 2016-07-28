@@ -216,8 +216,8 @@ bool CTradesService::ExecuteOrderDelete(ulong ticket,string methodName)
 //+------------------------------------------------------------------+
 double CTradesService::PositionOpenPrice(ulong ticket)
   {
-   if(PositionSelectByTicket(ticket))
-      return PositionGetDouble(POSITION_PRICE_OPEN);
+   if(HistoryDealSelect(ticket))
+      return HistoryDealGetDouble(ticket,DEAL_PRICE);
 
    return -1;
   }
@@ -240,27 +240,29 @@ ulong CTradesService::TryToLoadPositionTicket(string comment)
    int maxRetry=20;
 
    int total=PositionsTotal();
-
-   while(retry<=maxRetry)
+   for(int i=0;i<total;i++)
      {
-      for(int i=0;i<total;i++)
+      if(PositionSelect(Symbol()))
         {
-         ulong ticket=PositionGetTicket(i);
-         if(PositionSelectByTicket(ticket))
+         // select all deals on current day
+         datetime end=TimeCurrent();
+         datetime start=end-PeriodSeconds(PERIOD_D1);
+         HistorySelect(start,end);
+
+         // find the ticket on the history deals
+         int totalDeals=HistoryDealsTotal();
+         for(int j=totalDeals-1; j>=0;j--)
            {
-            long magic=PositionGetInteger(POSITION_MAGIC);
-            string positionComment=PositionGetString(POSITION_COMMENT);
+            ulong ticket=HistoryDealGetTicket(j);
+            long magic=HistoryDealGetInteger(ticket,DEAL_MAGIC);
+            string positionComment=HistoryDealGetString(ticket,DEAL_COMMENT);
 
             if(m_magic==magic && StringFind(positionComment,comment,0)!=-1)
                return ticket;
            }
         }
+     }
 
-      Sleep(retry*100); // sleep for SelectRetryCount * X ms
-      retry++;
-
-      total=PositionsTotal();
-     } // end of while
    return 0;
   }
 //+------------------------------------------------------------------+
@@ -272,27 +274,19 @@ ulong CTradesService::TryToLoadOrderTicket(string comment)
    int maxRetry=20;
 
    int total=OrdersTotal();
-
-   while(retry<=maxRetry)
+   for(int i=0;i<total;i++)
      {
-      for(int i=0;i<total;i++)
+      ulong ticket=OrderGetTicket(i);
+      if(OrderSelect(ticket))
         {
-         ulong ticket=OrderGetTicket(i);
-         if(OrderSelect(ticket))
-           {
-            long magic=OrderGetInteger(ORDER_MAGIC);
-            string orderComment=OrderGetString(ORDER_COMMENT);
+         long magic=OrderGetInteger(ORDER_MAGIC);
+         string orderComment=OrderGetString(ORDER_COMMENT);
 
-            if(m_magic==magic && StringFind(orderComment,comment,0)!=-1)
-               return ticket;
-           }
+         if(m_magic==magic && StringFind(orderComment,comment,0)!=-1)
+            return ticket;
         }
+     }
 
-      Sleep(retry*100); // sleep for SelectRetryCount * X ms
-      retry++;
-
-      total=OrdersTotal();
-     } // end of while
    return 0;
   }
 //+------------------------------------------------------------------+

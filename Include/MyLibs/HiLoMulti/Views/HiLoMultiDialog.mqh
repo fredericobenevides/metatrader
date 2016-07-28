@@ -41,7 +41,7 @@
 //+------------------------------------------------------------------+
 class CHiLoMultiDialog : public CAppDialog
   {
-   CList             m_list_hilo_ma;
+   CList            *m_list_hilo_ma;
 
    CButton           m_button_enable_all;
    CButton           m_button_disable_all;
@@ -49,6 +49,8 @@ class CHiLoMultiDialog : public CAppDialog
    // hilo items
    CList             m_list_trade_l_name;          // CLabel
    CList             m_list_trade_c_enable;        // CCheckBox
+   CList             m_list_trade_l_bs_status;     // CLabel
+   CList             m_list_trade_e_bs_status;     // CEdit
    CList             m_list_trade_l_volume;        // CLabel
    CList             m_list_trade_e_volume;        // CEdit
    CList             m_list_trade_l_next_volume;   // CLabel
@@ -65,14 +67,14 @@ public:
                      CHiLoMultiDialog(void);
                     ~CHiLoMultiDialog(void);
 
-   void              AddModel(CHiLoMaHandle *hiloMa);
+   void              AddListHiLoMaHandle(CList *listHiLoMa) { m_list_hilo_ma=listHiLoMa; }
+
    //--- create
    bool              Create(const long chart,const string name,const int subwin,const int x1,const int y1,const int x2,const int y2);
    //--- chart event handler
    bool              OnEvent(const int id,const long &lparam,const double &dparam,const string &sparam);
    bool              ChartEvent(const int id,const long &lparam,const double &dparam,const string &sparam);
 
-   void              InitToDefaults();
    void              UpdateAllDialog(int index,CTrades *trades);
    void              UpdateEnableDisableTrades(int index,CTrades *trades);
 
@@ -107,13 +109,6 @@ CHiLoMultiDialog::~CHiLoMultiDialog(void)
   {
   }
 //+------------------------------------------------------------------+
-//| Add the HiLoMa to the HiLoMulTiDialog
-//+------------------------------------------------------------------+
-void CHiLoMultiDialog::AddModel(CHiLoMaHandle *hiloMa)
-  {
-   m_list_hilo_ma.Add(hiloMa);
-  }
-//+------------------------------------------------------------------+
 //| Create the interface
 //+------------------------------------------------------------------+
 bool CHiLoMultiDialog::Create(const long chart,const string name,const int subwin,const int x1,const int y1,const int x2,const int y2)
@@ -126,9 +121,6 @@ bool CHiLoMultiDialog::Create(const long chart,const string name,const int subwi
 
    if(!CreateTradesConfig())
       return false;
-
-   InitToDefaults();
-//   InitWhenTradeIsOn();
 
    return true;
   }
@@ -155,18 +147,6 @@ bool CHiLoMultiDialog::ChartEvent(const int id,const long &lparam,const double &
 //  }
 
    return true;
-  }
-//+------------------------------------------------------------------+
-//| Init the defaults values
-//+------------------------------------------------------------------+
-void CHiLoMultiDialog::InitToDefaults(void)
-  {
-//ResetVolumesToDefault();
-
-// trade 1
-//m_checkbox_trade1_enabled.Checked(true);
-
-//PrintAllStatus();
   }
 //+------------------------------------------------------------------+
 //| Update dialog based on CTrades
@@ -254,6 +234,9 @@ bool CHiLoMultiDialog::CreateTradesConfig()
       CLabel *m_trade_l_name=new CLabel();
       CCheckBox *m_trade_c_enable=new CCheckBox();
 
+      CLabel *m_trade_l_bs_status=new CLabel();
+      CEdit *m_trade_e_bs_status=new CEdit();
+
       CLabel *m_trade_l_volume=new CLabel();
       CEdit *m_trade_e_volume=new CEdit();
       CLabel *m_trade_l_next_volume=new CLabel();
@@ -286,6 +269,28 @@ bool CHiLoMultiDialog::CreateTradesConfig()
       if(!m_trade_c_enable.Text("Enable"))
          return false;
       if(!Add(m_trade_c_enable))
+         return false;
+
+      //--- Label Buy Sell Status
+      x1=int(INDENT_LEFT+3*(6*CONTROLS_GAP_X));
+      x2=x1+WIDTH_DEFAULT;
+      y2=y1+HEIGHT_DEFAULT;
+
+      if(!m_trade_l_bs_status.Create(m_chart_id,"m_trade_l_bs_status"+IntegerToString(indexNameTrade),m_subwin,x1,y1,x2,y2))
+         return false;
+      if(!m_trade_l_bs_status.Text("B/S"))
+         return false;
+      if(!Add(m_trade_l_bs_status))
+         return false;
+
+      //--- Edit Buy Sell Status
+      x1=int(INDENT_LEFT+3*(7.8*CONTROLS_GAP_X));
+      x2=x1+WIDTH_SHORT;
+      y2=y1+HEIGHT_DEFAULT;
+
+      if(!m_trade_e_bs_status.Create(m_chart_id,"m_trade_e_bs_status"+IntegerToString(indexNameTrade),m_subwin,x1,y1,x2,y2))
+         return false;
+      if(!Add(m_trade_e_bs_status))
          return false;
 
       //--- Label Volume
@@ -376,12 +381,21 @@ bool CHiLoMultiDialog::CreateTradesConfig()
       if(!Add(m_trade_e_stop_loss))
          return false;
 
+      // Center text
+      m_trade_e_bs_status.TextAlign(ALIGN_CENTER);
+      
+      m_trade_e_volume.TextAlign(ALIGN_CENTER);      
+      m_trade_e_next_volume.TextAlign(ALIGN_CENTER);
+      
       m_trade_e_take_profit.TextAlign(ALIGN_CENTER);
       m_trade_e_stop_loss.TextAlign(ALIGN_CENTER);
 
       // add the items to panel
       m_list_trade_l_name.Add(m_trade_l_name);
       m_list_trade_c_enable.Add(m_trade_c_enable);
+
+      m_list_trade_l_bs_status.Add(m_trade_l_bs_status);
+      m_list_trade_e_bs_status.Add(m_trade_e_bs_status);
 
       m_list_trade_l_volume.Add(m_trade_l_volume);
       m_list_trade_e_volume.Add(m_trade_e_volume);
