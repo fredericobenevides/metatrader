@@ -149,6 +149,7 @@ void CHiLoController::OnTick()
 
       // remove this list operation
       listOperations.Shutdown();
+      delete listOperations;
      }
   }
 //+------------------------------------------------------------------+
@@ -228,7 +229,7 @@ bool CHiLoController::InitView()
    int y1=int(ChartGetInteger(0,CHART_HEIGHT_IN_PIXELS)-250);
    int y2=int(ChartGetInteger(0,CHART_HEIGHT_IN_PIXELS)-20);
 
-   if(!m_hilo_multi_dialog.Create(0,"",0,20,y1,450,y2))
+   if(!m_hilo_multi_dialog.Create(0,"",0,20,y1,505,y2))
       return(INIT_FAILED);
 
    m_hilo_multi_dialog.Run();
@@ -262,13 +263,13 @@ void CHiLoController::TradeBuyOpen(int index,CTrades *trades)
    trades.DisableOnMaxMartingaleOperations();
    trades.DisableOnMaxTakeProfitOperations();
 
-   m_hilo_multi_dialog.UpdateAllDialog(index,trades);
-
    string methodName=trades.Name()+"::TradeBuyOpen()";
    if(!trades.BuyOpen(methodName))
      {
       Print("There's was an error while buying");
      }
+
+   m_hilo_multi_dialog.UpdateAllDialog(index,trades);
   }
 //+------------------------------------------------------------------+
 //| Open a SELL operation
@@ -290,13 +291,13 @@ void CHiLoController::TradeSellOpen(int index,CTrades *trades)
    trades.DisableOnMaxMartingaleOperations();
    trades.DisableOnMaxTakeProfitOperations();
 
-   m_hilo_multi_dialog.UpdateAllDialog(index,trades);
-
    string methodName=trades.Name()+"::TradeSellOpen()";
    if(!trades.SellOpen(methodName))
      {
       Print("There's was an error while selling");
      }
+
+   m_hilo_multi_dialog.UpdateAllDialog(index,trades);
   }
 //+------------------------------------------------------------------+
 //| Close a BUY operation|

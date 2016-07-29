@@ -457,6 +457,8 @@ void CTrades::ResetVolumeToZero()
   {
    m_current_volume=0;
    m_next_volume=m_initial_volume;
+   m_is_on_buy_trade=false;
+   m_is_on_sell_trade=false;
   }
 //+------------------------------------------------------------------+
 //| Reset the current volume to value 0 if the next volume has the value of initial volume
@@ -464,7 +466,7 @@ void CTrades::ResetVolumeToZero()
 void CTrades::ResetVolumeToZeroIfNextVolumeIsInitialVolume()
   {
    if(m_next_volume==m_initial_volume)
-      m_current_volume=0;
+      ResetVolumeToZero();
   }
 //+------------------------------------------------------------------+
 //| If current volume is equal than the max volume operations. 

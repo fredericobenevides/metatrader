@@ -30,7 +30,8 @@
 #define CONTROLS_GAP_Y                      (5)       // gap by Y coordinate
 //--- width sizes
 #define WIDTH_DEFAULT                       (80)      // size by X coordinate
-#define WIDTH_SHORT                         (40)      // size by X coordinate
+#define WIDTH_SHORT                         (35)      // size by X coordinate
+#define WIDTH_SHORT_VERY                    (35)      // size by X coordinate
 #define WIDTH_BIG                           (160)     // size by X coordinate
 #define WIDTH_ADJUST                        (10)      // size by X coordinate
 //-- height sizes
@@ -157,15 +158,23 @@ void CHiLoMultiDialog::UpdateAllDialog(int index,CTrades *trades)
 
    CEdit *m_edit_e_volume=m_list_trade_e_volume.GetNodeAtIndex(index);
    m_edit_e_volume.Text(DoubleToString(trades.CurrentVolume(),0));
+   m_edit_e_volume.TextAlign(ALIGN_CENTER);
 
    CEdit *m_edit_e_next_volume=m_list_trade_e_next_volume.GetNodeAtIndex(index);
    m_edit_e_next_volume.Text(DoubleToString(trades.NextVolume(),0));
+   m_edit_e_next_volume.TextAlign(ALIGN_CENTER);
 
    CEdit *m_edit_e_take_profit=m_list_trade_e_take_profit.GetNodeAtIndex(index);
    m_edit_e_take_profit.Text(DoubleToString(trades.TakeProfitPoints(),0));
+   m_edit_e_take_profit.TextAlign(ALIGN_CENTER);
 
    CEdit *m_edit_e_stop_loss=m_list_trade_e_stop_loss.GetNodeAtIndex(index);
    m_edit_e_stop_loss.Text(DoubleToString(trades.StopLossPoints(),0));
+   m_edit_e_stop_loss.TextAlign(ALIGN_CENTER);
+
+   CEdit *m_edit_e_bs_status=m_list_trade_e_bs_status.GetNodeAtIndex(index);
+   m_edit_e_bs_status.Text(trades.BuySellOperationStatus());
+   m_edit_e_bs_status.TextAlign(ALIGN_CENTER);
   }
 //+------------------------------------------------------------------+
 //| Update Enable and Disable Trades
@@ -271,28 +280,6 @@ bool CHiLoMultiDialog::CreateTradesConfig()
       if(!Add(m_trade_c_enable))
          return false;
 
-      //--- Label Buy Sell Status
-      x1=int(INDENT_LEFT+3*(6*CONTROLS_GAP_X));
-      x2=x1+WIDTH_DEFAULT;
-      y2=y1+HEIGHT_DEFAULT;
-
-      if(!m_trade_l_bs_status.Create(m_chart_id,"m_trade_l_bs_status"+IntegerToString(indexNameTrade),m_subwin,x1,y1,x2,y2))
-         return false;
-      if(!m_trade_l_bs_status.Text("B/S"))
-         return false;
-      if(!Add(m_trade_l_bs_status))
-         return false;
-
-      //--- Edit Buy Sell Status
-      x1=int(INDENT_LEFT+3*(7.8*CONTROLS_GAP_X));
-      x2=x1+WIDTH_SHORT;
-      y2=y1+HEIGHT_DEFAULT;
-
-      if(!m_trade_e_bs_status.Create(m_chart_id,"m_trade_e_bs_status"+IntegerToString(indexNameTrade),m_subwin,x1,y1,x2,y2))
-         return false;
-      if(!Add(m_trade_e_bs_status))
-         return false;
-
       //--- Label Volume
       x1=int(INDENT_LEFT+3*(6*CONTROLS_GAP_X));
       x2=x1+WIDTH_DEFAULT;
@@ -381,14 +368,27 @@ bool CHiLoMultiDialog::CreateTradesConfig()
       if(!Add(m_trade_e_stop_loss))
          return false;
 
-      // Center text
-      m_trade_e_bs_status.TextAlign(ALIGN_CENTER);
-      
-      m_trade_e_volume.TextAlign(ALIGN_CENTER);      
-      m_trade_e_next_volume.TextAlign(ALIGN_CENTER);
-      
-      m_trade_e_take_profit.TextAlign(ALIGN_CENTER);
-      m_trade_e_stop_loss.TextAlign(ALIGN_CENTER);
+      //--- Label Buy Sell Status
+      x1=int(INDENT_LEFT+7*(10.9*CONTROLS_GAP_X));
+      x2=x1+WIDTH_DEFAULT;
+      y2=y1+HEIGHT_DEFAULT;
+
+      if(!m_trade_l_bs_status.Create(m_chart_id,"m_trade_l_bs_status"+IntegerToString(indexNameTrade),m_subwin,x1,y1,x2,y2))
+         return false;
+      if(!m_trade_l_bs_status.Text("B/S"))
+         return false;
+      if(!Add(m_trade_l_bs_status))
+         return false;
+
+      //--- Edit Buy Sell Status
+      x1=int(INDENT_LEFT+7*(11.6*CONTROLS_GAP_X));
+      x2=x1+WIDTH_SHORT;
+      y2=y1+HEIGHT_DEFAULT;
+
+      if(!m_trade_e_bs_status.Create(m_chart_id,"m_trade_e_bs_status"+IntegerToString(indexNameTrade),m_subwin,x1,y1,x2,y2))
+         return false;
+      if(!Add(m_trade_e_bs_status))
+         return false;
 
       // add the items to panel
       m_list_trade_l_name.Add(m_trade_l_name);
