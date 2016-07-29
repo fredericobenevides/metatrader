@@ -40,6 +40,7 @@ public:
 
    void              InitTradeSound(string sellSoundName,string buySoundName) { m_trades_service.EnableSoundOnOperation(sellSoundName,buySoundName); }
    bool              InitAll();
+   void              ReInitTradesToDefault();
 
 protected:
    bool              InitModels();
@@ -204,6 +205,18 @@ bool CHiLoController::InitAll()
       return result;
 
    return result;
+  }
+//+------------------------------------------------------------------+
+//| Reset all trades to default.
+//+------------------------------------------------------------------+
+void CHiLoController::ReInitTradesToDefault()
+  {
+   for(int i=0;i<m_list_hilo_ma.Total();i++)
+     {
+      CHiLoMaHandle *hma=m_list_hilo_ma.GetNodeAtIndex(i);
+      CTrades *trades=hma.GetTrades();
+      trades.ResetToDefault();
+     }
   }
 //+------------------------------------------------------------------+
 //| Init all models
@@ -440,6 +453,7 @@ void CHiLoController::VerifyIfPlaceStopLoss(CTrades *trades)
 //+------------------------------------------------------------------+
 void CHiLoController::DestroyTpSlIfTicketAddedToHistory(ulong ticketOrder)
   {
+   Print("The ticket " + IntegerToString(ticketOrder) + " had TP/SL");
 // verify operation for each trade
    for(int i=0;i<m_list_hilo_ma.Total();i++)
      {
@@ -457,6 +471,8 @@ void CHiLoController::DestroyTpSlIfTicketAddedToHistory(ulong ticketOrder)
 
          trades.UpdateCountTakeProfitOperations();
          trades.DisableOnMaxTakeProfitOperations();
+         
+         Print("The " + methodName + " that had Take Profit");
         }
 
       // stop loss was executed, remove take profit order
@@ -464,10 +480,12 @@ void CHiLoController::DestroyTpSlIfTicketAddedToHistory(ulong ticketOrder)
         {
          string methodName=trades.Name()+"::DestroyTpIfExistSl";
          trades.DeleteTakeProfitOrder(methodName);
+         
+         Print("The " + methodName + " that had Stop Loss");
         }
 
       if(existTakeProfitTicket || existStopLossTicket)
-        {
+        {        
          trades.ResetVolumeToZero();
          m_hilo_multi_dialog.UpdateAllDialog(i,trades);
         }

@@ -98,6 +98,7 @@ public:
    void              UpdateNextVolumeFromInitialVolume() {  m_next_volume=m_initial_volume; }
    void              UpdateCountTakeProfitOperations() { m_count_take_profit_operations+=1; }
 
+   void              ResetToDefault();
    void              ResetVolumeToZero();
    void              ResetVolumeToZeroIfNextVolumeIsInitialVolume();
    void              ResetNextVolumeToZeroOnMaxMartingale();
@@ -449,6 +450,35 @@ void CTrades::UpdateNextVolumeUsingMartingale(string methodName="UpdateNextVolum
 
    PrintFormat("%s using martingale (%.2f) to calculate the volume. Last used volume: (%.2f). Next Volume: (%.2f)",methodName,m_martingale,m_current_volume,volumeCalculated);
    m_next_volume=volumeCalculated;
+  }
+//+------------------------------------------------------------------+
+//| Reset all atributes to default value
+//+------------------------------------------------------------------+
+void CTrades::ResetToDefault()
+  {
+   m_enable_trade=true;
+   m_current_volume=0;
+   m_next_volume=m_initial_volume;
+
+// result from open trades
+   m_open_position_placed=false;
+   m_open_position_ticket_loaded=false;
+   m_open_position_ticket=0;
+
+//--- type of operation
+   m_is_on_buy_trade=false;
+   m_is_on_sell_trade=false;
+
+// take profit
+   m_take_profit_placed=false;
+   m_take_profit_ticket_loaded=false;
+   m_take_profit_ticket=0;
+   m_count_take_profit_operations=0;
+
+// stop loss
+   m_stop_loss_placed=false;
+   m_stop_loss_ticket_loaded=false;
+   m_stop_loss_ticket=0;
   }
 //+------------------------------------------------------------------+
 //| Reset the current volume to value 0 and next volume to initial volume

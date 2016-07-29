@@ -43,7 +43,7 @@ input string          InpAllBuyTradeSound="dingdong";                   // The S
 input string          InpTrade1Data="------------------------------"; // ------- Trade 1 (Trade's Config) -------
 input bool            InpTrade1Enabled=true;                          // Default to true to enable the Trade
 input ENUM_TIMEFRAMES InpTrade1TimeFrame=PERIOD_CURRENT;              // Default TimeFrame for Trade
-input double          InpTrade1Volume=2;                              // Default volume to do trades operations
+input double          InpTrade1Volume=3;                              // Default volume to do trades operations
 input double          InpTrade1TakeProfit=200.0;                      // Default Take Profit (0 disable)
 input int             InpTrade1MaxTakeProfit=1;                       // Default Max Take Profit  (0 disable)
 input double          InpTrade1StopLoss=0;                            // Default Stop Loss  (0 disable)
@@ -65,8 +65,6 @@ input int             InpTrade1TimeStartMinute=5;                     // Default
 input int             InpTrade1TimeEndHour=16;                        // Default hour time to end the operation
 input int             InpTrade1TimeEndMinute=0;                       // Default minute time to end the operation
 input string          InpTrade1EndData="------------------------------"; // ------- End of Trade 1 -------
-
-
 
 //--- input parameters for Trade 2 (Trade Config)
 input string          InpTrade2Data="------------------------------"; // ------- Trade 2 (Trade's Config) -------
@@ -95,7 +93,6 @@ input int             InpTrade2TimeEndHour=16;                        // Default
 input int             InpTrade2TimeEndMinute=0;                       // Default minute time to end the operation
 input string          InpTrade2EndData="------------------------------"; // ------- End of Trade 2 -------
 
-
 //--- input parameters for Trade 3 (Trade Config)
 input string          InpTrade3Data="------------------------------"; // ------- Trade 3 (Trade's Config) -------
 input bool            InpTrade3Enabled=true;                          // Default to true to enable the Trade
@@ -123,10 +120,6 @@ input int             InpTrade3TimeEndHour=16;                        // Default
 input int             InpTrade3TimeEndMinute=0;                       // Default minute time to end the operation
 input string          InpTrade3EndData="------------------------------"; // ------- End of Trade 3 -------
 
-
-
-
-
 //--- input parameters for Test
 input string          InpTestData="-------------------------";        // -------------- Test --------------
 input bool            InpTestEnabled=false;                           // Enable operation for test environment
@@ -134,6 +127,7 @@ input bool            InpGenerateReport=false;                        // Generat
 
 //--- global vars
 int first_initialization=true; // flag indicate if is the first initialization
+datetime last_day_initialized=TimeTradeServer();
 
 CHiLoController HiLoController;
 //CHiLoMultiDialog HiLoMultiDialog;
@@ -151,16 +145,7 @@ CHiLoController HiLoController;
 int OnInit()
   {
    if(first_initialization)
-     {
-      InitConfigsForTrade1();
-      InitConfigsForTrade2();
-      //InitConfigsForTrade3();
-
-      if(InpAllSetTradeSound)
-         HiLoController.InitTradeSound(InpAllSellTradeSound,InpAllBuyTradeSound);
-
-      return HiLoController.InitAll();
-     }
+      return InitConfigsForAllTrades();
 
    return(INIT_SUCCEEDED);
   }
@@ -185,6 +170,8 @@ void OnTick()
 //   if(InpTestEnabled)
 //      Test.RunEnvTest();
 
+   verifyIfAnotherDayToReloadTrades();
+
    HiLoController.OnTick();
   }
 //+------------------------------------------------------------------+
@@ -207,6 +194,38 @@ void OnTradeTransaction(
                         )
   {
    HiLoController.OnTradeTransaction(trans,request,result);
+  }
+//+------------------------------------------------------------------+
+//| Verify if is a
+//+------------------------------------------------------------------+
+void verifyIfAnotherDayToReloadTrades()
+  {
+   datetime ts=TimeTradeServer();
+   MqlDateTime sts;
+   TimeToStruct(ts,sts);
+
+   MqlDateTime ldi;
+   TimeToStruct(last_day_initialized,ldi);
+
+   if(sts.year>ldi.year || sts.mon>ldi.mon || sts.day>ldi.day)
+     {
+      last_day_initialized=ts;
+      HiLoController.ReInitTradesToDefault();
+     }
+  }
+//+------------------------------------------------------------------+
+//| Init config for all trades
+//+------------------------------------------------------------------+
+int InitConfigsForAllTrades()
+  {
+   InitConfigsForTrade1();
+   InitConfigsForTrade2();
+//InitConfigsForTrade3();
+
+   if(InpAllSetTradeSound)
+      HiLoController.InitTradeSound(InpAllSellTradeSound,InpAllBuyTradeSound);
+
+   return HiLoController.InitAll();
   }
 //+------------------------------------------------------------------+
 //| Init configs for trade 1

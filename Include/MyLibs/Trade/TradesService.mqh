@@ -128,20 +128,14 @@ bool CTradesService::ExecuteBuySellLimit(bool isOnBuyTrade,double volume,double 
       price=m_utils.FixPriceByTickSize(price,false);
 
       if(m_trade.SellLimit(volume,price,NULL,0,0,ORDER_TIME_DAY,0,comment))
-        {
          executed=true;
-         PlaySellSound();
-        }
      }
    else
      {
       price=m_utils.FixPriceByTickSize(price,true);
 
       if(m_trade.BuyLimit(volume,price,NULL,0,0,ORDER_TIME_DAY,0,comment))
-        {
          executed=true;
-         PlayBuySound();
-        }
      }
 
    if(executed)
@@ -172,20 +166,14 @@ bool CTradesService::ExecuteBuySellStop(bool isOnBuyTrade,double volume,double p
       price=m_utils.FixPriceByTickSize(price,false);
 
       if(m_trade.SellStop(volume,price,NULL,0,0,ORDER_TIME_DAY,0,comment))
-        {
          executed=true;
-         PlaySellSound();
-        }
      }
    else
      {
       price=m_utils.FixPriceByTickSize(price,true);
 
       if(m_trade.BuyStop(volume,price,NULL,0,0,ORDER_TIME_DAY,0,comment))
-        {
          executed=true;
-         PlayBuySound();
-        }
      }
 
    if(executed)
