@@ -18,7 +18,7 @@
 
 //#include <MyLibs\Test\Test.mqh>
 
-#include <MyLibs\Trade\Trades.mqh>
+#include <MyLibs\Trades\TradesController.mqh>
 
 #include <MyLibs\HiLoMulti\Models\HiLoMaHandle.mqh>
 #include <MyLibs\HiLoMulti\Controllers\HiLoController.mqh>
@@ -217,7 +217,7 @@ void verifyIfAnotherDayToReloadTrades()
 //| Init config for all trades
 //+------------------------------------------------------------------+
 int InitConfigsForAllTrades()
-  {
+  {   
    InitConfigsForTrade1();
    InitConfigsForTrade2();
 //InitConfigsForTrade3();
@@ -239,14 +239,14 @@ void InitConfigsForTrade1()
                                           InpAllArrowInFirstHiLo,InpAllArrowInSecondHiLo,
                                           InpAllArrowInCurrentCandle,InpAllShowHiLoLine);
 
-   CTrades *trades=new CTrades("T1");
-   trades.InitTrade(InpTrade1Enabled,InpTrade1Volume,InpTrade1TakeProfit,InpTrade1MaxTakeProfit,
-                    InpTrade1StopLoss);
-   trades.InitMartingale(InpTrade1Martingale,InpTrade1MaxMartingaleOperations);
-   trades.InitTradesTime(InpTrade1TimeStartHour,InpTrade1TimeStartMinute,
-                         InpTrade1TimeEndHour,InpTrade1TimeEndMinute);
+   CTradesController *tradesController=new CTradesController("T1");
+   tradesController.InitTrade(InpTrade1Enabled,InpTrade1Volume,InpTrade1TakeProfit,InpTrade1MaxTakeProfit,
+                              InpTrade1StopLoss);
+   tradesController.InitMartingale(InpTrade1Martingale,InpTrade1MaxMartingaleOperations);
+   tradesController.InitTradesTime(InpTrade1TimeStartHour,InpTrade1TimeStartMinute,
+                                   InpTrade1TimeEndHour,InpTrade1TimeEndMinute);
 
-   hiloMaTrade1.AddTrades(trades);
+   hiloMaTrade1.AddTradesController(tradesController);
    HiLoController.AddModel(hiloMaTrade1);
   }
 //+------------------------------------------------------------------+
@@ -261,14 +261,14 @@ void InitConfigsForTrade2()
                                           InpAllArrowInFirstHiLo,InpAllArrowInSecondHiLo,
                                           InpAllArrowInCurrentCandle,InpAllShowHiLoLine);
 
-   CTrades *trades=new CTrades("T2");
-   trades.InitTrade(InpTrade2Enabled,InpTrade2Volume,InpTrade2TakeProfit,InpTrade2MaxTakeProfit,
-                    InpTrade2StopLoss);
-   trades.InitMartingale(InpTrade2Martingale,InpTrade2MaxMartingaleOperations);
-   trades.InitTradesTime(InpTrade2TimeStartHour,InpTrade2TimeStartMinute,
-                         InpTrade2TimeEndHour,InpTrade2TimeEndMinute);
+   CTradesController *tradesController=new CTradesController("T2");
+   tradesController.InitTrade(InpTrade2Enabled,InpTrade2Volume,InpTrade2TakeProfit,InpTrade2MaxTakeProfit,
+                              InpTrade2StopLoss);
+   tradesController.InitMartingale(InpTrade2Martingale,InpTrade2MaxMartingaleOperations);
+   tradesController.InitTradesTime(InpTrade2TimeStartHour,InpTrade2TimeStartMinute,
+                                   InpTrade2TimeEndHour,InpTrade2TimeEndMinute);
 
-   hiloMaTrade2.AddTrades(trades);
+   hiloMaTrade2.AddTradesController(tradesController);
    HiLoController.AddModel(hiloMaTrade2);
   }
 //+------------------------------------------------------------------+
@@ -283,14 +283,14 @@ void InitConfigsForTrade3()
                                           InpAllArrowInFirstHiLo,InpAllArrowInSecondHiLo,
                                           InpAllArrowInCurrentCandle,InpAllShowHiLoLine);
 
-   CTrades *trades=new CTrades("T3");
-   trades.InitTrade(InpTrade3Enabled,InpTrade3Volume,InpTrade3TakeProfit,InpTrade3MaxTakeProfit,
-                    InpTrade3StopLoss);
-   trades.InitMartingale(InpTrade3Martingale,InpTrade3MaxMartingaleOperations);
-   trades.InitTradesTime(InpTrade3TimeStartHour,InpTrade3TimeStartMinute,
-                         InpTrade3TimeEndHour,InpTrade3TimeEndMinute);
+   CTradesController *tradesController=new CTradesController("T3");
+   tradesController.InitTrade(InpTrade3Enabled,InpTrade3Volume,InpTrade3TakeProfit,InpTrade3MaxTakeProfit,
+                              InpTrade3StopLoss);
+   tradesController.InitMartingale(InpTrade3Martingale,InpTrade3MaxMartingaleOperations);
+   tradesController.InitTradesTime(InpTrade3TimeStartHour,InpTrade3TimeStartMinute,
+                                   InpTrade3TimeEndHour,InpTrade3TimeEndMinute);
 
-   hiloMaTrade3.AddTrades(trades);
+   hiloMaTrade3.AddTradesController(tradesController);
    HiLoController.AddModel(hiloMaTrade3);
   }
 //+------------------------------------------------------------------+

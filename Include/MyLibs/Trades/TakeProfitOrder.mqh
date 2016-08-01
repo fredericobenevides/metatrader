@@ -5,46 +5,234 @@
 //+------------------------------------------------------------------+
 #property copyright "Frederico Benevides"
 #property link      "fredbene@gmail.com"
+
+#include <MyLibs\Trades\PositionOrder.mqh>
+
+#include <MyLibs\Trades\TradesService.mqh>
 //+------------------------------------------------------------------+
 //| Class to map take profit order
 //+------------------------------------------------------------------+
 class CTakeProfitOrder
   {
-   string            m_name;
+   CPositionOrder   *m_position_order;
+
+   string            m_buy_open_name;
+   string            m_sell_open_name;
+   string            m_buy_close_name;
+   string            m_sell_close_name;
+
+   bool              m_open_on_buy_trade;
+   bool              m_open_on_sell_trade;
+
    double            m_points;
 
    bool              m_order_placed;
+   bool              m_order_need_to_be_deleted;
+   bool              m_order_need_to_be_deleted_by_metatader;
    bool              m_ticket_loaded;
    ulong             m_ticket_value;
+
+   int               m_max_take_profit_operations;
+   int               m_count_take_profit_operations;
+
+public:
+                     CTakeProfitOrder(string tradeName,CPositionOrder *positionOrder);
+   void              InitPoints(double points,int maxTakeProfitPoints);
+
+   void              ExecutedPlaceTakeProfitOrder();
+   void              ExecutedDeleteTakeProfitOrder();
+
+   double            CalculateTakeProfitPrice(CTradesService *tradesService);
+
+   bool              IsValidToPlacedOrder();
+   bool              IsOrderNeedToBeRemoved() { return m_order_need_to_be_deleted || m_order_need_to_be_deleted_by_metatader; }
+   void              SetToBeDeleted();
+   void              SetToBeDeletedByMetatrader();
+
+   string            BuySellOpenName();
+   string            BuySellCloseName();
+
+   double            Points() { return m_points; }
+   bool              IsOrderPlaced() { return m_order_placed; }
+
+   bool              IsTicketLoaded() { return m_ticket_loaded; }
+   ulong             Ticket()         { return m_ticket_value; }
+   void              LoadTicket(ulong ticket);
+   bool              VerifyIfExistTicket(ulong ticket) { return m_ticket_value==ticket; }
+
+   void              ResetPositionNextVolumeToInitialVolumeOnMaxTakeProfit();
+   void              DisablePositionOnMaxTakeProfitOperations();
+
+   void              ResetToDefault();
   };
 //+------------------------------------------------------------------+
-//| Place Take Profit Order
+//| Constructor
 //+------------------------------------------------------------------+
-bool CTrades::PlaceOrder()
+CTakeProfitOrder::CTakeProfitOrder(string tradeName,CPositionOrder *positionOrder)
   {
-   if(m_take_profit_points==0.0)
-      return false;
+   m_buy_open_name=tradeName+"::TradeBuyOpen::TP()";
+   m_sell_open_name=tradeName+"::TradeSellOpen::TP()";
+   m_buy_close_name=tradeName+"::TradeBuyClose::DTP()";
+   m_sell_close_name=tradeName+"::TradeSellClose::DTP()";
 
-   if(!IsPositionTicketLoaded())
-      return false;
+   m_position_order=positionOrder;
+  }
+//+------------------------------------------------------------------+
+//| Init points
+//+------------------------------------------------------------------+
+void CTakeProfitOrder::InitPoints(double points,int maxTakeProfitPoints)
+  {
+   m_points=points;
+   m_max_take_profit_operations=maxTakeProfitPoints;
+  }
+//+------------------------------------------------------------------+
+//| Executed the place take profit order
+//+------------------------------------------------------------------+
+void CTakeProfitOrder::ExecutedPlaceTakeProfitOrder()
+  {
+   m_order_placed=true;
+  }
+//+------------------------------------------------------------------+
+//| Executed the place take profit order
+//+------------------------------------------------------------------+
+void CTakeProfitOrder::ExecutedDeleteTakeProfitOrder()
+  {
+   m_open_on_buy_trade=false;
+   m_open_on_sell_trade=false;
 
-   if(IsTakeProfitPlaced())
-      return false;
+   m_order_placed=false;
+   m_order_need_to_be_deleted=false;
+   m_ticket_loaded=false;
+   m_ticket_value=0;
 
-   double takeProfitPrice=CalculateTakeProfitPrice();
-   PrintFormat("%s will be executed the take profit with price: %.2f",methodName,takeProfitPrice);
-
-   bool result=false;
-   if(m_trades_service.ExecuteBuySellLimit(m_is_on_buy_trade,m_current_volume,takeProfitPrice,methodName))
+// disable on max take profit operations
+   if(m_order_need_to_be_deleted_by_metatader)
      {
-      PrintFormat("%s operation executed: true",methodName);
-      m_take_profit_placed=true;
+      m_order_need_to_be_deleted=false;
+      m_count_take_profit_operations+=1;
 
-      result=true;
+      if(m_count_take_profit_operations>=m_max_take_profit_operations)
+         m_position_order.DisableTrade();
+     }
+  }
+//+------------------------------------------------------------------+
+//| Get the take profit price
+//+------------------------------------------------------------------+
+double CTakeProfitOrder::CalculateTakeProfitPrice(CTradesService *tradesService)
+  {
+   double openPrice=tradesService.PositionOpenPrice(m_position_order.Ticket());
+   double takeProfitPrice=0;
+
+   if(m_position_order.IsOnBuyTrade())
+     {
+      takeProfitPrice=openPrice+m_points;
+      m_open_on_buy_trade=true;
      }
    else
-      PrintFormat("%s operation executed: false",methodName);
+     {
+      takeProfitPrice=openPrice-m_points;
+      m_open_on_sell_trade=true;
+     }
 
-   return result;
+   return takeProfitPrice;
+  }
+//+------------------------------------------------------------------+
+//| Verify if if valid to place a take profit order
+//+------------------------------------------------------------------+
+bool CTakeProfitOrder::IsValidToPlacedOrder()
+  {
+   if(m_points==0.0)
+      return false;
+
+   if(IsOrderPlaced())
+      return false;
+
+   if(!m_position_order.IsTicketLoaded())
+      return false;
+
+   if(!m_position_order.IsOnTradeOperation())
+      return false;
+
+   return true;
+  }
+//+------------------------------------------------------------------+
+//| Set to be deleted the take profit
+//+------------------------------------------------------------------+
+void CTakeProfitOrder::SetToBeDeleted(void)
+  {
+   if(!IsOrderPlaced())
+      return;
+
+   m_order_need_to_be_deleted=true;
+  }
+//+------------------------------------------------------------------+
+//| Set to be deleted the take profit
+//+------------------------------------------------------------------+
+void CTakeProfitOrder::SetToBeDeletedByMetatrader(void)
+  {
+   if(!IsOrderPlaced())
+      return;
+
+   m_order_need_to_be_deleted_by_metatader=true;
+  }
+//+------------------------------------------------------------------+
+//| Returns the Buy or Sell Open Name
+//+------------------------------------------------------------------+
+string CTakeProfitOrder::BuySellOpenName()
+  {
+   if(m_position_order.IsOnBuyTrade())
+      return m_buy_open_name;
+   else
+      return m_sell_open_name;
+  }
+//+------------------------------------------------------------------+
+//| Returns the Buy or Sell Open Name
+//+------------------------------------------------------------------+
+string CTakeProfitOrder::BuySellCloseName()
+  {
+   if(m_open_on_buy_trade)
+      return m_buy_close_name;
+   else
+      return m_sell_close_name;
+  }
+//+------------------------------------------------------------------+
+//| Load the current ticket
+//+------------------------------------------------------------------+
+void CTakeProfitOrder::LoadTicket(ulong ticket)
+  {
+   m_ticket_loaded=true;
+   m_ticket_value=ticket;
+  }
+//+------------------------------------------------------------------+
+//| Reset the position next volume to its initial volume on max take profit
+//+------------------------------------------------------------------+
+void CTakeProfitOrder::ResetPositionNextVolumeToInitialVolumeOnMaxTakeProfit()
+  {
+   if(m_count_take_profit_operations>=m_max_take_profit_operations)
+      m_position_order.ResetNextVolumeToInitialVolume();
+  }
+//+------------------------------------------------------------------+
+//| Disable Position Order on Max take profit operations
+//+------------------------------------------------------------------+
+void CTakeProfitOrder::DisablePositionOnMaxTakeProfitOperations()
+  {
+   if(m_count_take_profit_operations>=m_max_take_profit_operations)
+      m_position_order.DisableTrade();
+  }
+//+------------------------------------------------------------------+
+//| Reset everything to Default
+//+------------------------------------------------------------------+
+void CTakeProfitOrder::ResetToDefault()
+  {
+   m_open_on_buy_trade=false;
+   m_open_on_sell_trade=false;
+
+   m_order_placed=false;
+   m_order_need_to_be_deleted=false;
+   m_order_need_to_be_deleted_by_metatader=false;
+   m_ticket_loaded=false;
+   m_ticket_value=0;
+
+   m_count_take_profit_operations=0;
   }
 //+------------------------------------------------------------------+

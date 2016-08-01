@@ -9,7 +9,7 @@
 #include <Object.mqh>
 #include <Arrays\ArrayInt.mqh>
 
-#include <MyLibs\Trade\Trades.mqh>
+#include <MyLibs\Trades\TradesController.mqh>
 #include <MyLibs\Utils\ChartUtils.mqh>
 #include <MyLibs\HiLoMulti\Models\EnumOperations.mqh>
 //+------------------------------------------------------------------+
@@ -17,7 +17,7 @@
 //+------------------------------------------------------------------+
 class CHiLoMaHandle : public CObject
   {
-   CTrades          *m_trades;
+   CTradesController *m_trades_controller;
    CChartUtils       m_chart_utils;
 
    // hilo config
@@ -58,8 +58,8 @@ public:
    CArrayInt        *VerifyTypeOperation();
 
    // getters and setters 
-   void              AddTrades(CTrades *trades) { m_trades=trades; }
-   CTrades          *GetTrades() { return m_trades; }
+   void              AddTradesController(CTradesController *tradesController) { m_trades_controller=tradesController; }
+   CTradesController *GetTradesController() { return m_trades_controller; }
   };
 //+------------------------------------------------------------------+
 //| Constructor
@@ -72,7 +72,7 @@ CHiLoMaHandle::CHiLoMaHandle(void)
 //+------------------------------------------------------------------+
 CHiLoMaHandle::~CHiLoMaHandle(void)
   {
-   delete m_trades;
+   delete m_trades_controller;
   };
 //+------------------------------------------------------------------+
 //| Destroy

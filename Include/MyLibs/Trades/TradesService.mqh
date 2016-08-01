@@ -6,9 +6,9 @@
 #property copyright "Frederico Benevides"
 #property link      "fredbene@gmail.com"
 
-#include <MyLibs\Trade\Trades.mqh>
+#include <Trade\Trade.mqh>
 
-#include <MyLibs\Trade\TradesUtils.mqh>
+#include <MyLibs\Trades\TradesUtils.mqh>
 //+------------------------------------------------------------------+
 //| Controller for Trade Operations
 //+------------------------------------------------------------------+

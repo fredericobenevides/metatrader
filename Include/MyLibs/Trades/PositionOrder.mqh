@@ -11,8 +11,21 @@
 class CPositionOrder
   {
    string            m_name;
-   double            m_current_volume;
+   string            m_buy_open_name;
+   string            m_buy_close_name;
+   string            m_sell_open_name;
+   string            m_sell_close_name;
+
+   bool              m_trade_enable;
+   bool              m_initial_trade_enable;
+   double            m_initial_volume;
+   double            m_volume;
    double            m_next_volume;
+
+   // martingale
+   int               m_martingale;
+   int               m_max_martingale_operations;
+   double            m_max_volume_martingale_operations;
 
    bool              m_order_placed;
    bool              m_ticket_loaded;
@@ -22,127 +35,228 @@ class CPositionOrder
    bool              m_is_on_buy_trade;
    bool              m_is_on_sell_trade;
 
-   // trades time
-   int               m_time_start_hour;
-   int               m_time_start_minute;
-   int               m_time_end_hour;
-   int               m_time_end_minute;
-
 public:
-   bool              BuyOpen(string methodName);
-   bool              SellOpen(string methodName);
-   bool              BuyClose(string methodName);
-   bool              SellClose(string methodName);
+                     CPositionOrder(string tradeName);
+   void              InitTrade(bool tradeEnable,double initialVolume);
+   void              InitMartingale(int martingale,int maxMartingaleOperations);
 
-   bool              IsOrderPlaced() { return m_order_placed; }
+   void              ExecutedBuyOpenOperation();
+   void              ExecutedSellOpenOperation();
+   void              ExecutedBuyCloseOperation();
+   void              ExecutedSellCloseOperation();
 
-   bool              IsOnBuyTrade() { return m_is_on_buy_trade; }
+   double            OpenNewVolume();
+   double            CloseVolume()    { return m_volume; }
+   double            Volume()         { return m_volume; }
+   double            NextVolume() { return m_next_volume; }
+
+   double            CalculateMaxVolumeMartingaleOperations();
+
+   bool              IsTradeEnable() { return m_trade_enable; }
+   void              EnableTrade() { m_trade_enable=true; }
+   void              DisableTrade() { m_trade_enable=false; }
+
+   bool              IsOrderPlaced()  { return m_order_placed; }
+   bool              IsTicketLoaded() { return m_ticket_loaded; }
+   ulong             Ticket()         { return m_ticket_value; }
+   void              LoadTicket(ulong ticket);
+
+   bool              IsOnTradeOperation() { return IsOnBuyTrade() || IsOnSellTrade(); }
+   bool              IsOnBuyTrade()  { return m_is_on_buy_trade; }
    bool              IsOnSellTrade() { return m_is_on_sell_trade; }
 
-   string            Name() { return m_name; }
-   double            CurrentVolume() { return m_current_volume; }
-   double            NextVolume() { return m_next_volume; }
+   string            Name()          { return m_name; }
+   string            BuyOpenName()   { return m_buy_open_name; }
+   string            BuyCloseName()  { return m_buy_close_name; }
+   string            SellOpenName()  { return m_sell_open_name; }
+   string            SellCloseName() { return m_sell_close_name; }
+   string            BuySellOperationStatus();
+
+   void              ResetVolumeToZeroNextVolumeToInitialVolume();
+   void              ResetNextVolumeToInitialVolume();
+
+   void              ResetToDefault();
+
+private:
+   void              updateNextVolumeUsingMartingale();
+   void              resetNextVolumeToZeroOnMaxMartingale();
+
+   void              disableOnMaxMartingaleOperations();
+   void              disableOnMaxTakeProfitOperations();
   };
 //+------------------------------------------------------------------+
-//| Open a BUY operation
+//| Constructor
 //+------------------------------------------------------------------+
-bool CPositionOrder::BuyOpen()
+CPositionOrder::CPositionOrder(string tradeName)
   {
-   if(IsOrderPlaced())
-      return false;
-
-   string methodName=m_name+"::BuyOpen()";
-   PrintFormat("%s will be executed with volume: %.2f",methodName,m_current_volume);
-
-   bool result=false;
-   if(m_trades_service.ExecuteBuyTrade(m_current_volume,methodName))
-     {
-      PrintFormat("%s operation executed: true",methodName);
-      m_is_on_buy_trade=true;
-      m_open_position_placed=true;
-
-      result=true;
-     }
-   else
-      PrintFormat("%s operation executed: false",methodName);
-
-   return result;
+   m_name=tradeName;
+   m_buy_open_name=m_name+"::BuyOpen()";
+   m_buy_close_name=m_name+"::BuyClose()";
+   m_sell_open_name=m_name+"::SellOpen()";
+   m_sell_close_name=m_name+"::SellClose()";
   }
 //+------------------------------------------------------------------+
-//| Open a SELL operation
+//| Init the base volume
 //+------------------------------------------------------------------+
-bool CPositionOrder::SellOpen()
+void CPositionOrder::InitTrade(bool tradeEnable,double initialVolume)
   {
-   if(IsOrderPlaced())
-      return false;
-
-   string methodName=m_name+"::SellOpen()";
-   PrintFormat("%s will be executed with volume: %.2f",methodName,m_current_volume);
-
-   bool result=false;
-   if(m_trades_service.ExecuteSellTrade(m_current_volume,methodName))
-     {
-      PrintFormat("%s operation executed: true",methodName);
-      m_is_on_sell_trade=true;
-      m_open_position_placed=true;
-
-      result=true;
-     }
-   else
-      PrintFormat("%s operation executed: false",methodName);
-
-   return result;
+   m_trade_enable=tradeEnable;
+   m_initial_trade_enable=tradeEnable;
+   m_initial_volume=initialVolume;
+   m_next_volume=m_initial_volume;
+   m_volume=0;
   }
 //+------------------------------------------------------------------+
-//| Close a BUY operation
+//| Init the trades martingale
 //+------------------------------------------------------------------+
-bool CPositionOrder::BuyClose()
+void CPositionOrder::InitMartingale(int martingale,int maxMartingaleOperations)
   {
-   if(!IsOnBuyTrade())
-      return false;
-
-   string methodName=m_name+"::BuyClose()";
-   PrintFormat("%s will be executed with volume: %.2f",methodName,m_current_volume);
-
-   bool result=false;
-   if(m_trades_service.ExecuteSellTrade(m_current_volume,methodName))
-     {
-      PrintFormat("%s operation executed: true",methodName);
-      m_is_on_buy_trade=false;
-      m_open_position_placed=false;
-      ResetPositionTicketData();
-
-      result=true;
-     }
-   else
-      PrintFormat("%s operation executed: false",methodName);
-
-   return result;
+   m_martingale=martingale;
+   m_max_martingale_operations=maxMartingaleOperations;
+   m_max_volume_martingale_operations=CalculateMaxVolumeMartingaleOperations();
   }
 //+------------------------------------------------------------------+
-//| Close a SELL operation
+//| Executed Open Operation
 //+------------------------------------------------------------------+
-bool CPositionOrder::SellClose()
+void CPositionOrder::ExecutedBuyOpenOperation()
   {
-   if(!IsOnSellTrade())
-      return false;
+   m_is_on_buy_trade=true;
+   m_order_placed=true;
+  }
+//+------------------------------------------------------------------+
+//| Executed Open Operation
+//+------------------------------------------------------------------+
+void CPositionOrder::ExecutedSellOpenOperation()
+  {
+   m_is_on_sell_trade=true;
+   m_order_placed=true;
+  }
+//+------------------------------------------------------------------+
+//| Executed Close Operation
+//+------------------------------------------------------------------+
+void CPositionOrder::ExecutedBuyCloseOperation()
+  {
+   m_is_on_buy_trade=false;
+   m_order_placed=false;
+   m_ticket_loaded=false;
+   m_ticket_value=0;
+  }
+//+------------------------------------------------------------------+
+//| Executed Close Operation
+//+------------------------------------------------------------------+
+void CPositionOrder::ExecutedSellCloseOperation()
+  {
+   m_is_on_sell_trade=false;
+   m_order_placed=false;
+   m_ticket_loaded=false;
+   m_ticket_value=0;
+  }
+//+------------------------------------------------------------------+
+//| Open a new volume
+//+------------------------------------------------------------------+
+double CPositionOrder::OpenNewVolume()
+  {
+   m_volume=m_next_volume;
+   updateNextVolumeUsingMartingale();
 
-   string methodName=m_name+"::SellClose()";
-   PrintFormat("%s will be executed with volume: %.2f",methodName,m_current_volume);
+   resetNextVolumeToZeroOnMaxMartingale();
+   disableOnMaxMartingaleOperations();
 
-   bool result=false;
-   if(m_trades_service.ExecuteBuyTrade(m_current_volume,methodName))
+   return m_volume;
+  }
+//+------------------------------------------------------------------+
+//| Calculate the volume using using the max martingale operations
+//| Formula: (Martingale^MaxOperations)*InitialVolume
+//+------------------------------------------------------------------+
+double CPositionOrder::CalculateMaxVolumeMartingaleOperations()
+  {
+   int digits=(int)SymbolInfoInteger(_Symbol,SYMBOL_DIGITS);
+
+   double powValue=pow(m_martingale,(m_max_martingale_operations-1));
+   double maxVolume=NormalizeDouble(powValue*m_initial_volume,digits);
+
+   return maxVolume;
+  }
+//+------------------------------------------------------------------+
+//| Load the current ticket
+//+------------------------------------------------------------------+
+void CPositionOrder::LoadTicket(ulong ticket)
+  {
+   m_ticket_loaded=true;
+   m_ticket_value=ticket;
+  }
+//+------------------------------------------------------------------+
+//| Return B if on buy operation
+//| Return S if on sell operation
+//| Return N if is not on operation
+//+------------------------------------------------------------------+
+string CPositionOrder::BuySellOperationStatus()
+  {
+   if(IsOnTradeOperation())
      {
-      PrintFormat("%s operation executed: true",methodName);
-      m_is_on_sell_trade=false;
-      m_open_position_placed=false;
-      ResetPositionTicketData();
-
-      result=true;
+      if(IsOnBuyTrade())
+         return "B";
+      if(IsOnSellTrade())
+         return "S";
      }
-   else
-      PrintFormat("%s operation executed: false",methodName);
 
-   return result;
+   return "N";
+  }
+//+------------------------------------------------------------------+
+//| Reset the volume to 0 and next volume to initial volume
+//+------------------------------------------------------------------+
+void CPositionOrder::ResetVolumeToZeroNextVolumeToInitialVolume()
+  {
+   m_volume=0;
+   m_next_volume=m_initial_volume;
+  }
+//+------------------------------------------------------------------+
+//| Reset next vokume to 0.
+//+------------------------------------------------------------------+
+void CPositionOrder::ResetNextVolumeToInitialVolume()
+  {
+   m_next_volume=m_initial_volume;
+  }
+//+------------------------------------------------------------------+
+//| Reset everything to Default
+//+------------------------------------------------------------------+
+void CPositionOrder::ResetToDefault()
+  {
+   m_trade_enable=m_initial_trade_enable;
+
+   m_volume=0;
+   m_next_volume=m_initial_volume;
+
+   m_order_placed=false;
+   m_ticket_loaded=false;
+   m_ticket_value=0;
+
+   m_is_on_buy_trade=false;
+   m_is_on_sell_trade=false;
+  }
+//+------------------------------------------------------------------+
+//| Update the next volume based on martingale
+//+------------------------------------------------------------------+
+void CPositionOrder::updateNextVolumeUsingMartingale()
+  {
+   m_next_volume=NormalizeDouble(m_next_volume*m_martingale,2);
+  }
+//+------------------------------------------------------------------+
+//| If current volume is equal than the max volume operations. 
+//| Reset the next volume to be the initial volume
+//+------------------------------------------------------------------+
+void CPositionOrder::resetNextVolumeToZeroOnMaxMartingale()
+  {
+   if(m_volume>=m_max_volume_martingale_operations)
+      m_next_volume=0;
+  }
+//+------------------------------------------------------------------+
+//| Disable the trade if is on max martingale operations
+//| Formula: (Martingale^MaxOperations)*InitialVolume
+//+------------------------------------------------------------------+
+void CPositionOrder::disableOnMaxMartingaleOperations()
+  {
+   if(m_volume>=m_max_volume_martingale_operations)
+      DisableTrade();
   }
 //+------------------------------------------------------------------+
