@@ -46,6 +46,7 @@ class CHiLoMultiDialog : public CAppDialog
 
    CButton           m_button_enable_all;
    CButton           m_button_disable_all;
+   CButton           m_button_stop_all;
 
    // hilo items
    CList             m_list_trade_l_name;          // CLabel
@@ -87,6 +88,7 @@ protected:
 
    void              OnClickEnableAllTrades();
    void              OnClickDisableAllTrades();
+   void              OnClickStopAllTrades();
   };
 //+------------------------------------------------------------------+
 //| Event Handling                                                   |
@@ -95,6 +97,7 @@ EVENT_MAP_BEGIN(CHiLoMultiDialog)
 
 ON_EVENT(ON_CLICK,m_button_enable_all,OnClickEnableAllTrades)
 ON_EVENT(ON_CLICK,m_button_disable_all,OnClickDisableAllTrades)
+ON_EVENT(ON_CLICK,m_button_stop_all,OnClickStopAllTrades)
 
 EVENT_MAP_END(CAppDialog)
 //+------------------------------------------------------------------+
@@ -206,7 +209,7 @@ bool CHiLoMultiDialog::CreateEnableDisableButtons(void)
       return false;
 
 //--- button disable all
-   x1=INDENT_LEFT+2*(9*CONTROLS_GAP_X);
+   x1=int(INDENT_LEFT+2*(9.6*CONTROLS_GAP_X));
    y1=INDENT_TOP;
    x2=x1+1*WIDTH_DEFAULT;
    y2=y1+HEIGHT_DEFAULT;
@@ -217,6 +220,20 @@ bool CHiLoMultiDialog::CreateEnableDisableButtons(void)
    if(!m_button_disable_all.Text("Disable All"))
       return false;
    if(!Add(m_button_disable_all))
+      return false;
+
+//--- button stop all
+   x1=int(INDENT_LEFT+3*(12.8*CONTROLS_GAP_X));
+   y1=INDENT_TOP;
+   x2=x1+1*WIDTH_DEFAULT;
+   y2=y1+HEIGHT_DEFAULT;
+
+//--- create
+   if(!m_button_stop_all.Create(m_chart_id,"m_button_stop_all",m_subwin,x1,y1,x2,y2))
+      return false;
+   if(!m_button_stop_all.Text("Stop All"))
+      return false;
+   if(!Add(m_button_stop_all))
       return false;
 
    return true;
@@ -232,10 +249,11 @@ bool CHiLoMultiDialog::CreateTradesConfig()
    for(int i=0;i<m_list_hilo_ma.Total();i++)
      {
       int indexNameTrade=i+1;
-      int yIndex=2+i;
-      yGap+=0.8;
+      int yIndex=2;
+      yGap+=30;
 
-      int y1=int(INDENT_TOP+yIndex*(yGap*CONTROLS_GAP_Y));
+      //int y1=int(INDENT_TOP+yIndex*(yGap*CONTROLS_GAP_Y));
+      int y1=int(INDENT_TOP+yGap);
 
       CHiLoMaHandle *hma=m_list_hilo_ma.GetNodeAtIndex(i);
       CTradesController *tradesController=hma.GetTradesController();
@@ -437,6 +455,24 @@ void CHiLoMultiDialog::OnClickDisableAllTrades()
       CTradesController *tradesController=hma.GetTradesController();
 
       tradesController.PositionOrder().DisableTrade();
+      UpdateEnableDisableTrades(i,tradesController);
+     }
+  }
+//+------------------------------------------------------------------+
+//| Stop All trades
+//+------------------------------------------------------------------+
+void CHiLoMultiDialog::OnClickStopAllTrades()
+  {
+   for(int i=0;i<m_list_hilo_ma.Total();i++)
+     {
+      CHiLoMaHandle *hma=m_list_hilo_ma.GetNodeAtIndex(i);
+      CTradesController *tradesController=hma.GetTradesController();
+
+      tradesController.PositionBuyClose();
+      tradesController.PositionSellClose();
+      tradesController.PositionOrder().ResetVolumeToZeroNextVolumeToInitialVolume();
+      tradesController.PositionOrder().DisableTrade();
+
       UpdateEnableDisableTrades(i,tradesController);
      }
   }

@@ -9,19 +9,12 @@
 
 #resource "\\Indicators\\HiLo MA Activator.ex5"
 
-//#include <MyLibs\HiLoMulti\HiLoMultiDialog.mqh>
-//#include <MyLibs\HiLoMulti\HiLoMultiMALoader.mqh>
-//#include <MyLibs\HiLoMulti\HiLoMultiTrades.mqh>
-//#include <MyLibs\Trade\BreakEven.mqh>
-//#include <MyLibs\Trade\MyTrade.mqh>
-//#include <MyLibs\Utils\Time.mqh>
-
-//#include <MyLibs\Test\Test.mqh>
-
 #include <MyLibs\Trades\TradesController.mqh>
 
 #include <MyLibs\HiLoMulti\Models\HiLoMaHandle.mqh>
 #include <MyLibs\HiLoMulti\Controllers\HiLoController.mqh>
+
+#include <MyLibs\Test\HiLoMultiTest.mqh>
 
 //--- input parameters for All Trades
 input string          InpAllHiLoData="------------------------------"; // ------- Trade HiLo Config for All Trades -------
@@ -66,6 +59,12 @@ input int             InpTrade1TimeEndHour=16;                        // Default
 input int             InpTrade1TimeEndMinute=0;                       // Default minute time to end the operation
 input string          InpTrade1EndData="------------------------------"; // ------- End of Trade 1 -------
 
+
+
+
+
+
+
 //--- input parameters for Trade 2 (Trade Config)
 input string          InpTrade2Data="------------------------------"; // ------- Trade 2 (Trade's Config) -------
 input bool            InpTrade2Enabled=true;                          // Default to true to enable the Trade
@@ -93,13 +92,20 @@ input int             InpTrade2TimeEndHour=16;                        // Default
 input int             InpTrade2TimeEndMinute=0;                       // Default minute time to end the operation
 input string          InpTrade2EndData="------------------------------"; // ------- End of Trade 2 -------
 
+
+
+
+
+
+
+
 //--- input parameters for Trade 3 (Trade Config)
 input string          InpTrade3Data="------------------------------"; // ------- Trade 3 (Trade's Config) -------
-input bool            InpTrade3Enabled=true;                          // Default to true to enable the Trade
+input bool            InpTrade3Enabled=false;                          // Default to true to enable the Trade
 input ENUM_TIMEFRAMES InpTrade3TimeFrame=PERIOD_CURRENT;              // Default TimeFrame for Trade
 input double          InpTrade3Volume=1;                              // Default volume to do trades operations
-input double          InpTrade3TakeProfit=50.0;                      // Default Take Profit (0 disable)
-input int             InpTrade3MaxTakeProfit=4;                       // Default Max Take Profit  (0 disable)
+input double          InpTrade3TakeProfit=200.0;                      // Default Take Profit (0 disable)
+input int             InpTrade3MaxTakeProfit=1;                       // Default Max Take Profit  (0 disable)
 input double          InpTrade3StopLoss=0;                            // Default Stop Loss  (0 disable)
 input int             InpTrade3MaxStopLoss=0;                         // Default Max Stop Loss  (0 disable)
 input int             InpTrade3Martingale=2;                          // Default trade martingale for all trades
@@ -114,31 +120,92 @@ input ENUM_MA_METHOD  InpTrade3MaMethod=MODE_SMA;                     // Ma Meth
 
 //--- input parameters for Trade 3 (Time Control)
 input string          InpTrade3TimeControlData="-------------------------"; // ------- Trade 3 (Time Control) -------
-input int             InpTrade3TimeStartHour=9;                       // Default hour time to start the operation
-input int             InpTrade3TimeStartMinute=5;                     // Default minute time to start the operation
-input int             InpTrade3TimeEndHour=16;                        // Default hour time to end the operation
-input int             InpTrade3TimeEndMinute=0;                       // Default minute time to end the operation
+input int             InpTrade3TimeStartHour=10;                       // Default hour time to start the operation
+input int             InpTrade3TimeStartMinute=5;                      // Default minute time to start the operation
+input int             InpTrade3TimeEndHour=15;                         // Default hour time to end the operation
+input int             InpTrade3TimeEndMinute=0;                        // Default minute time to end the operation
 input string          InpTrade3EndData="------------------------------"; // ------- End of Trade 3 -------
+
+
+
+
+
+
+
+//--- input parameters for Trade 4 (Trade Config)
+input string          InpTrade4Data="------------------------------"; // ------- Trade 4 (Trade's Config) -------
+input bool            InpTrade4Enabled=false;                          // Default to true to enable the Trade
+input ENUM_TIMEFRAMES InpTrade4TimeFrame=PERIOD_CURRENT;              // Default TimeFrame for Trade
+input double          InpTrade4Volume=1;                              // Default volume to do trades operations
+input double          InpTrade4TakeProfit=50.0;                      // Default Take Profit (0 disable)
+input int             InpTrade4MaxTakeProfit=4;                       // Default Max Take Profit  (0 disable)
+input double          InpTrade4StopLoss=0;                            // Default Stop Loss  (0 disable)
+input int             InpTrade4MaxStopLoss=0;                         // Default Max Stop Loss  (0 disable)
+input int             InpTrade4Martingale=2;                          // Default trade martingale for all trades
+input int             InpTrade4MaxMartingaleOperations=5;             // Default max operations  (0 disable)
+
+//--- input parameters for Trade 4 (HiLo and Ma Config)
+input string          InpTrade4HiLoMaData="------------------------------"; // ------- Trade 4 (HiLo Config) -------
+input int             InpTrade4HiLoPeriod=7;                          // HiLo Period
+input ENUM_MA_METHOD  InpTrade4HiLoMethod=MODE_SMMA;                  // HiLo Method
+input int             InpTrade4MaPeriod=7;                            // Ma Period                     
+input ENUM_MA_METHOD  InpTrade4MaMethod=MODE_SMA;                     // Ma Method
+
+//--- input parameters for Trade 4 (Time Control)
+input string          InpTrade4TimeControlData="-------------------------"; // ------- Trade 4 (Time Control) -------
+input int             InpTrade4TimeStartHour=9;                        // Default hour time to start the operation
+input int             InpTrade4TimeStartMinute=5;                      // Default minute time to start the operation
+input int             InpTrade4TimeEndHour=15;                         // Default hour time to end the operation
+input int             InpTrade4TimeEndMinute=0;                        // Default minute time to end the operation
+input string          InpTrade4EndData="------------------------------"; // ------- End of Trade 4 -------
+
+
+
+
+
+//--- input parameters for Trade 5 (Trade Config)
+input string          InpTrade5Data="------------------------------"; // ------- Trade 5 (Trade's Config) -------
+input bool            InpTrade5Enabled=false;                          // Default to true to enable the Trade
+input ENUM_TIMEFRAMES InpTrade5TimeFrame=PERIOD_CURRENT;              // Default TimeFrame for Trade
+input double          InpTrade5Volume=1;                              // Default volume to do trades operations
+input double          InpTrade5TakeProfit=200.0;                      // Default Take Profit (0 disable)
+input int             InpTrade5MaxTakeProfit=1;                       // Default Max Take Profit  (0 disable)
+input double          InpTrade5StopLoss=0;                            // Default Stop Loss  (0 disable)
+input int             InpTrade5MaxStopLoss=0;                         // Default Max Stop Loss  (0 disable)
+input int             InpTrade5Martingale=2;                          // Default trade martingale for all trades
+input int             InpTrade5MaxMartingaleOperations=5;             // Default max operations  (0 disable)
+
+//--- input parameters for Trade 5 (HiLo and Ma Config)
+input string          InpTrade5HiLoMaData="------------------------------"; // ------- Trade 5 (HiLo Config) -------
+input int             InpTrade5HiLoPeriod=6;                          // HiLo Period
+input ENUM_MA_METHOD  InpTrade5HiLoMethod=MODE_SMMA;                  // HiLo Method
+input int             InpTrade5MaPeriod=8;                            // Ma Period                     
+input ENUM_MA_METHOD  InpTrade5MaMethod=MODE_SMA;                     // Ma Method
+
+//--- input parameters for Trade 5 (Time Control)
+input string          InpTrade5TimeControlData="-------------------------"; // ------- Trade 5 (Time Control) -------
+input int             InpTrade5TimeStartHour=11;                        // Default hour time to start the operation
+input int             InpTrade5TimeStartMinute=40;                      // Default minute time to start the operation
+input int             InpTrade5TimeEndHour=15;                         // Default hour time to end the operation
+input int             InpTrade5TimeEndMinute=0;                        // Default minute time to end the operation
+input string          InpTrade5EndData="------------------------------"; // ------- End of Trade 5 -------
+
+
+
+
 
 //--- input parameters for Test
 input string          InpTestData="-------------------------";        // -------------- Test --------------
-input bool            InpTestEnabled=false;                           // Enable operation for test environment
-input bool            InpGenerateReport=false;                        // Generate the file test.csv on tester folder
+input bool            InpTestGenerateReport=false;                    // Generate the file test.csv on tester folder
 
 //--- global vars
 int first_initialization=true; // flag indicate if is the first initialization
 datetime last_day_initialized=TimeTradeServer();
 
 CHiLoController HiLoController;
-//CHiLoMultiDialog HiLoMultiDialog;
-//CHiLoMultiMALoader HiLoMultiMALoader;
-//CHiLoMultiTrades HiLoMultiTrades;
-//CBreakEven BreakEven;
-//CMyTrade MyTrade;
-//CTime Time;
 
 //--- global vars for test
-//CTest Test;
+CHiLoMultiTest Test;
 //+------------------------------------------------------------------+
 //| Expert initialization function                                   |
 //+------------------------------------------------------------------+
@@ -161,15 +228,16 @@ void OnDeinit(const int reason)
      }
    else
       first_initialization=false;
+
+// Generate the history report
+   if(InpTestGenerateReport)
+      Test.HistoryReport();
   }
 //+------------------------------------------------------------------+
 //| Expert tick function                                             |
 //+------------------------------------------------------------------+
 void OnTick()
   {
-//   if(InpTestEnabled)
-//      Test.RunEnvTest();
-
    verifyIfAnotherDayToReloadTrades();
 
    HiLoController.OnTick();
@@ -196,7 +264,7 @@ void OnTradeTransaction(
    HiLoController.OnTradeTransaction(trans,request,result);
   }
 //+------------------------------------------------------------------+
-//| Verify if is a
+//| Verify if is aother day to reaload all configs
 //+------------------------------------------------------------------+
 void verifyIfAnotherDayToReloadTrades()
   {
@@ -217,10 +285,12 @@ void verifyIfAnotherDayToReloadTrades()
 //| Init config for all trades
 //+------------------------------------------------------------------+
 int InitConfigsForAllTrades()
-  {   
+  {
    InitConfigsForTrade1();
    InitConfigsForTrade2();
-//InitConfigsForTrade3();
+   InitConfigsForTrade3();
+   InitConfigsForTrade4();
+   InitConfigsForTrade5();
 
    if(InpAllSetTradeSound)
       HiLoController.InitTradeSound(InpAllSellTradeSound,InpAllBuyTradeSound);
@@ -292,5 +362,49 @@ void InitConfigsForTrade3()
 
    hiloMaTrade3.AddTradesController(tradesController);
    HiLoController.AddModel(hiloMaTrade3);
+  }
+//+------------------------------------------------------------------+
+//| Init configs for trade 4
+//+------------------------------------------------------------------+
+void InitConfigsForTrade4()
+  {
+   CHiLoMaHandle *hiloMaTrade4=new CHiLoMaHandle();
+   hiloMaTrade4.InitHiLoConfig(InpTrade4HiLoPeriod,InpTrade4HiLoMethod);
+   hiloMaTrade4.InitMaConfig(InpTrade4MaPeriod,InpTrade4MaMethod);
+   hiloMaTrade4.InitIndicatorHandleConfig(InpTrade4TimeFrame,
+                                          InpAllArrowInFirstHiLo,InpAllArrowInSecondHiLo,
+                                          InpAllArrowInCurrentCandle,InpAllShowHiLoLine);
+
+   CTradesController *tradesController=new CTradesController("T4");
+   tradesController.InitTrade(InpTrade4Enabled,InpTrade4Volume,InpTrade4TakeProfit,InpTrade4MaxTakeProfit,
+                              InpTrade4StopLoss);
+   tradesController.InitMartingale(InpTrade4Martingale,InpTrade4MaxMartingaleOperations);
+   tradesController.InitTradesTime(InpTrade4TimeStartHour,InpTrade4TimeStartMinute,
+                                   InpTrade4TimeEndHour,InpTrade4TimeEndMinute);
+
+   hiloMaTrade4.AddTradesController(tradesController);
+   HiLoController.AddModel(hiloMaTrade4);
+  }
+  //+------------------------------------------------------------------+
+//| Init configs for trade 5
+//+------------------------------------------------------------------+
+void InitConfigsForTrade5()
+  {
+   CHiLoMaHandle *hiloMaTrade5=new CHiLoMaHandle();
+   hiloMaTrade5.InitHiLoConfig(InpTrade5HiLoPeriod,InpTrade5HiLoMethod);
+   hiloMaTrade5.InitMaConfig(InpTrade5MaPeriod,InpTrade5MaMethod);
+   hiloMaTrade5.InitIndicatorHandleConfig(InpTrade5TimeFrame,
+                                          InpAllArrowInFirstHiLo,InpAllArrowInSecondHiLo,
+                                          InpAllArrowInCurrentCandle,InpAllShowHiLoLine);
+
+   CTradesController *tradesController=new CTradesController("T5");
+   tradesController.InitTrade(InpTrade5Enabled,InpTrade5Volume,InpTrade5TakeProfit,InpTrade5MaxTakeProfit,
+                              InpTrade5StopLoss);
+   tradesController.InitMartingale(InpTrade5Martingale,InpTrade5MaxMartingaleOperations);
+   tradesController.InitTradesTime(InpTrade5TimeStartHour,InpTrade5TimeStartMinute,
+                                   InpTrade5TimeEndHour,InpTrade5TimeEndMinute);
+
+   hiloMaTrade5.AddTradesController(tradesController);
+   HiLoController.AddModel(hiloMaTrade5);
   }
 //+------------------------------------------------------------------+

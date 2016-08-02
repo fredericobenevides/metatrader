@@ -21,6 +21,7 @@ class CPositionOrder
    double            m_initial_volume;
    double            m_volume;
    double            m_next_volume;
+   double            m_price;
 
    // martingale
    int               m_martingale;
@@ -28,8 +29,6 @@ class CPositionOrder
    double            m_max_volume_martingale_operations;
 
    bool              m_order_placed;
-   bool              m_ticket_loaded;
-   ulong             m_ticket_value;
 
    //--- type of operation
    bool              m_is_on_buy_trade;
@@ -46,24 +45,22 @@ public:
    void              ExecutedSellCloseOperation();
 
    double            OpenNewVolume();
-   double            CloseVolume()    { return m_volume; }
-   double            Volume()         { return m_volume; }
-   double            NextVolume() { return m_next_volume; }
+   double            CloseVolume()          { return m_volume; }
+   double            Volume()               { return m_volume; }
+   double            NextVolume()           { return m_next_volume; }
+   double            Price()                { return m_price; }
+   void              SetPrice(double price) {  m_price=price; }
 
    double            CalculateMaxVolumeMartingaleOperations();
 
    bool              IsTradeEnable() { return m_trade_enable; }
-   void              EnableTrade() { m_trade_enable=true; }
-   void              DisableTrade() { m_trade_enable=false; }
+   void              EnableTrade()   { m_trade_enable=true; }
+   void              DisableTrade()  { m_trade_enable=false; }
 
-   bool              IsOrderPlaced()  { return m_order_placed; }
-   bool              IsTicketLoaded() { return m_ticket_loaded; }
-   ulong             Ticket()         { return m_ticket_value; }
-   void              LoadTicket(ulong ticket);
-
+   bool              IsOrderPlaced() { return m_order_placed; }
    bool              IsOnTradeOperation() { return IsOnBuyTrade() || IsOnSellTrade(); }
-   bool              IsOnBuyTrade()  { return m_is_on_buy_trade; }
-   bool              IsOnSellTrade() { return m_is_on_sell_trade; }
+   bool              IsOnBuyTrade()       { return m_is_on_buy_trade; }
+   bool              IsOnSellTrade()      { return m_is_on_sell_trade; }
 
    string            Name()          { return m_name; }
    string            BuyOpenName()   { return m_buy_open_name; }
@@ -136,20 +133,18 @@ void CPositionOrder::ExecutedSellOpenOperation()
 //+------------------------------------------------------------------+
 void CPositionOrder::ExecutedBuyCloseOperation()
   {
+   m_price=0;
    m_is_on_buy_trade=false;
    m_order_placed=false;
-   m_ticket_loaded=false;
-   m_ticket_value=0;
   }
 //+------------------------------------------------------------------+
 //| Executed Close Operation
 //+------------------------------------------------------------------+
 void CPositionOrder::ExecutedSellCloseOperation()
   {
+   m_price=0;
    m_is_on_sell_trade=false;
    m_order_placed=false;
-   m_ticket_loaded=false;
-   m_ticket_value=0;
   }
 //+------------------------------------------------------------------+
 //| Open a new volume
@@ -177,18 +172,6 @@ double CPositionOrder::CalculateMaxVolumeMartingaleOperations()
 
    return maxVolume;
   }
-//+------------------------------------------------------------------+
-//| Load the current ticket
-//+------------------------------------------------------------------+
-void CPositionOrder::LoadTicket(ulong ticket)
-  {
-   m_ticket_loaded=true;
-   m_ticket_value=ticket;
-  }
-//+------------------------------------------------------------------+
-//| Return B if on buy operation
-//| Return S if on sell operation
-//| Return N if is not on operation
 //+------------------------------------------------------------------+
 string CPositionOrder::BuySellOperationStatus()
   {
@@ -226,10 +209,9 @@ void CPositionOrder::ResetToDefault()
 
    m_volume=0;
    m_next_volume=m_initial_volume;
+   m_price=0;
 
    m_order_placed=false;
-   m_ticket_loaded=false;
-   m_ticket_value=0;
 
    m_is_on_buy_trade=false;
    m_is_on_sell_trade=false;

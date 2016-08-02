@@ -54,7 +54,6 @@ public:
    bool              VerifyIfDeleteStopLossOrder();
    bool              VerifyIfDestroyTpSlWhenExecutedByMetatrader(ulong ticketOrder);
 
-   void              VerifyIfLoadPositionOpenTicket();
    void              VerifyIfLoadTakeProfitTicket();
    void              VerifyIfLoadStopLossTicket();
 
@@ -130,9 +129,6 @@ bool CTradesController::PositionBuyOpen()
 
    string name=m_position_order.BuyOpenName();
    double volume=m_position_order.OpenNewVolume();
-   m_take_profit_order.ResetPositionNextVolumeToInitialVolumeOnMaxTakeProfit();
-   m_take_profit_order.DisablePositionOnMaxTakeProfitOperations();
-
    PrintFormat("%s will be executed with volume: %.2f",name,volume);
 
    bool result=false;
@@ -140,6 +136,7 @@ bool CTradesController::PositionBuyOpen()
      {
       PrintFormat("%s operation executed: true",name);
       m_position_order.ExecutedBuyOpenOperation();
+      m_position_order.SetPrice(m_trades_service.RequestPrice());
 
       result=true;
      }
@@ -164,9 +161,6 @@ bool CTradesController::PositionSellOpen()
 
    string name=m_position_order.SellOpenName();
    double volume=m_position_order.OpenNewVolume();
-   m_take_profit_order.ResetPositionNextVolumeToInitialVolumeOnMaxTakeProfit();
-   m_take_profit_order.DisablePositionOnMaxTakeProfitOperations();
-
    PrintFormat("%s will be executed with volume: %.2f",name,volume);
 
    bool result=false;
@@ -174,6 +168,7 @@ bool CTradesController::PositionSellOpen()
      {
       PrintFormat("%s operation executed: true",name);
       m_position_order.ExecutedSellOpenOperation();
+      m_position_order.SetPrice(m_trades_service.RequestPrice());
 
       result=true;
      }
@@ -307,8 +302,13 @@ bool CTradesController::VerifyIfDeleteTakeProfitOrder()
    if(m_trades_service.ExecuteOrderDelete(ticket,name))
      {
       PrintFormat("%s operation executed: true",name);
-      m_take_profit_order.ExecutedDeleteTakeProfitOrder();
 
+      if(m_take_profit_order.IsBuyTakeProfit())
+         m_trades_service.PlaySellSound();
+      if(m_take_profit_order.IsSellTakeProfit())
+         m_trades_service.PlayBuySound();
+
+      m_take_profit_order.ExecutedDeleteTakeProfitOrder();
       result=true;
      }
    else
@@ -333,8 +333,13 @@ bool CTradesController::VerifyIfDeleteStopLossOrder()
    if(m_trades_service.ExecuteOrderDelete(ticket,name))
      {
       PrintFormat("%s operation executed: true",name);
-      m_stop_loss_order.ExecutedDeleteStopLossOrder();
 
+      if(m_stop_loss_order.IsBuyStopLoss())
+         m_trades_service.PlaySellSound();
+      if(m_stop_loss_order.IsSellStopLoss())
+         m_trades_service.PlayBuySound();
+
+      m_stop_loss_order.ExecutedDeleteStopLossOrder();
       result=true;
      }
    else
@@ -353,48 +358,35 @@ bool CTradesController::VerifyIfDestroyTpSlWhenExecutedByMetatrader(ulong ticket
    if(existTakeProfitTicket)
      {
       m_take_profit_order.ExecutedDeleteTakeProfitOrder();
-      m_stop_loss_order.SetToBeDeletedByMetatrader();
+      m_stop_loss_order.SetToBeDeleted();
+
+      m_take_profit_order.UpdateTakeProfitOperations();
+      m_take_profit_order.DisablePositionOnMaxTakeProfitOperations();
      }
 
    if(existStopLossTicket)
      {
-      m_take_profit_order.SetToBeDeletedByMetatrader();
+      m_take_profit_order.SetToBeDeleted();
       m_stop_loss_order.ExecutedDeleteStopLossOrder();
      }
 
    if(existTakeProfitTicket || existStopLossTicket)
      {
       m_position_order.ResetVolumeToZeroNextVolumeToInitialVolume();
+      m_position_order.ExecutedBuyCloseOperation();
+      m_position_order.ExecutedSellCloseOperation();
+
       return true;
      }
 
    return false;
   }
 //+------------------------------------------------------------------+
-//| Try to load the position open ticket by its methodName
-//+------------------------------------------------------------------+
-void CTradesController::VerifyIfLoadPositionOpenTicket()
-  {
-   if(m_position_order.IsOnTradeOperation() && !m_position_order.IsTicketLoaded())
-     {
-      string name="";
-      if(m_position_order.IsOnBuyTrade())
-         name=m_position_order.BuyOpenName();
-
-      if(m_position_order.IsOnSellTrade())
-         name=m_position_order.SellOpenName();
-
-      ulong ticket=m_trades_service.TryToLoadPositionTicket(name);
-      if(ticket!=0)
-         m_position_order.LoadTicket(ticket);
-     }
-  }
-//+------------------------------------------------------------------+
 //| Try to load take profit ticket
 //+------------------------------------------------------------------+
 void CTradesController::VerifyIfLoadTakeProfitTicket()
   {
-   if(m_position_order.IsOnTradeOperation() && m_position_order.IsTicketLoaded() && !m_take_profit_order.IsTicketLoaded())
+   if(m_position_order.IsOnTradeOperation() && !m_take_profit_order.IsTicketLoaded())
      {
       string name=m_take_profit_order.BuySellOpenName();
 
@@ -408,7 +400,7 @@ void CTradesController::VerifyIfLoadTakeProfitTicket()
 //+------------------------------------------------------------------+
 void CTradesController::VerifyIfLoadStopLossTicket()
   {
-   if(m_position_order.IsOnTradeOperation() && m_position_order.IsTicketLoaded() && !m_stop_loss_order.IsTicketLoaded())
+   if(m_position_order.IsOnTradeOperation() && !m_take_profit_order.IsTicketLoaded())
      {
       string name=m_stop_loss_order.BuySellOpenName();
 

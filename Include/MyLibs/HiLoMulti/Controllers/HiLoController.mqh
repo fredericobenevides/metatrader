@@ -115,7 +115,6 @@ void CHiLoController::OnTick()
       tradesController.VerifyIfPlaceTakeProfitOrder();
       tradesController.VerifyIfPlaceStopLossOrder();
 
-      tradesController.VerifyIfLoadPositionOpenTicket();
       tradesController.VerifyIfLoadTakeProfitTicket();
       tradesController.VerifyIfLoadStopLossTicket();
 

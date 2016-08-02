@@ -38,6 +38,8 @@ public:
    double            PositionOpenPrice(ulong ticket);
    double            OrderPrice(ulong ticket);
 
+   double            RequestPrice() { return m_trade.RequestPrice(); }
+
    ulong             TryToLoadPositionTicket(string methodName);
    ulong             TryToLoadOrderTicket(string methodName);
 

@@ -28,7 +28,6 @@ class CTakeProfitOrder
 
    bool              m_order_placed;
    bool              m_order_need_to_be_deleted;
-   bool              m_order_need_to_be_deleted_by_metatader;
    bool              m_ticket_loaded;
    ulong             m_ticket_value;
 
@@ -45,12 +44,13 @@ public:
    double            CalculateTakeProfitPrice(CTradesService *tradesService);
 
    bool              IsValidToPlacedOrder();
-   bool              IsOrderNeedToBeRemoved() { return m_order_need_to_be_deleted || m_order_need_to_be_deleted_by_metatader; }
+   bool              IsOrderNeedToBeRemoved() { return m_order_need_to_be_deleted; }
    void              SetToBeDeleted();
-   void              SetToBeDeletedByMetatrader();
 
    string            BuySellOpenName();
    string            BuySellCloseName();
+   bool              IsBuyTakeProfit()  { return m_open_on_buy_trade; }
+   bool              IsSellTakeProfit() { return m_open_on_sell_trade; }
 
    double            Points() { return m_points; }
    bool              IsOrderPlaced() { return m_order_placed; }
@@ -60,6 +60,7 @@ public:
    void              LoadTicket(ulong ticket);
    bool              VerifyIfExistTicket(ulong ticket) { return m_ticket_value==ticket; }
 
+   void              UpdateTakeProfitOperations();
    void              ResetPositionNextVolumeToInitialVolumeOnMaxTakeProfit();
    void              DisablePositionOnMaxTakeProfitOperations();
 
@@ -104,23 +105,13 @@ void CTakeProfitOrder::ExecutedDeleteTakeProfitOrder()
    m_order_need_to_be_deleted=false;
    m_ticket_loaded=false;
    m_ticket_value=0;
-
-// disable on max take profit operations
-   if(m_order_need_to_be_deleted_by_metatader)
-     {
-      m_order_need_to_be_deleted=false;
-      m_count_take_profit_operations+=1;
-
-      if(m_count_take_profit_operations>=m_max_take_profit_operations)
-         m_position_order.DisableTrade();
-     }
   }
 //+------------------------------------------------------------------+
 //| Get the take profit price
 //+------------------------------------------------------------------+
 double CTakeProfitOrder::CalculateTakeProfitPrice(CTradesService *tradesService)
   {
-   double openPrice=tradesService.PositionOpenPrice(m_position_order.Ticket());
+   double openPrice=m_position_order.Price();
    double takeProfitPrice=0;
 
    if(m_position_order.IsOnBuyTrade())
@@ -147,7 +138,7 @@ bool CTakeProfitOrder::IsValidToPlacedOrder()
    if(IsOrderPlaced())
       return false;
 
-   if(!m_position_order.IsTicketLoaded())
+   if(!m_position_order.IsOrderPlaced())
       return false;
 
    if(!m_position_order.IsOnTradeOperation())
@@ -166,24 +157,24 @@ void CTakeProfitOrder::SetToBeDeleted(void)
    m_order_need_to_be_deleted=true;
   }
 //+------------------------------------------------------------------+
-//| Set to be deleted the take profit
-//+------------------------------------------------------------------+
-void CTakeProfitOrder::SetToBeDeletedByMetatrader(void)
-  {
-   if(!IsOrderPlaced())
-      return;
-
-   m_order_need_to_be_deleted_by_metatader=true;
-  }
-//+------------------------------------------------------------------+
 //| Returns the Buy or Sell Open Name
 //+------------------------------------------------------------------+
 string CTakeProfitOrder::BuySellOpenName()
   {
    if(m_position_order.IsOnBuyTrade())
+     {
+      m_open_on_buy_trade=true;
+      m_open_on_sell_trade=false;
+
       return m_buy_open_name;
+     }
    else
+     {
+      m_open_on_buy_trade=false;
+      m_open_on_sell_trade=true;
+
       return m_sell_open_name;
+     }
   }
 //+------------------------------------------------------------------+
 //| Returns the Buy or Sell Open Name
@@ -202,6 +193,13 @@ void CTakeProfitOrder::LoadTicket(ulong ticket)
   {
    m_ticket_loaded=true;
    m_ticket_value=ticket;
+  }
+//+------------------------------------------------------------------+
+//| Update the Count of take profit operations
+//+------------------------------------------------------------------+
+void CTakeProfitOrder::UpdateTakeProfitOperations()
+  {
+   m_count_take_profit_operations+=1;
   }
 //+------------------------------------------------------------------+
 //| Reset the position next volume to its initial volume on max take profit
@@ -229,7 +227,6 @@ void CTakeProfitOrder::ResetToDefault()
 
    m_order_placed=false;
    m_order_need_to_be_deleted=false;
-   m_order_need_to_be_deleted_by_metatader=false;
    m_ticket_loaded=false;
    m_ticket_value=0;
 

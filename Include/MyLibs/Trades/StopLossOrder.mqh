@@ -28,7 +28,6 @@ class CStopLossOrder
 
    bool              m_order_placed;
    bool              m_order_need_to_be_deleted;
-   bool              m_order_need_to_be_deleted_by_metatader;
    bool              m_ticket_loaded;
    ulong             m_ticket_value;
 
@@ -43,12 +42,13 @@ public:
    double            CalculateStopLossPrice(CTradesService *tradesService);
 
    bool              IsValidToPlacedOrder();
-   bool              IsOrderNeedToBeRemoved() { return m_order_need_to_be_deleted || m_order_need_to_be_deleted_by_metatader; }
+   bool              IsOrderNeedToBeRemoved() { return m_order_need_to_be_deleted; }
    void              SetToBeDeleted();
-   void              SetToBeDeletedByMetatrader();
 
    string            BuySellOpenName();
    string            BuySellCloseName();
+   bool              IsBuyStopLoss()  { return m_open_on_buy_trade; }
+   bool              IsSellStopLoss() { return m_open_on_sell_trade; }
 
    double            Points() { return m_points; }
    bool              IsOrderPlaced() { return m_order_placed; }
@@ -90,16 +90,13 @@ void CStopLossOrder::ExecutedDeleteStopLossOrder()
    m_order_need_to_be_deleted=false;
    m_ticket_loaded=false;
    m_ticket_value=0;
-
-   if(m_order_need_to_be_deleted_by_metatader)
-      m_order_need_to_be_deleted=false;
   }
 //+------------------------------------------------------------------+
 //| Calculate the stop loss price using the current price
 //+------------------------------------------------------------------+
 double CStopLossOrder::CalculateStopLossPrice(CTradesService *tradesService)
   {
-   double openPrice=tradesService.PositionOpenPrice(m_position_order.Ticket());
+   double openPrice=m_position_order.Price();
    double stopLossPrice=0;
 
    if(m_position_order.IsOnBuyTrade())
@@ -126,7 +123,7 @@ bool CStopLossOrder::IsValidToPlacedOrder()
    if(IsOrderPlaced())
       return false;
 
-   if(!m_position_order.IsTicketLoaded())
+   if(!m_position_order.IsOrderPlaced())
       return false;
 
    if(!m_position_order.IsOnTradeOperation())
@@ -145,24 +142,24 @@ void CStopLossOrder::SetToBeDeleted(void)
    m_order_need_to_be_deleted=true;
   }
 //+------------------------------------------------------------------+
-//| Set to be deleted the take profit
-//+------------------------------------------------------------------+
-void CStopLossOrder::SetToBeDeletedByMetatrader(void)
-  {
-   if(!IsOrderPlaced())
-      return;
-
-   m_order_need_to_be_deleted_by_metatader=true;
-  }
-//+------------------------------------------------------------------+
 //| Returns the Buy or Sell Open Name
 //+------------------------------------------------------------------+
 string CStopLossOrder::BuySellOpenName()
   {
    if(m_position_order.IsOnBuyTrade())
+     {
+      m_open_on_buy_trade=true;
+      m_open_on_sell_trade=false;
+
       return m_buy_open_name;
+     }
    else
+     {
+      m_open_on_buy_trade=false;
+      m_open_on_sell_trade=true;
+
       return m_sell_open_name;
+     }
   }
 //+------------------------------------------------------------------+
 //| Returns the Buy or Sell Open Name
@@ -192,7 +189,6 @@ void CStopLossOrder::ResetToDefault()
 
    m_order_placed=false;
    m_order_need_to_be_deleted=false;
-   m_order_need_to_be_deleted_by_metatader=false;
    m_ticket_loaded=false;
    m_ticket_value=0;
   }
