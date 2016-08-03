@@ -35,9 +35,9 @@ input string          InpAllBuyTradeSound="dingdong";                   // The S
 //--- input parameters for Trade 1 (Trade Config)
 input string          InpTrade1Data="------------------------------"; // ------- Trade 1 (Trade's Config) -------
 input bool            InpTrade1Enabled=true;                          // Default to true to enable the Trade
-input ENUM_TIMEFRAMES InpTrade1TimeFrame=PERIOD_CURRENT;              // Default TimeFrame for Trade
-input double          InpTrade1Volume=3;                              // Default volume to do trades operations
-input double          InpTrade1TakeProfit=200.0;                      // Default Take Profit (0 disable)
+input ENUM_TIMEFRAMES InpTrade1TimeFrame=PERIOD_M5;                   // Default TimeFrame for Trade
+input double          InpTrade1Volume=2;                              // Default volume to do trades operations
+input double          InpTrade1TakeProfit=160.0;                      // Default Take Profit (0 disable)
 input int             InpTrade1MaxTakeProfit=1;                       // Default Max Take Profit  (0 disable)
 input double          InpTrade1StopLoss=0;                            // Default Stop Loss  (0 disable)
 input int             InpTrade1MaxStopLoss=0;                         // Default Max Stop Loss  (0 disable)
@@ -48,14 +48,14 @@ input int             InpTrade1MaxMartingaleOperations=5;             // Default
 input string          InpTrade1HiLoMaData="------------------------------"; // ------- Trade 1 (HiLo Config) -------
 input int             InpTrade1HiLoPeriod=4;                          // HiLo Period
 input ENUM_MA_METHOD  InpTrade1HiLoMethod=MODE_SMMA;                  // HiLo Method
-input int             InpTrade1MaPeriod=6;                            // Ma Period                     
+input int             InpTrade1MaPeriod=17;                           // Ma Period                     
 input ENUM_MA_METHOD  InpTrade1MaMethod=MODE_SMA;                     // Ma Method
 
 //--- input parameters for Trade 1 (Time Control)
 input string          InpTrade1TimeControlData="-------------------------"; // ------- Trade 1 (Time Control) -------
 input int             InpTrade1TimeStartHour=9;                       // Default hour time to start the operation
 input int             InpTrade1TimeStartMinute=5;                     // Default minute time to start the operation
-input int             InpTrade1TimeEndHour=16;                        // Default hour time to end the operation
+input int             InpTrade1TimeEndHour=12;                        // Default hour time to end the operation
 input int             InpTrade1TimeEndMinute=0;                       // Default minute time to end the operation
 input string          InpTrade1EndData="------------------------------"; // ------- End of Trade 1 -------
 
@@ -64,9 +64,9 @@ input string          InpTrade1EndData="------------------------------"; // ----
 //--- input parameters for Trade 2 (Trade Config)
 input string          InpTrade2Data="------------------------------"; // ------- Trade 2 (Trade's Config) -------
 input bool            InpTrade2Enabled=true;                          // Default to true to enable the Trade
-input ENUM_TIMEFRAMES InpTrade2TimeFrame=PERIOD_CURRENT;              // Default TimeFrame for Trade
+input ENUM_TIMEFRAMES InpTrade2TimeFrame=PERIOD_M5;                   // Default TimeFrame for Trade
 input double          InpTrade2Volume=2;                              // Default volume to do trades operations
-input double          InpTrade2TakeProfit=200.0;                      // Default Take Profit (0 disable)
+input double          InpTrade2TakeProfit=110.0;                      // Default Take Profit (0 disable)
 input int             InpTrade2MaxTakeProfit=1;                       // Default Max Take Profit  (0 disable)
 input double          InpTrade2StopLoss=0;                            // Default Stop Loss  (0 disable)
 input int             InpTrade2MaxStopLoss=0;                         // Default Max Stop Loss  (0 disable)
@@ -75,16 +75,16 @@ input int             InpTrade2MaxMartingaleOperations=5;             // Default
 
 //--- input parameters for Trade 2 (HiLo and Ma Config)
 input string          InpTrade2HiLoMaData="------------------------------"; // ------- Trade 2 (HiLo Config) -------
-input int             InpTrade2HiLoPeriod=2;                          // HiLo Period
+input int             InpTrade2HiLoPeriod=4;                          // HiLo Period
 input ENUM_MA_METHOD  InpTrade2HiLoMethod=MODE_SMMA;                  // HiLo Method
-input int             InpTrade2MaPeriod=8;                            // Ma Period                     
+input int             InpTrade2MaPeriod=17;                           // Ma Period                     
 input ENUM_MA_METHOD  InpTrade2MaMethod=MODE_SMA;                     // Ma Method
 
 //--- input parameters for Trade 2 (Time Control)
 input string          InpTrade2TimeControlData="-------------------------"; // ------- Trade 2 (Time Control) -------
-input int             InpTrade2TimeStartHour=10;                      // Default hour time to start the operation
-input int             InpTrade2TimeStartMinute=0;                     // Default minute time to start the operation
-input int             InpTrade2TimeEndHour=16;                        // Default hour time to end the operation
+input int             InpTrade2TimeStartHour=9;                       // Default hour time to start the operation
+input int             InpTrade2TimeStartMinute=5;                     // Default minute time to start the operation
+input int             InpTrade2TimeEndHour=12;                        // Default hour time to end the operation
 input int             InpTrade2TimeEndMinute=0;                       // Default minute time to end the operation
 input string          InpTrade2EndData="------------------------------"; // ------- End of Trade 2 -------
 
@@ -92,10 +92,10 @@ input string          InpTrade2EndData="------------------------------"; // ----
 
 //--- input parameters for Trade 3 (Trade Config)
 input string          InpTrade3Data="------------------------------"; // ------- Trade 3 (Trade's Config) -------
-input bool            InpTrade3Enabled=false;                          // Default to true to enable the Trade
-input ENUM_TIMEFRAMES InpTrade3TimeFrame=PERIOD_CURRENT;              // Default TimeFrame for Trade
-input double          InpTrade3Volume=1;                              // Default volume to do trades operations
-input double          InpTrade3TakeProfit=200.0;                      // Default Take Profit (0 disable)
+input bool            InpTrade3Enabled=true;                          // Default to true to enable the Trade
+input ENUM_TIMEFRAMES InpTrade3TimeFrame=PERIOD_M5;                   // Default TimeFrame for Trade
+input double          InpTrade3Volume=2;                              // Default volume to do trades operations
+input double          InpTrade3TakeProfit=50.0;                       // Default Take Profit (0 disable)
 input int             InpTrade3MaxTakeProfit=1;                       // Default Max Take Profit  (0 disable)
 input double          InpTrade3StopLoss=0;                            // Default Stop Loss  (0 disable)
 input int             InpTrade3MaxStopLoss=0;                         // Default Max Stop Loss  (0 disable)
@@ -104,9 +104,9 @@ input int             InpTrade3MaxMartingaleOperations=5;             // Default
 
 //--- input parameters for Trade 3 (HiLo and Ma Config)
 input string          InpTrade3HiLoMaData="------------------------------"; // ------- Trade 3 (HiLo Config) -------
-input int             InpTrade3HiLoPeriod=1;                          // HiLo Period
-input ENUM_MA_METHOD  InpTrade3HiLoMethod=MODE_SMMA;                  // HiLo Method
-input int             InpTrade3MaPeriod=6;                            // Ma Period                     
+input int             InpTrade3HiLoPeriod=7;                          // HiLo Period
+input ENUM_MA_METHOD  InpTrade3HiLoMethod=MODE_SMA;                   // HiLo Method
+input int             InpTrade3MaPeriod=7;                            // Ma Period                     
 input ENUM_MA_METHOD  InpTrade3MaMethod=MODE_SMA;                     // Ma Method
 
 //--- input parameters for Trade 3 (Time Control)
@@ -121,11 +121,11 @@ input string          InpTrade3EndData="------------------------------"; // ----
 
 //--- input parameters for Trade 4 (Trade Config)
 input string          InpTrade4Data="------------------------------"; // ------- Trade 4 (Trade's Config) -------
-input bool            InpTrade4Enabled=false;                          // Default to true to enable the Trade
-input ENUM_TIMEFRAMES InpTrade4TimeFrame=PERIOD_CURRENT;              // Default TimeFrame for Trade
-input double          InpTrade4Volume=1;                              // Default volume to do trades operations
-input double          InpTrade4TakeProfit=50.0;                      // Default Take Profit (0 disable)
-input int             InpTrade4MaxTakeProfit=4;                       // Default Max Take Profit  (0 disable)
+input bool            InpTrade4Enabled=true;                          // Default to true to enable the Trade
+input ENUM_TIMEFRAMES InpTrade4TimeFrame=PERIOD_M5;                   // Default TimeFrame for Trade
+input double          InpTrade4Volume=3;                              // Default volume to do trades operations
+input double          InpTrade4TakeProfit=150.0;                      // Default Take Profit (0 disable)
+input int             InpTrade4MaxTakeProfit=1;                       // Default Max Take Profit  (0 disable)
 input double          InpTrade4StopLoss=0;                            // Default Stop Loss  (0 disable)
 input int             InpTrade4MaxStopLoss=0;                         // Default Max Stop Loss  (0 disable)
 input int             InpTrade4Martingale=2;                          // Default trade martingale for all trades
@@ -133,26 +133,26 @@ input int             InpTrade4MaxMartingaleOperations=5;             // Default
 
 //--- input parameters for Trade 4 (HiLo and Ma Config)
 input string          InpTrade4HiLoMaData="------------------------------"; // ------- Trade 4 (HiLo Config) -------
-input int             InpTrade4HiLoPeriod=7;                          // HiLo Period
+input int             InpTrade4HiLoPeriod=4;                          // HiLo Period
 input ENUM_MA_METHOD  InpTrade4HiLoMethod=MODE_SMMA;                  // HiLo Method
-input int             InpTrade4MaPeriod=7;                            // Ma Period                     
+input int             InpTrade4MaPeriod=6;                            // Ma Period                     
 input ENUM_MA_METHOD  InpTrade4MaMethod=MODE_SMA;                     // Ma Method
 
 //--- input parameters for Trade 4 (Time Control)
 input string          InpTrade4TimeControlData="-------------------------"; // ------- Trade 4 (Time Control) -------
 input int             InpTrade4TimeStartHour=9;                        // Default hour time to start the operation
-input int             InpTrade4TimeStartMinute=5;                      // Default minute time to start the operation
-input int             InpTrade4TimeEndHour=15;                         // Default hour time to end the operation
+input int             InpTrade4TimeStartMinute=30;                     // Default minute time to start the operation
+input int             InpTrade4TimeEndHour=16;                         // Default hour time to end the operation
 input int             InpTrade4TimeEndMinute=0;                        // Default minute time to end the operation
 input string          InpTrade4EndData="------------------------------"; // ------- End of Trade 4 -------
 
 
 //--- input parameters for Trade 5 (Trade Config)
 input string          InpTrade5Data="------------------------------"; // ------- Trade 5 (Trade's Config) -------
-input bool            InpTrade5Enabled=false;                          // Default to true to enable the Trade
-input ENUM_TIMEFRAMES InpTrade5TimeFrame=PERIOD_CURRENT;              // Default TimeFrame for Trade
+input bool            InpTrade5Enabled=true;                          // Default to true to enable the Trade
+input ENUM_TIMEFRAMES InpTrade5TimeFrame=PERIOD_M5;                   // Default TimeFrame for Trade
 input double          InpTrade5Volume=1;                              // Default volume to do trades operations
-input double          InpTrade5TakeProfit=200.0;                      // Default Take Profit (0 disable)
+input double          InpTrade5TakeProfit=150.0;                      // Default Take Profit (0 disable)
 input int             InpTrade5MaxTakeProfit=1;                       // Default Max Take Profit  (0 disable)
 input double          InpTrade5StopLoss=0;                            // Default Stop Loss  (0 disable)
 input int             InpTrade5MaxStopLoss=0;                         // Default Max Stop Loss  (0 disable)
@@ -161,15 +161,15 @@ input int             InpTrade5MaxMartingaleOperations=5;             // Default
 
 //--- input parameters for Trade 5 (HiLo and Ma Config)
 input string          InpTrade5HiLoMaData="------------------------------"; // ------- Trade 5 (HiLo Config) -------
-input int             InpTrade5HiLoPeriod=6;                          // HiLo Period
+input int             InpTrade5HiLoPeriod=2;                          // HiLo Period
 input ENUM_MA_METHOD  InpTrade5HiLoMethod=MODE_SMMA;                  // HiLo Method
-input int             InpTrade5MaPeriod=8;                            // Ma Period                     
+input int             InpTrade5MaPeriod=6;                            // Ma Period                     
 input ENUM_MA_METHOD  InpTrade5MaMethod=MODE_SMA;                     // Ma Method
 
 //--- input parameters for Trade 5 (Time Control)
 input string          InpTrade5TimeControlData="-------------------------"; // ------- Trade 5 (Time Control) -------
-input int             InpTrade5TimeStartHour=11;                        // Default hour time to start the operation
-input int             InpTrade5TimeStartMinute=40;                      // Default minute time to start the operation
+input int             InpTrade5TimeStartHour=10;                       // Default hour time to start the operation
+input int             InpTrade5TimeStartMinute=20;                     // Default minute time to start the operation
 input int             InpTrade5TimeEndHour=15;                         // Default hour time to end the operation
 input int             InpTrade5TimeEndMinute=0;                        // Default minute time to end the operation
 input string          InpTrade5EndData="------------------------------"; // ------- End of Trade 5 -------
