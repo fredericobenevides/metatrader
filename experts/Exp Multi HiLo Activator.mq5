@@ -63,8 +63,6 @@ input string          InpTrade1EndData="------------------------------"; // ----
 
 
 
-
-
 //--- input parameters for Trade 2 (Trade Config)
 input string          InpTrade2Data="------------------------------"; // ------- Trade 2 (Trade's Config) -------
 input bool            InpTrade2Enabled=true;                          // Default to true to enable the Trade
@@ -91,9 +89,6 @@ input int             InpTrade2TimeStartMinute=0;                     // Default
 input int             InpTrade2TimeEndHour=16;                        // Default hour time to end the operation
 input int             InpTrade2TimeEndMinute=0;                       // Default minute time to end the operation
 input string          InpTrade2EndData="------------------------------"; // ------- End of Trade 2 -------
-
-
-
 
 
 
@@ -130,8 +125,6 @@ input string          InpTrade3EndData="------------------------------"; // ----
 
 
 
-
-
 //--- input parameters for Trade 4 (Trade Config)
 input string          InpTrade4Data="------------------------------"; // ------- Trade 4 (Trade's Config) -------
 input bool            InpTrade4Enabled=false;                          // Default to true to enable the Trade
@@ -161,8 +154,6 @@ input string          InpTrade4EndData="------------------------------"; // ----
 
 
 
-
-
 //--- input parameters for Trade 5 (Trade Config)
 input string          InpTrade5Data="------------------------------"; // ------- Trade 5 (Trade's Config) -------
 input bool            InpTrade5Enabled=false;                          // Default to true to enable the Trade
@@ -189,8 +180,6 @@ input int             InpTrade5TimeStartMinute=40;                      // Defau
 input int             InpTrade5TimeEndHour=15;                         // Default hour time to end the operation
 input int             InpTrade5TimeEndMinute=0;                        // Default minute time to end the operation
 input string          InpTrade5EndData="------------------------------"; // ------- End of Trade 5 -------
-
-
 
 
 
@@ -232,6 +221,8 @@ void OnDeinit(const int reason)
 // Generate the history report
    if(InpTestGenerateReport)
       Test.HistoryReport();
+
+   ChartRedraw();
   }
 //+------------------------------------------------------------------+
 //| Expert tick function                                             |
@@ -385,7 +376,7 @@ void InitConfigsForTrade4()
    hiloMaTrade4.AddTradesController(tradesController);
    HiLoController.AddModel(hiloMaTrade4);
   }
-  //+------------------------------------------------------------------+
+//+------------------------------------------------------------------+
 //| Init configs for trade 5
 //+------------------------------------------------------------------+
 void InitConfigsForTrade5()

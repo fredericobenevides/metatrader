@@ -34,6 +34,7 @@ class CStopLossOrder
 public:
 
                      CStopLossOrder(string tradeName,CPositionOrder *positionOrder);
+                    ~CStopLossOrder();
    void              InitPoints(double points) { m_points=points; }
 
    void              ExecutedPlaceStopLossOrder();
@@ -70,6 +71,13 @@ CStopLossOrder::CStopLossOrder(string tradeName,CPositionOrder *positionOrder)
    m_sell_close_name=tradeName+"::TradeSellClose::DSL()";
 
    m_position_order=positionOrder;
+  }
+//+------------------------------------------------------------------+
+//| Destructor
+//+------------------------------------------------------------------+
+CStopLossOrder::~CStopLossOrder()
+  {
+   delete m_position_order;
   }
 //+------------------------------------------------------------------+
 //| Executed the place take profit order

@@ -87,13 +87,6 @@ CHiLoController::Destroy(int reason)
   {
 // destroy the view
    m_hilo_multi_dialog.Destroy(reason);
-
-// destroy the models
-   for(int i=0;i<m_list_hilo_ma.Total();i++)
-     {
-      CHiLoMaHandle *hma=m_list_hilo_ma.GetNodeAtIndex(i);
-      hma.Destroy();
-     }
   }
 //+------------------------------------------------------------------+
 //| Verify is there any operation for each candle. 
@@ -110,7 +103,7 @@ void CHiLoController::OnTick()
       if(tradesController.VerifyIfDeleteTakeProfitOrder())
          m_hilo_multi_dialog.UpdateAllDialog(i,tradesController);
       if(tradesController.VerifyIfDeleteStopLossOrder())
-         m_hilo_multi_dialog.UpdateAllDialog(i, tradesController);
+         m_hilo_multi_dialog.UpdateAllDialog(i,tradesController);
 
       tradesController.VerifyIfPlaceTakeProfitOrder();
       tradesController.VerifyIfPlaceStopLossOrder();

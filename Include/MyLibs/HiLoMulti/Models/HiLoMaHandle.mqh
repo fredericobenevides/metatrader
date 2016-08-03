@@ -48,7 +48,6 @@ class CHiLoMaHandle : public CObject
 public:
                      CHiLoMaHandle();
                     ~CHiLoMaHandle();
-   void              Destroy();
 
    void              InitHiLoConfig(int period,ENUM_MA_METHOD method);
    void              InitMaConfig(int period,ENUM_MA_METHOD method);
@@ -72,15 +71,9 @@ CHiLoMaHandle::CHiLoMaHandle(void)
 //+------------------------------------------------------------------+
 CHiLoMaHandle::~CHiLoMaHandle(void)
   {
+   IndicatorRelease(m_hilo_custom_handle);
    delete m_trades_controller;
   };
-//+------------------------------------------------------------------+
-//| Destroy
-//+------------------------------------------------------------------+
-CHiLoMaHandle::Destroy()
-  {
-   IndicatorRelease(m_hilo_custom_handle);
-  }
 //+------------------------------------------------------------------+
 //| Init HiLo's Config
 //+------------------------------------------------------------------+

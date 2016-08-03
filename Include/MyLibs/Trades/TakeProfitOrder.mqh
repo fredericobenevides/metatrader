@@ -36,6 +36,7 @@ class CTakeProfitOrder
 
 public:
                      CTakeProfitOrder(string tradeName,CPositionOrder *positionOrder);
+                    ~CTakeProfitOrder();
    void              InitPoints(double points,int maxTakeProfitPoints);
 
    void              ExecutedPlaceTakeProfitOrder();
@@ -77,6 +78,13 @@ CTakeProfitOrder::CTakeProfitOrder(string tradeName,CPositionOrder *positionOrde
    m_sell_close_name=tradeName+"::TradeSellClose::DTP()";
 
    m_position_order=positionOrder;
+  }
+//+------------------------------------------------------------------+
+//| Destructor
+//+------------------------------------------------------------------+
+CTakeProfitOrder::~CTakeProfitOrder()
+  {
+   delete m_position_order;
   }
 //+------------------------------------------------------------------+
 //| Init points
