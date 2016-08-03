@@ -111,7 +111,7 @@ CHiLoMultiDialog::CHiLoMultiDialog(void)
 //+------------------------------------------------------------------+
 CHiLoMultiDialog::~CHiLoMultiDialog(void)
   {
-   delete m_list_hilo_ma;
+  delete m_list_hilo_ma;
   }
 //+------------------------------------------------------------------+
 //| Create the interface

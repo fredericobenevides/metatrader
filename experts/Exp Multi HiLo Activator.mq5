@@ -61,8 +61,6 @@ input string          InpTrade1EndData="------------------------------"; // ----
 
 
 
-
-
 //--- input parameters for Trade 2 (Trade Config)
 input string          InpTrade2Data="------------------------------"; // ------- Trade 2 (Trade's Config) -------
 input bool            InpTrade2Enabled=true;                          // Default to true to enable the Trade
@@ -89,8 +87,6 @@ input int             InpTrade2TimeStartMinute=0;                     // Default
 input int             InpTrade2TimeEndHour=16;                        // Default hour time to end the operation
 input int             InpTrade2TimeEndMinute=0;                       // Default minute time to end the operation
 input string          InpTrade2EndData="------------------------------"; // ------- End of Trade 2 -------
-
-
 
 
 
@@ -123,8 +119,6 @@ input string          InpTrade3EndData="------------------------------"; // ----
 
 
 
-
-
 //--- input parameters for Trade 4 (Trade Config)
 input string          InpTrade4Data="------------------------------"; // ------- Trade 4 (Trade's Config) -------
 input bool            InpTrade4Enabled=false;                          // Default to true to enable the Trade
@@ -151,7 +145,6 @@ input int             InpTrade4TimeStartMinute=5;                      // Defaul
 input int             InpTrade4TimeEndHour=15;                         // Default hour time to end the operation
 input int             InpTrade4TimeEndMinute=0;                        // Default minute time to end the operation
 input string          InpTrade4EndData="------------------------------"; // ------- End of Trade 4 -------
-
 
 
 //--- input parameters for Trade 5 (Trade Config)
@@ -182,7 +175,6 @@ input int             InpTrade5TimeEndMinute=0;                        // Defaul
 input string          InpTrade5EndData="------------------------------"; // ------- End of Trade 5 -------
 
 
-
 //--- input parameters for Test
 input string          InpTestData="-------------------------";        // -------------- Test --------------
 input bool            InpTestGenerateReport=false;                    // Generate the file test.csv on tester folder
@@ -191,7 +183,7 @@ input bool            InpTestGenerateReport=false;                    // Generat
 int first_initialization=true; // flag indicate if is the first initialization
 datetime last_day_initialized=TimeTradeServer();
 
-CHiLoController HiLoController;
+CHiLoController *HiLoController;
 
 //--- global vars for test
 CHiLoMultiTest Test;
@@ -213,6 +205,8 @@ void OnDeinit(const int reason)
    if(reason!=REASON_CHARTCHANGE)
      {
       HiLoController.Destroy(reason);
+      delete HiLoController;
+
       first_initialization=true;
      }
    else
@@ -277,6 +271,8 @@ void verifyIfAnotherDayToReloadTrades()
 //+------------------------------------------------------------------+
 int InitConfigsForAllTrades()
   {
+   HiLoController=new CHiLoController();
+
    InitConfigsForTrade1();
    InitConfigsForTrade2();
    InitConfigsForTrade3();
