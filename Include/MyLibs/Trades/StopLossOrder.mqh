@@ -80,14 +80,14 @@ CStopLossOrder::~CStopLossOrder()
    delete m_position_order;
   }
 //+------------------------------------------------------------------+
-//| Executed the place take profit order
+//| Executed the place stop loss order
 //+------------------------------------------------------------------+
 void CStopLossOrder::ExecutedPlaceStopLossOrder()
   {
    m_order_placed=true;
   }
 //+------------------------------------------------------------------+
-//| Executed the place take profit order
+//| Executed the delete stop loss order
 //+------------------------------------------------------------------+
 void CStopLossOrder::ExecutedDeleteStopLossOrder()
   {

@@ -102,7 +102,7 @@ void CTakeProfitOrder::ExecutedPlaceTakeProfitOrder()
    m_order_placed=true;
   }
 //+------------------------------------------------------------------+
-//| Executed the place take profit order
+//| Executed the delete take profit order
 //+------------------------------------------------------------------+
 void CTakeProfitOrder::ExecutedDeleteTakeProfitOrder()
   {

@@ -400,7 +400,7 @@ void CTradesController::VerifyIfLoadTakeProfitTicket()
 //+------------------------------------------------------------------+
 void CTradesController::VerifyIfLoadStopLossTicket()
   {
-   if(m_position_order.IsOnTradeOperation() && !m_take_profit_order.IsTicketLoaded())
+   if(m_position_order.IsOnTradeOperation() && !m_stop_loss_order.IsTicketLoaded())
      {
       string name=m_stop_loss_order.BuySellOpenName();
 
