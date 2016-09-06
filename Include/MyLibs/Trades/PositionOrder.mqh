@@ -69,8 +69,8 @@ public:
    string            SellCloseName() { return m_sell_close_name; }
    string            BuySellOperationStatus();
 
-   void              ResetVolumeToZeroNextVolumeToInitialVolume();
-   void              ResetNextVolumeToInitialVolume();
+   void              ResetVolumeToZero() { m_volume=0; }
+   void              ResetNextVolumeToInitialVolume() { m_next_volume=m_initial_volume; }
 
    void              ResetToDefault();
 
@@ -184,21 +184,6 @@ string CPositionOrder::BuySellOperationStatus()
      }
 
    return "N";
-  }
-//+------------------------------------------------------------------+
-//| Reset the volume to 0 and next volume to initial volume
-//+------------------------------------------------------------------+
-void CPositionOrder::ResetVolumeToZeroNextVolumeToInitialVolume()
-  {
-   m_volume=0;
-   m_next_volume=m_initial_volume;
-  }
-//+------------------------------------------------------------------+
-//| Reset next vokume to 0.
-//+------------------------------------------------------------------+
-void CPositionOrder::ResetNextVolumeToInitialVolume()
-  {
-   m_next_volume=m_initial_volume;
   }
 //+------------------------------------------------------------------+
 //| Reset everything to Default

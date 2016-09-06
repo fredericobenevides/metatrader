@@ -6,7 +6,7 @@
 #property copyright "Frederico Benevides"
 #property link      "fredbene@gmail.com"
 //+------------------------------------------------------------------+
-//|                                                                  |
+//| Util class for Time
 //+------------------------------------------------------------------+
 class CTime
   {

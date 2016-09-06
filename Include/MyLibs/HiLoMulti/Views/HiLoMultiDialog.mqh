@@ -51,8 +51,6 @@ class CHiLoMultiDialog : public CAppDialog
    // hilo items
    CList             m_list_trade_l_name;          // CLabel
    CList             m_list_trade_c_enable;        // CCheckBox
-   CList             m_list_trade_l_bs_status;     // CLabel
-   CList             m_list_trade_e_bs_status;     // CEdit
    CList             m_list_trade_l_volume;        // CLabel
    CList             m_list_trade_e_volume;        // CEdit
    CList             m_list_trade_l_next_volume;   // CLabel
@@ -61,6 +59,10 @@ class CHiLoMultiDialog : public CAppDialog
    CList             m_list_trade_e_take_profit;   // CEdit
    CList             m_list_trade_l_stop_loss;     // CLabel
    CList             m_list_trade_e_stop_loss;     // CEdit
+   CList             m_list_trade_l_mtp_status;    // CLabel
+   CList             m_list_trade_e_mtp_status;    // CEdit
+   CList             m_list_trade_l_bs_status;     // CLabel
+   CList             m_list_trade_e_bs_status;     // CEdit
 
    CLabel            m_label_trade1_info;
    CCheckBox         m_checkbox_trade1_enabled;
@@ -111,7 +113,7 @@ CHiLoMultiDialog::CHiLoMultiDialog(void)
 //+------------------------------------------------------------------+
 CHiLoMultiDialog::~CHiLoMultiDialog(void)
   {
-  delete m_list_hilo_ma;
+   delete m_list_hilo_ma;
   }
 //+------------------------------------------------------------------+
 //| Create the interface
@@ -175,6 +177,10 @@ void CHiLoMultiDialog::UpdateAllDialog(int index,CTradesController *tradesContro
    CEdit *m_edit_e_stop_loss=m_list_trade_e_stop_loss.GetNodeAtIndex(index);
    m_edit_e_stop_loss.Text(DoubleToString(tradesController.StopLossOrder().Points(),0));
    m_edit_e_stop_loss.TextAlign(ALIGN_CENTER);
+
+   CEdit *m_edit_e_mtp_status=m_list_trade_e_mtp_status.GetNodeAtIndex(index);
+   m_edit_e_mtp_status.Text(tradesController.TakeProfitOrder().MaxTakeProfitStatus());
+   m_edit_e_mtp_status.TextAlign(ALIGN_CENTER);
 
    CEdit *m_edit_e_bs_status=m_list_trade_e_bs_status.GetNodeAtIndex(index);
    m_edit_e_bs_status.Text(tradesController.PositionOrder().BuySellOperationStatus());
@@ -262,9 +268,6 @@ bool CHiLoMultiDialog::CreateTradesConfig()
       CLabel *m_trade_l_name=new CLabel();
       CCheckBox *m_trade_c_enable=new CCheckBox();
 
-      CLabel *m_trade_l_bs_status=new CLabel();
-      CEdit *m_trade_e_bs_status=new CEdit();
-
       CLabel *m_trade_l_volume=new CLabel();
       CEdit *m_trade_e_volume=new CEdit();
       CLabel *m_trade_l_next_volume=new CLabel();
@@ -274,6 +277,12 @@ bool CHiLoMultiDialog::CreateTradesConfig()
       CEdit *m_trade_e_take_profit=new CEdit();
       CLabel *m_trade_l_stop_loss=new CLabel();
       CEdit *m_trade_e_stop_loss=new CEdit();
+
+      CLabel *m_trade_l_mtp_status=new CLabel();
+      CEdit *m_trade_e_mtp_status=new CEdit();
+
+      CLabel *m_trade_l_bs_status=new CLabel();
+      CEdit *m_trade_e_bs_status=new CEdit();
 
       //--- label trade's name
       int x1=INDENT_LEFT;
@@ -387,8 +396,30 @@ bool CHiLoMultiDialog::CreateTradesConfig()
       if(!Add(m_trade_e_stop_loss))
          return false;
 
-      //--- Label Buy Sell Status
+      //--- Label Max Take Profit
       x1=int(INDENT_LEFT+7*(10.9*CONTROLS_GAP_X));
+      x2=x1+WIDTH_DEFAULT;
+      y2=y1+HEIGHT_DEFAULT;
+
+      if(!m_trade_l_mtp_status.Create(m_chart_id,"m_trade_l_mtp_status"+IntegerToString(indexNameTrade),m_subwin,x1,y1,x2,y2))
+         return false;
+      if(!m_trade_l_mtp_status.Text("MTP"))
+         return false;
+      if(!Add(m_trade_l_mtp_status))
+         return false;
+
+      //--- Edit Max Take Profit
+      x1=int(INDENT_LEFT+7*(11.8*CONTROLS_GAP_X));
+      x2=x1+WIDTH_SHORT;
+      y2=y1+HEIGHT_DEFAULT;
+
+      if(!m_trade_e_mtp_status.Create(m_chart_id,"m_trade_e_mtp_status"+IntegerToString(indexNameTrade),m_subwin,x1,y1,x2,y2))
+         return false;
+      if(!Add(m_trade_e_mtp_status))
+         return false;
+
+      //--- Label Buy Sell Status
+      x1=int(INDENT_LEFT+8*(11.4*CONTROLS_GAP_X));
       x2=x1+WIDTH_DEFAULT;
       y2=y1+HEIGHT_DEFAULT;
 
@@ -400,7 +431,7 @@ bool CHiLoMultiDialog::CreateTradesConfig()
          return false;
 
       //--- Edit Buy Sell Status
-      x1=int(INDENT_LEFT+7*(11.6*CONTROLS_GAP_X));
+      x1=int(INDENT_LEFT+8*(12.1*CONTROLS_GAP_X));
       x2=x1+WIDTH_SHORT;
       y2=y1+HEIGHT_DEFAULT;
 
@@ -413,9 +444,6 @@ bool CHiLoMultiDialog::CreateTradesConfig()
       m_list_trade_l_name.Add(m_trade_l_name);
       m_list_trade_c_enable.Add(m_trade_c_enable);
 
-      m_list_trade_l_bs_status.Add(m_trade_l_bs_status);
-      m_list_trade_e_bs_status.Add(m_trade_e_bs_status);
-
       m_list_trade_l_volume.Add(m_trade_l_volume);
       m_list_trade_e_volume.Add(m_trade_e_volume);
       m_list_trade_l_next_volume.Add(m_trade_l_next_volume);
@@ -425,6 +453,12 @@ bool CHiLoMultiDialog::CreateTradesConfig()
       m_list_trade_e_take_profit.Add(m_trade_e_take_profit);
       m_list_trade_l_stop_loss.Add(m_trade_l_stop_loss);
       m_list_trade_e_stop_loss.Add(m_trade_e_stop_loss);
+
+      m_list_trade_l_mtp_status.Add(m_trade_l_mtp_status);
+      m_list_trade_e_mtp_status.Add(m_trade_e_mtp_status);
+
+      m_list_trade_l_bs_status.Add(m_trade_l_bs_status);
+      m_list_trade_e_bs_status.Add(m_trade_e_bs_status);
 
       UpdateAllDialog(i,tradesController);
      }
@@ -471,7 +505,9 @@ void CHiLoMultiDialog::OnClickStopAllTrades()
 
       tradesController.PositionBuyClose();
       tradesController.PositionSellClose();
-      tradesController.PositionOrder().ResetVolumeToZeroNextVolumeToInitialVolume();
+      
+      tradesController.PositionOrder().ResetVolumeToZero();
+      tradesController.PositionOrder().ResetNextVolumeToInitialVolume();
       tradesController.PositionOrder().DisableTrade();
 
       UpdateEnableDisableTrades(i,tradesController);

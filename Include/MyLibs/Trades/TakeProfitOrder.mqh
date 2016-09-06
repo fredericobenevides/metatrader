@@ -52,6 +52,7 @@ public:
    string            BuySellCloseName();
    bool              IsBuyTakeProfit()  { return m_open_on_buy_trade; }
    bool              IsSellTakeProfit() { return m_open_on_sell_trade; }
+   string            MaxTakeProfitStatus();
 
    double            Points() { return m_points; }
    bool              IsOrderPlaced() { return m_order_placed; }
@@ -193,6 +194,17 @@ string CTakeProfitOrder::BuySellCloseName()
       return m_buy_close_name;
    else
       return m_sell_close_name;
+  }
+//+------------------------------------------------------------------+
+//| Returns the Max Take Profit Status
+//+------------------------------------------------------------------+
+string CTakeProfitOrder::MaxTakeProfitStatus()
+  {
+   string s=IntegerToString(m_count_take_profit_operations);
+   s += "/";
+   s += IntegerToString(m_max_take_profit_operations);
+
+   return s;
   }
 //+------------------------------------------------------------------+
 //| Load the current ticket

@@ -370,9 +370,12 @@ bool CTradesController::VerifyIfDestroyTpSlWhenExecutedByMetatrader(ulong ticket
       m_stop_loss_order.ExecutedDeleteStopLossOrder();
      }
 
+   if(existTakeProfitTicket)
+      m_position_order.ResetNextVolumeToInitialVolume();
+
    if(existTakeProfitTicket || existStopLossTicket)
      {
-      m_position_order.ResetVolumeToZeroNextVolumeToInitialVolume();
+      m_position_order.ResetVolumeToZero();
       m_position_order.ExecutedBuyCloseOperation();
       m_position_order.ExecutedSellCloseOperation();
 
