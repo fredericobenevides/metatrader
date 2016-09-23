@@ -88,6 +88,7 @@ protected:
 
    bool              CreateTradesConfig();
 
+   void              OnClickEnableDisablePositionTradeByChecked();
    void              OnClickEnableAllTrades();
    void              OnClickDisableAllTrades();
    void              OnClickStopAllTrades();
@@ -139,19 +140,11 @@ bool CHiLoMultiDialog::ChartEvent(const int id,const long &lparam,const double &
 //--- Run the parent ChartEvent
    CAppDialog::ChartEvent(id,lparam,dparam,sparam);
 
-//if(id==CHARTEVENT_CLICK)
-//  {
-//   if(sparam=="m_button_enable_all")
-//     {
-//      OnClickEnableAllTrades();
-//      ChartRedraw();
-//     }
-//   if(sparam=="m_button_disable_all")
-//     {
-//      OnClickDisableAllTrades();
-//      ChartRedraw();
-//     }
-//  }
+   if(StringFind(sparam,"m_trade_c_enable",0)!=-1)
+     {
+      OnClickEnableDisablePositionTradeByChecked();
+      ChartRedraw();
+     }
 
    return true;
   }
@@ -466,6 +459,23 @@ bool CHiLoMultiDialog::CreateTradesConfig()
    return true;
   }
 //+------------------------------------------------------------------+
+//| Enable or Disable all position trades by Checked
+//+------------------------------------------------------------------+
+void CHiLoMultiDialog::OnClickEnableDisablePositionTradeByChecked()
+  {
+   for(int i=0;i<m_list_hilo_ma.Total();i++)
+     {
+      CHiLoMaHandle *hma=m_list_hilo_ma.GetNodeAtIndex(i);
+      CTradesController *tradesController=hma.GetTradesController();
+
+      CCheckBox *m_trade_c_enable=m_list_trade_c_enable.GetNodeAtIndex(i);
+      if(m_trade_c_enable.Checked())
+         tradesController.PositionOrder().EnableTrade();
+      else
+         tradesController.PositionOrder().DisableTrade();
+     }
+  }
+//+------------------------------------------------------------------+
 //| Enable All trades
 //+------------------------------------------------------------------+
 void CHiLoMultiDialog::OnClickEnableAllTrades()
@@ -505,7 +515,7 @@ void CHiLoMultiDialog::OnClickStopAllTrades()
 
       tradesController.PositionBuyClose();
       tradesController.PositionSellClose();
-      
+
       tradesController.PositionOrder().ResetVolumeToZero();
       tradesController.PositionOrder().ResetNextVolumeToInitialVolume();
       tradesController.PositionOrder().DisableTrade();

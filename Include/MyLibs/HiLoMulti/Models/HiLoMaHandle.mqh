@@ -106,7 +106,7 @@ void CHiLoMaHandle::InitIndicatorHandleConfig(ENUM_TIMEFRAMES timeframe,bool arr
 //+------------------------------------------------------------------+
 bool CHiLoMaHandle::InitHandle()
   {
-   m_hilo_custom_handle=iCustom(_Symbol,m_timeframe,"HiLo MA Activator.ex5",
+   m_hilo_custom_handle=iCustom(_Symbol,m_timeframe,"HiLo XP Activator.ex5",
                                 "",m_hilo_period,m_hilo_method,
                                 m_arrow_in_first_hilo,m_arrow_in_second_hilo,m_arrow_in_current_candle,m_show_hilo_line,
                                 "",m_ma_period,m_ma_method);
