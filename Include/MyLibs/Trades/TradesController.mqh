@@ -37,7 +37,7 @@ public:
                     ~CTradesController();
 
    void              InitTrade(bool enableTrade,double initialVolume,double takeProfitPoints,int maxTakeProfitOperations,
-                               double stopLossPoints);
+                               double stopLossPoints,int stopLossProfile);
    void              InitMartingale(int martingale,int maxMartingaleOperations);
    void              InitTradesTime(int startHour,int startMinute,int endHour,int endMinute);
 
@@ -52,7 +52,11 @@ public:
    bool              VerifyIfPlaceStopLossOrder();
    bool              VerifyIfDeleteTakeProfitOrder();
    bool              VerifyIfDeleteStopLossOrder();
-   bool              VerifyIfDestroyTpSlWhenExecutedByMetatrader(ulong ticketOrder);
+
+   bool              VerifyIfDestroyTakeProfitExecutedByMetatrader(ulong ticket);
+   bool              VerifyIfDestroyStopLossExecutedByMetatrader(ulong ticket);
+
+   void              VerifyIfChangeStopLossProfile();
 
    void              VerifyIfLoadTakeProfitTicket();
    void              VerifyIfLoadStopLossTicket();
@@ -90,11 +94,11 @@ CTradesController::~CTradesController()
 //| Init CTrades
 //+------------------------------------------------------------------+
 CTradesController::InitTrade(bool enableTrade,double initialVolume,double takeProfitPoints,int maxTakeProfitOperations,
-                             double stopLossPoints)
+                             double stopLossPoints,int stopLossProfile)
   {
    m_position_order.InitTrade(enableTrade,initialVolume);
    m_take_profit_order.InitPoints(takeProfitPoints,maxTakeProfitOperations);
-   m_stop_loss_order.InitPoints(stopLossPoints);
+   m_stop_loss_order.InitPoints(stopLossPoints,stopLossProfile);
   }
 //+------------------------------------------------------------------+
 //| Init the trades martingale
@@ -138,6 +142,8 @@ bool CTradesController::PositionBuyOpen()
       m_position_order.ExecutedBuyOpenOperation();
       m_position_order.SetPrice(m_trades_service.RequestPrice());
 
+      m_stop_loss_order.RestartProfile();
+
       result=true;
      }
    else
@@ -169,6 +175,8 @@ bool CTradesController::PositionSellOpen()
       PrintFormat("%s operation executed: true",name);
       m_position_order.ExecutedSellOpenOperation();
       m_position_order.SetPrice(m_trades_service.RequestPrice());
+
+      m_stop_loss_order.RestartProfile();
 
       result=true;
      }
@@ -270,7 +278,10 @@ bool CTradesController::VerifyIfPlaceStopLossOrder()
    double positionVolume=m_position_order.Volume();
    double stopLossPrice=m_stop_loss_order.CalculateStopLossPrice(m_trades_service);
 
-   PrintFormat("%s will be executed the stop loss with price: %.2f",name,stopLossPrice);
+   if(!m_stop_loss_order.IsUsingStopProfile())
+      PrintFormat("%s will be executed the stop loss with price: %.2f",name,stopLossPrice);
+   else
+      PrintFormat("%s will change the stop loss based on profile with price: %.2f",name,stopLossPrice);
 
    bool result=false;
    if(m_trades_service.ExecuteBuySellStop(m_position_order.IsOnBuyTrade(),positionVolume,stopLossPrice,name))
@@ -348,12 +359,11 @@ bool CTradesController::VerifyIfDeleteStopLossOrder()
    return result;
   }
 //+------------------------------------------------------------------+
-//| Destroy the tick of Take Profit or Stop Loss if one was executed
+//| Destroy the tick of Take Profit if was executed
 //+------------------------------------------------------------------+
-bool CTradesController::VerifyIfDestroyTpSlWhenExecutedByMetatrader(ulong ticket)
+bool CTradesController::VerifyIfDestroyTakeProfitExecutedByMetatrader(ulong ticket)
   {
    bool existTakeProfitTicket=m_take_profit_order.VerifyIfExistTicket(ticket);
-   bool existStopLossTicket=m_stop_loss_order.VerifyIfExistTicket(ticket);
 
    if(existTakeProfitTicket)
      {
@@ -362,19 +372,9 @@ bool CTradesController::VerifyIfDestroyTpSlWhenExecutedByMetatrader(ulong ticket
 
       m_take_profit_order.UpdateTakeProfitOperations();
       m_take_profit_order.DisablePositionOnMaxTakeProfitOperations();
-     }
 
-   if(existStopLossTicket)
-     {
-      m_take_profit_order.SetToBeDeleted();
-      m_stop_loss_order.ExecutedDeleteStopLossOrder();
-     }
-
-   if(existTakeProfitTicket)
       m_position_order.ResetNextVolumeToInitialVolume();
 
-   if(existTakeProfitTicket || existStopLossTicket)
-     {
       m_position_order.ResetVolumeToZero();
       m_position_order.ExecutedBuyCloseOperation();
       m_position_order.ExecutedSellCloseOperation();
@@ -383,6 +383,41 @@ bool CTradesController::VerifyIfDestroyTpSlWhenExecutedByMetatrader(ulong ticket
      }
 
    return false;
+  }
+//+------------------------------------------------------------------+
+//| Destroy the tick of Stop Loss if was executed
+//+------------------------------------------------------------------+
+bool CTradesController::VerifyIfDestroyStopLossExecutedByMetatrader(ulong ticket)
+  {
+   bool existStopLossTicket=m_stop_loss_order.VerifyIfExistTicket(ticket);
+
+   if(existStopLossTicket)
+     {
+      m_take_profit_order.SetToBeDeleted();
+      m_stop_loss_order.ExecutedDeleteStopLossOrder();
+
+      m_position_order.ResetVolumeToZero();
+      m_position_order.ExecutedBuyCloseOperation();
+      m_position_order.ExecutedSellCloseOperation();
+
+      return true;
+     }
+
+   return false;
+  }
+//+------------------------------------------------------------------+
+//| Verify if change the stop loss based on Profile
+//+------------------------------------------------------------------+
+void CTradesController::VerifyIfChangeStopLossProfile()
+  {
+   if(m_stop_loss_order.IsOrderPlaced())
+     {
+      MqlTick lastTick;
+      SymbolInfoTick(Symbol(),lastTick);
+      double lastPrice=lastTick.last;
+
+      m_stop_loss_order.VerifyIfNeedToChangeStopBasedOnProfile(lastPrice);
+     }
   }
 //+------------------------------------------------------------------+
 //| Try to load take profit ticket

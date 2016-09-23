@@ -53,7 +53,9 @@ protected:
    void              TradeBuyClose(int index,CTradesController *tradesController);
    void              TradeSellClose(int index,CTradesController *tradesController);
 
-   void              DestroyTpSlIfTicketAddedToHistory(ulong ticket);
+   //void              DestroyTpSlIfTicketAddedToHistory(ulong ticket);
+   void              DestroyTakeProfitIfTicketAddedToHistory(ulong ticket);
+   void              DestroyStopLossIfTicketAddedToHistory(ulong ticket);
   };
 //+------------------------------------------------------------------+
 //| Constructor
@@ -98,6 +100,8 @@ void CHiLoController::OnTick()
      {
       CHiLoMaHandle *hma=m_list_hilo_ma.GetNodeAtIndex(i);
       CTradesController *tradesController=hma.GetTradesController();
+
+      tradesController.VerifyIfChangeStopLossProfile();
 
       // Delete and update the interface since can be a disable trade.
       if(tradesController.VerifyIfDeleteTakeProfitOrder())
@@ -153,13 +157,20 @@ void CHiLoController::OnTradeTransaction(const MqlTradeTransaction &trans,
   {
    if(trans.type==TRADE_TRANSACTION_HISTORY_ADD)
      {
-      if(trans.order_type==ORDER_TYPE_BUY_LIMIT
-         || trans.order_type== ORDER_TYPE_BUY_STOP
-         || trans.order_type== ORDER_TYPE_SELL_LIMIT
-         || trans.order_type== ORDER_TYPE_SELL_STOP)
-        {
-         DestroyTpSlIfTicketAddedToHistory(trans.order);
-        }
+
+      ENUM_ORDER_STATE orderState=trans.order_state;
+      
+      if(orderState==ORDER_STATE_CANCELED)
+         return;
+
+      ENUM_ORDER_TYPE orderType=trans.order_type;
+      
+      if(orderType==ORDER_TYPE_BUY_LIMIT || orderType==ORDER_TYPE_SELL_LIMIT)
+         DestroyTakeProfitIfTicketAddedToHistory(trans.order);
+
+      if(orderType==ORDER_TYPE_BUY_STOP || orderType==ORDER_TYPE_SELL_STOP)
+         DestroyStopLossIfTicketAddedToHistory(trans.order);
+
      }
   }
 //+------------------------------------------------------------------+
@@ -282,20 +293,39 @@ void CHiLoController::TradeSellClose(int index,CTradesController *tradesControll
       m_hilo_multi_dialog.UpdateAllDialog(index,tradesController);
   }
 //+------------------------------------------------------------------+
-//| Destroy the tick of Take Profit or Stop Loss if one was executed
+//| Destroy the tick of Take Profit if was executed
 //+------------------------------------------------------------------+
-void CHiLoController::DestroyTpSlIfTicketAddedToHistory(ulong ticketOrder)
+void CHiLoController::DestroyTakeProfitIfTicketAddedToHistory(ulong ticket)
   {
-   Print("The ticket "+IntegerToString(ticketOrder)+" had TP/SL");
-
 // verify operation for each trade
    for(int i=0;i<m_list_hilo_ma.Total();i++)
      {
       CHiLoMaHandle *hma=m_list_hilo_ma.GetNodeAtIndex(i);
       CTradesController *tradesController=hma.GetTradesController();
 
-      if(tradesController.VerifyIfDestroyTpSlWhenExecutedByMetatrader(ticketOrder))
+      if(tradesController.VerifyIfDestroyTakeProfitExecutedByMetatrader(ticket))
+        {
+         Print("The ticket "+IntegerToString(ticket)+" had Take Profit");
          m_hilo_multi_dialog.UpdateAllDialog(i,tradesController);
+        }
+     }
+  }
+//+------------------------------------------------------------------+
+//| Destroy the tick of Stop Loss if was executed
+//+------------------------------------------------------------------+
+void CHiLoController::DestroyStopLossIfTicketAddedToHistory(ulong ticket)
+  {
+// verify operation for each trade
+   for(int i=0;i<m_list_hilo_ma.Total();i++)
+     {
+      CHiLoMaHandle *hma=m_list_hilo_ma.GetNodeAtIndex(i);
+      CTradesController *tradesController=hma.GetTradesController();
+
+      if(tradesController.VerifyIfDestroyStopLossExecutedByMetatrader(ticket))
+        {
+         Print("The ticket "+IntegerToString(ticket)+" had Stop Loss");
+         m_hilo_multi_dialog.UpdateAllDialog(i,tradesController);
+        }
      }
   }
 //+------------------------------------------------------------------+

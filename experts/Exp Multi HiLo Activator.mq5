@@ -44,6 +44,7 @@ input double          InpTrade1TakeProfit=120.0;                      // Default
 input int             InpTrade1MaxTakeProfit=1;                       // Default Max Take Profit  (0 disable)
 input double          InpTrade1StopLoss=200;                            // Default Stop Loss  (0 disable)
 input int             InpTrade1MaxStopLoss=0;                         // Default Max Stop Loss  (0 disable)
+input int             InpTrade1StopLossProfile=0;                     // Default Stop Loss Profile (0 disable)
 input int             InpTrade1Martingale=2;                          // Default trade martingale for all trades
 input int             InpTrade1MaxMartingaleOperations=5;             // Default max operations  (0 disable)
 
@@ -71,6 +72,7 @@ input double          InpTrade2TakeProfit=110.0;                      // Default
 input int             InpTrade2MaxTakeProfit=2;                       // Default Max Take Profit  (0 disable)
 input double          InpTrade2StopLoss=0;                            // Default Stop Loss  (0 disable)
 input int             InpTrade2MaxStopLoss=0;                         // Default Max Stop Loss  (0 disable)
+input int             InpTrade2StopLossProfile=0;                     // Default Stop Loss Profile (0 disable)
 input int             InpTrade2Martingale=2;                          // Default trade martingale for all trades
 input int             InpTrade2MaxMartingaleOperations=5;             // Default max operations  (0 disable)
 
@@ -98,6 +100,7 @@ input double          InpTrade3TakeProfit=50.0;                       // Default
 input int             InpTrade3MaxTakeProfit=2;                       // Default Max Take Profit  (0 disable)
 input double          InpTrade3StopLoss=100;                            // Default Stop Loss  (0 disable)
 input int             InpTrade3MaxStopLoss=0;                         // Default Max Stop Loss  (0 disable)
+input int             InpTrade3StopLossProfile=0;                     // Default Stop Loss Profile (0 disable)
 input int             InpTrade3Martingale=2;                          // Default trade martingale for all trades
 input int             InpTrade3MaxMartingaleOperations=5;             // Default max operations  (0 disable)
 
@@ -125,6 +128,7 @@ input double          InpTrade4TakeProfit=150.0;                      // Default
 input int             InpTrade4MaxTakeProfit=1;                       // Default Max Take Profit  (0 disable)
 input double          InpTrade4StopLoss=180;                            // Default Stop Loss  (0 disable)
 input int             InpTrade4MaxStopLoss=0;                         // Default Max Stop Loss  (0 disable)
+input int             InpTrade4StopLossProfile=1;                     // Default Stop Loss Profile (0 disable)
 input int             InpTrade4Martingale=2;                          // Default trade martingale for all trades
 input int             InpTrade4MaxMartingaleOperations=5;             // Default max operations  (0 disable)
 
@@ -152,6 +156,7 @@ input double          InpTrade5TakeProfit=50.0;                      // Default 
 input int             InpTrade5MaxTakeProfit=5;                       // Default Max Take Profit  (0 disable)
 input double          InpTrade5StopLoss=100;                            // Default Stop Loss  (0 disable)
 input int             InpTrade5MaxStopLoss=0;                         // Default Max Stop Loss  (0 disable)
+input int             InpTrade5StopLossProfile=0;                     // Default Stop Loss Profile (0 disable)
 input int             InpTrade5Martingale=2;                          // Default trade martingale for all trades
 input int             InpTrade5MaxMartingaleOperations=5;             // Default max operations  (0 disable)
 
@@ -300,7 +305,7 @@ void InitConfigsForTrade1()
 
    CTradesController *tradesController=new CTradesController("T1");
    tradesController.InitTrade(InpTrade1Enabled,InpTrade1Volume,InpTrade1TakeProfit,InpTrade1MaxTakeProfit,
-                              InpTrade1StopLoss);
+                              InpTrade1StopLoss,InpTrade1StopLossProfile);
    tradesController.InitMartingale(InpTrade1Martingale,InpTrade1MaxMartingaleOperations);
    tradesController.InitTradesTime(InpTrade1TimeStartHour,InpTrade1TimeStartMinute,
                                    InpTrade1TimeEndHour,InpTrade1TimeEndMinute);
@@ -322,7 +327,7 @@ void InitConfigsForTrade2()
 
    CTradesController *tradesController=new CTradesController("T2");
    tradesController.InitTrade(InpTrade2Enabled,InpTrade2Volume,InpTrade2TakeProfit,InpTrade2MaxTakeProfit,
-                              InpTrade2StopLoss);
+                              InpTrade2StopLoss,InpTrade2StopLossProfile);
    tradesController.InitMartingale(InpTrade2Martingale,InpTrade2MaxMartingaleOperations);
    tradesController.InitTradesTime(InpTrade2TimeStartHour,InpTrade2TimeStartMinute,
                                    InpTrade2TimeEndHour,InpTrade2TimeEndMinute);
@@ -344,7 +349,7 @@ void InitConfigsForTrade3()
 
    CTradesController *tradesController=new CTradesController("T3");
    tradesController.InitTrade(InpTrade3Enabled,InpTrade3Volume,InpTrade3TakeProfit,InpTrade3MaxTakeProfit,
-                              InpTrade3StopLoss);
+                              InpTrade3StopLoss,InpTrade3StopLossProfile);
    tradesController.InitMartingale(InpTrade3Martingale,InpTrade3MaxMartingaleOperations);
    tradesController.InitTradesTime(InpTrade3TimeStartHour,InpTrade3TimeStartMinute,
                                    InpTrade3TimeEndHour,InpTrade3TimeEndMinute);
@@ -366,7 +371,7 @@ void InitConfigsForTrade4()
 
    CTradesController *tradesController=new CTradesController("T4");
    tradesController.InitTrade(InpTrade4Enabled,InpTrade4Volume,InpTrade4TakeProfit,InpTrade4MaxTakeProfit,
-                              InpTrade4StopLoss);
+                              InpTrade4StopLoss,InpTrade4StopLossProfile);
    tradesController.InitMartingale(InpTrade4Martingale,InpTrade4MaxMartingaleOperations);
    tradesController.InitTradesTime(InpTrade4TimeStartHour,InpTrade4TimeStartMinute,
                                    InpTrade4TimeEndHour,InpTrade4TimeEndMinute);
@@ -388,7 +393,7 @@ void InitConfigsForTrade5()
 
    CTradesController *tradesController=new CTradesController("T5");
    tradesController.InitTrade(InpTrade5Enabled,InpTrade5Volume,InpTrade5TakeProfit,InpTrade5MaxTakeProfit,
-                              InpTrade5StopLoss);
+                              InpTrade5StopLoss,InpTrade5StopLossProfile);
    tradesController.InitMartingale(InpTrade5Martingale,InpTrade5MaxMartingaleOperations);
    tradesController.InitTradesTime(InpTrade5TimeStartHour,InpTrade5TimeStartMinute,
                                    InpTrade5TimeEndHour,InpTrade5TimeEndMinute);
