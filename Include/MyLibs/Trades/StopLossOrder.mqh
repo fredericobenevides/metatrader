@@ -28,42 +28,42 @@ class CStopLossOrder
    bool              m_open_on_sell_trade;
 
    double            m_points;
-
-   bool              m_order_placed;
-   bool              m_order_need_to_be_deleted;
-   bool              m_ticket_loaded;
-   ulong             m_ticket_value;
+   //
+   //   bool              m_order_placed;
+   //   bool              m_order_need_to_be_deleted;
+   //   bool              m_ticket_loaded;
+   //   ulong             m_ticket_value;
 public:
 
                      CStopLossOrder(string tradeName,CPositionOrder *positionOrder);
                     ~CStopLossOrder();
    void              InitPoints(double points,int profile);
 
-   void              ExecutedPlaceStopLossOrder();
-   void              ExecutedDeleteStopLossOrder();
-
-   double            CalculateStopLossPrice(CTradesService *tradesService);
+   //   void              ExecutedPlaceStopLossOrder();
+   //   void              ExecutedDeleteStopLossOrder();
+   //
+   //   double            CalculateStopLossPrice(CTradesService *tradesService);
 
    bool              IsValidToPlacedOrder();
-   bool              IsOrderNeedToBeRemoved() { return m_order_need_to_be_deleted; }
-   void              SetToBeDeleted();
-
+   //   bool              IsOrderNeedToBeRemoved() { return m_order_need_to_be_deleted; }
+   //   void              SetToBeDeleted();
+   //
    string            BuySellOpenName();
    string            BuySellCloseName();
    bool              IsBuyStopLoss()  { return m_open_on_buy_trade; }
    bool              IsSellStopLoss() { return m_open_on_sell_trade; }
-
+   //
    double            Points() { return m_points; }
-   bool              IsOrderPlaced() { return m_order_placed; }
-   bool              IsTicketLoaded() { return m_ticket_loaded; }
-   ulong             Ticket()         { return m_ticket_value; }
-   void              LoadTicket(ulong ticket);
-   bool              VerifyIfExistTicket(ulong ticket) { return m_ticket_value==ticket; }
-
-   void              RestartProfile() { m_stop_loss_profile.Restart(); }
+   //   bool              IsOrderPlaced() { return m_order_placed; }
+   //   bool              IsTicketLoaded() { return m_ticket_loaded; }
+   //   ulong             Ticket()         { return m_ticket_value; }
+   //   void              LoadTicket(ulong ticket);
+   //   bool              VerifyIfExistTicket(ulong ticket) { return m_ticket_value==ticket; }
+   //
+   //   void              RestartProfile() { m_stop_loss_profile.Restart(); }
    void              ResetToDefault();
-
-   // stop loss profile
+   //
+   //   // stop loss profile
    void              VerifyIfNeedToChangeStopBasedOnProfile(double currentMarketPrice);
    void              OrderStopLossProfileMayBePlaced();
    void              OrderStopLossProfileMaybeWasRemoved();
@@ -97,59 +97,59 @@ void CStopLossOrder::InitPoints(double points,int profile)
    m_points=points;
    m_stop_loss_profile=new CStopLossProfile(profile,m_position_order);
   }
-//+------------------------------------------------------------------+
-//| Executed the place stop loss order
-//+------------------------------------------------------------------+
-void CStopLossOrder::ExecutedPlaceStopLossOrder()
-  {
-   m_order_placed=true;
-
-// profile
-   OrderStopLossProfileMayBePlaced();
-  }
-//+------------------------------------------------------------------+
-//| Executed the delete stop loss order
-//+------------------------------------------------------------------+
-void CStopLossOrder::ExecutedDeleteStopLossOrder()
-  {
-   m_open_on_buy_trade=false;
-   m_open_on_sell_trade=false;
-
-   m_order_placed=false;
-   m_order_need_to_be_deleted=false;
-   m_ticket_loaded=false;
-   m_ticket_value=0;
-
-// profile
-   OrderStopLossProfileMaybeWasRemoved();
-  }
-//+------------------------------------------------------------------+
-//| Calculate the stop loss price using the current price
-//+------------------------------------------------------------------+
-double CStopLossOrder::CalculateStopLossPrice(CTradesService *tradesService)
-  {
-
-   double openPrice=m_position_order.Price();
-   double stopLossPrice=0;
-
-   double points=m_points;
-
-   if(m_stop_loss_profile.IsNeedToChange())
-      points=m_stop_loss_profile.CurrentEnableProfile().NewPoints();
-
-   if(m_position_order.IsOnBuyTrade())
-     {
-      stopLossPrice=openPrice-points;
-      m_open_on_buy_trade=true;
-     }
-   else
-     {
-      stopLossPrice=openPrice+points;
-      m_open_on_sell_trade=true;
-     }
-
-   return stopLossPrice;
-  }
+////+------------------------------------------------------------------+
+////| Executed the place stop loss order
+////+------------------------------------------------------------------+
+//void CStopLossOrder::ExecutedPlaceStopLossOrder()
+//  {
+//   m_order_placed=true;
+//
+//// profile
+//   OrderStopLossProfileMayBePlaced();
+//  }
+////+------------------------------------------------------------------+
+////| Executed the delete stop loss order
+////+------------------------------------------------------------------+
+//void CStopLossOrder::ExecutedDeleteStopLossOrder()
+//  {
+//   m_open_on_buy_trade=false;
+//   m_open_on_sell_trade=false;
+//
+//   m_order_placed=false;
+//   m_order_need_to_be_deleted=false;
+//   m_ticket_loaded=false;
+//   m_ticket_value=0;
+//
+//// profile
+//   OrderStopLossProfileMaybeWasRemoved();
+//  }
+////+------------------------------------------------------------------+
+////| Calculate the stop loss price using the current price
+////+------------------------------------------------------------------+
+////double CStopLossOrder::CalculateStopLossPrice(CTradesService *tradesService)
+//  {
+//
+//   double openPrice=m_position_order.Price();
+//   double stopLossPrice=0;
+//
+//   double points=m_points;
+//
+//   if(m_stop_loss_profile.IsNeedToChange())
+//      points=m_stop_loss_profile.CurrentEnableProfile().NewPoints();
+//
+//   if(m_position_order.IsOnBuyTrade())
+//     {
+//      stopLossPrice=openPrice-points;
+//      m_open_on_buy_trade=true;
+//     }
+//   else
+//     {
+//      stopLossPrice=openPrice+points;
+//      m_open_on_sell_trade=true;
+//     }
+//
+//   return stopLossPrice;
+////  }
 //+------------------------------------------------------------------+
 //| Verify if if valid to place a take profit order
 //+------------------------------------------------------------------+
@@ -158,8 +158,8 @@ bool CStopLossOrder::IsValidToPlacedOrder()
    if(m_points==0.0)
       return false;
 
-   if(IsOrderPlaced())
-      return false;
+//if(IsOrderPlaced())
+//   return false;
 
    if(!m_position_order.IsOrderPlaced())
       return false;
@@ -169,16 +169,16 @@ bool CStopLossOrder::IsValidToPlacedOrder()
 
    return true;
   }
-//+------------------------------------------------------------------+
-//| Set to be deleted the stop loss
-//+------------------------------------------------------------------+
-void CStopLossOrder::SetToBeDeleted(void)
-  {
-   if(!IsOrderPlaced())
-      return;
-
-   m_order_need_to_be_deleted=true;
-  }
+////+------------------------------------------------------------------+
+////| Set to be deleted the stop loss
+////+------------------------------------------------------------------+
+//void CStopLossOrder::SetToBeDeleted(void)
+//  {
+//   if(!IsOrderPlaced())
+//      return;
+//
+//   m_order_need_to_be_deleted=true;
+//  }
 //+------------------------------------------------------------------+
 //| Returns the Buy or Sell Open Name
 //+------------------------------------------------------------------+
@@ -209,14 +209,14 @@ string CStopLossOrder::BuySellCloseName()
    else
       return m_sell_close_name;
   }
-//+------------------------------------------------------------------+
-//| Load the current ticket
-//+------------------------------------------------------------------+
-void CStopLossOrder::LoadTicket(ulong ticket)
-  {
-   m_ticket_loaded=true;
-   m_ticket_value=ticket;
-  }
+////+------------------------------------------------------------------+
+////| Load the current ticket
+////+------------------------------------------------------------------+
+//void CStopLossOrder::LoadTicket(ulong ticket)
+//  {
+//   m_ticket_loaded=true;
+//   m_ticket_value=ticket;
+//  }
 //+------------------------------------------------------------------+
 //| Reset everything to Default
 //+------------------------------------------------------------------+
@@ -225,10 +225,10 @@ void CStopLossOrder::ResetToDefault()
    m_open_on_buy_trade=false;
    m_open_on_sell_trade=false;
 
-   m_order_placed=false;
-   m_order_need_to_be_deleted=false;
-   m_ticket_loaded=false;
-   m_ticket_value=0;
+//   m_order_placed=false;
+//   m_order_need_to_be_deleted=false;
+//   m_ticket_loaded=false;
+//   m_ticket_value=0;
 
 // profile
    m_stop_loss_profile.ResetToDefault();
@@ -247,12 +247,12 @@ void CStopLossOrder::VerifyIfNeedToChangeStopBasedOnProfile(double currentMarket
    if(!m_position_order.IsOnTradeOperation())
       return;
 
-   if(IsOrderPlaced())
-     {
-      m_stop_loss_profile.VerifyIfNeedToChangeStopLoss(currentMarketPrice);
-      if(m_stop_loss_profile.IsNeedToChange())
-         SetToBeDeleted();
-     }
+//if(IsOrderPlaced())
+//  {
+//   m_stop_loss_profile.VerifyIfNeedToChangeStopLoss(currentMarketPrice);
+//   if(m_stop_loss_profile.IsNeedToChange())
+//      SetToBeDeleted();
+//  }
   }
 //+------------------------------------------------------------------+
 //| Inform that order stop loss based on profile may be placed.

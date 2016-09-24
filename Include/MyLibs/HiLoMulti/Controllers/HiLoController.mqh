@@ -48,12 +48,11 @@ protected:
 
    void              AddModelsToView();
 
-   void              TradeBuyOpen(int index,CTradesController *tradesController);
-   void              TradeSellOpen(int index,CTradesController *tradesController);
-   void              TradeBuyClose(int index,CTradesController *tradesController);
-   void              TradeSellClose(int index,CTradesController *tradesController);
+   void              TradeBuyOpen(int index,CPositionController *positionController,CTakeProfitController *takeProfitController,CStopLossController *stopLossController);
+   void              TradeSellOpen(int index,CPositionController *positionController,CTakeProfitController *takeProfitController,CStopLossController *stopLossController);
+   void              TradeBuyClose(int index,CPositionController *positionController,CTakeProfitController *takeProfitController,CStopLossController *stopLossController);
+   void              TradeSellClose(int index,CPositionController *positionController,CTakeProfitController *takeProfitController,CStopLossController *stopLossController);
 
-   //void              DestroyTpSlIfTicketAddedToHistory(ulong ticket);
    void              DestroyTakeProfitIfTicketAddedToHistory(ulong ticket);
    void              DestroyStopLossIfTicketAddedToHistory(ulong ticket);
   };
@@ -99,21 +98,24 @@ void CHiLoController::OnTick()
    for(int i=0;i<m_list_hilo_ma.Total();i++)
      {
       CHiLoMaHandle *hma=m_list_hilo_ma.GetNodeAtIndex(i);
-      CTradesController *tradesController=hma.GetTradesController();
+      
+      CPositionController *positionController=hma.PositionController();
+      CTakeProfitController *takeProfitController=hma.TakeProfitController();
+      CStopLossController *stopLossController=hma.StopLossController();
 
-      tradesController.VerifyIfChangeStopLossProfile();
+      stopLossController.VerifyIfChangeStopLossProfile();
 
       // Delete and update the interface since can be a disable trade.
-      if(tradesController.VerifyIfDeleteTakeProfitOrder())
-         m_hilo_multi_dialog.UpdateAllDialog(i,tradesController);
-      if(tradesController.VerifyIfDeleteStopLossOrder())
-         m_hilo_multi_dialog.UpdateAllDialog(i,tradesController);
+      if(takeProfitController.VerifyIfDeleteTakeProfitOrder())
+         m_hilo_multi_dialog.UpdateAllDialog(i,positionController,takeProfitController,stopLossController);
+      if(stopLossController.VerifyIfDeleteStopLossOrder())
+         m_hilo_multi_dialog.UpdateAllDialog(i,positionController,takeProfitController,stopLossController);
 
-      tradesController.VerifyIfPlaceTakeProfitOrder();
-      tradesController.VerifyIfPlaceStopLossOrder();
+      takeProfitController.VerifyIfPlaceTakeProfitOrder();
+      stopLossController.VerifyIfPlaceStopLossOrder();
 
-      tradesController.VerifyIfLoadTakeProfitTicket();
-      tradesController.VerifyIfLoadStopLossTicket();
+      takeProfitController.VerifyIfLoadTakeProfitTicket();
+      stopLossController.VerifyIfLoadStopLossTicket();
 
       // verify if exist operations for current trade
       CArrayInt *listOperations=hma.VerifyTypeOperation();
@@ -127,16 +129,16 @@ void CHiLoController::OnTick()
          switch(operation)
            {
             case BUY_OPEN_OPERATION:
-               TradeBuyOpen(i,tradesController);
+               TradeBuyOpen(i,positionController,takeProfitController,stopLossController);
                break;
             case SELL_OPEN_OPERATION:
-               TradeSellOpen(i,tradesController);
+               TradeSellOpen(i,positionController,takeProfitController,stopLossController);
                break;
             case BUY_CLOSE_OPERATION:
-               TradeBuyClose(i,tradesController);
+               TradeBuyClose(i,positionController,takeProfitController,stopLossController);
                break;
             case SELL_CLOSE_OPERATION:
-               TradeSellClose(i,tradesController);
+               TradeSellClose(i,positionController,takeProfitController,stopLossController);
                break;
             default: // NO_OPERATION
                continue;
@@ -188,7 +190,11 @@ void  CHiLoController::OnChartEvent(const int id,// event ID
 //+------------------------------------------------------------------+
 void CHiLoController::AddModel(CHiLoMaHandle *hiloMa)
   {
-   hiloMa.GetTradesController().AddTradesService(m_trades_service);
+   hiloMa.PositionController().AddTradesService(m_trades_service);
+   hiloMa.TakeProfitController().AddTradesService(m_trades_service);
+   hiloMa.StopLossController().AddTradesService(m_trades_service);
+   
+   
    m_list_hilo_ma.Add(hiloMa);
   }
 //+------------------------------------------------------------------+
@@ -216,10 +222,12 @@ void CHiLoController::ReInitTradesToDefault()
    for(int i=0;i<m_list_hilo_ma.Total();i++)
      {
       CHiLoMaHandle *hma=m_list_hilo_ma.GetNodeAtIndex(i);
-      CTradesController *tradesController=hma.GetTradesController();
-      tradesController.ResetToDefault();
+      
+      hma.PositionController().ResetToDefault();
+      hma.TakeProfitController().ResetToDefault();
+      hma.StopLossController().ResetToDefault();
 
-      m_hilo_multi_dialog.UpdateAllDialog(i,tradesController);
+      m_hilo_multi_dialog.UpdateAllDialog(i,hma.PositionController(),hma.TakeProfitController(),hma.StopLossController());
      }
   }
 //+------------------------------------------------------------------+
@@ -263,34 +271,34 @@ void CHiLoController::AddModelsToView()
 //+------------------------------------------------------------------+
 //| Open a BUY operation
 //+------------------------------------------------------------------+
-void CHiLoController::TradeBuyOpen(int index,CTradesController *tradesController)
+void CHiLoController::TradeBuyOpen(int index,CPositionController *positionController,CTakeProfitController *takeProfitController,CStopLossController *stopLossController)
   {
-   if(tradesController.PositionBuyOpen())
-      m_hilo_multi_dialog.UpdateAllDialog(index,tradesController);
+   if(positionController.BuyOpen())
+      m_hilo_multi_dialog.UpdateAllDialog(index,positionController,takeProfitController,stopLossController);
   }
 //+------------------------------------------------------------------+
 //| Open a SELL operation
 //+------------------------------------------------------------------+
-void CHiLoController::TradeSellOpen(int index,CTradesController *tradesController)
+void CHiLoController::TradeSellOpen(int index,CPositionController *positionController,CTakeProfitController *takeProfitController,CStopLossController *stopLossController)
   {
-   if(tradesController.PositionSellOpen())
-      m_hilo_multi_dialog.UpdateAllDialog(index,tradesController);
+   if(positionController.SellOpen())
+      m_hilo_multi_dialog.UpdateAllDialog(index,positionController,takeProfitController,stopLossController);
   }
 //+------------------------------------------------------------------+
 //| Close a BUY operation|
 //+------------------------------------------------------------------+
-void CHiLoController::TradeBuyClose(int index,CTradesController *tradesController)
+void CHiLoController::TradeBuyClose(int index,CPositionController *positionController,CTakeProfitController *takeProfitController,CStopLossController *stopLossController)
   {
-   if(tradesController.PositionBuyClose())
-      m_hilo_multi_dialog.UpdateAllDialog(index,tradesController);
+   if(positionController.BuyClose())
+      m_hilo_multi_dialog.UpdateAllDialog(index,positionController,takeProfitController,stopLossController);
   }
 //+------------------------------------------------------------------+
 //| Close a SELL operation
 //+------------------------------------------------------------------+
-void CHiLoController::TradeSellClose(int index,CTradesController *tradesController)
+void CHiLoController::TradeSellClose(int index,CPositionController *positionController,CTakeProfitController *takeProfitController,CStopLossController *stopLossController)
   {
-   if(tradesController.PositionSellClose())
-      m_hilo_multi_dialog.UpdateAllDialog(index,tradesController);
+   if(positionController.SellClose())
+      m_hilo_multi_dialog.UpdateAllDialog(index,positionController,takeProfitController,stopLossController);
   }
 //+------------------------------------------------------------------+
 //| Destroy the tick of Take Profit if was executed
@@ -301,12 +309,12 @@ void CHiLoController::DestroyTakeProfitIfTicketAddedToHistory(ulong ticket)
    for(int i=0;i<m_list_hilo_ma.Total();i++)
      {
       CHiLoMaHandle *hma=m_list_hilo_ma.GetNodeAtIndex(i);
-      CTradesController *tradesController=hma.GetTradesController();
+      CTakeProfitController *takeProfitController=hma.TakeProfitController();
 
-      if(tradesController.VerifyIfDestroyTakeProfitExecutedByMetatrader(ticket))
+      if(takeProfitController.VerifyIfDestroyTakeProfitExecutedByMetatrader(ticket))
         {
          Print("The ticket "+IntegerToString(ticket)+" had Take Profit");
-         m_hilo_multi_dialog.UpdateAllDialog(i,tradesController);
+         m_hilo_multi_dialog.UpdateAllDialog(i,hma.PositionController(),hma.TakeProfitController(),hma.StopLossController());
         }
      }
   }
@@ -319,12 +327,12 @@ void CHiLoController::DestroyStopLossIfTicketAddedToHistory(ulong ticket)
    for(int i=0;i<m_list_hilo_ma.Total();i++)
      {
       CHiLoMaHandle *hma=m_list_hilo_ma.GetNodeAtIndex(i);
-      CTradesController *tradesController=hma.GetTradesController();
+      CStopLossController *stopLossController=hma.StopLossController();
 
-      if(tradesController.VerifyIfDestroyStopLossExecutedByMetatrader(ticket))
+      if(stopLossController.VerifyIfDestroyStopLossExecutedByMetatrader(ticket))
         {
          Print("The ticket "+IntegerToString(ticket)+" had Stop Loss");
-         m_hilo_multi_dialog.UpdateAllDialog(i,tradesController);
+         m_hilo_multi_dialog.UpdateAllDialog(i,hma.PositionController(),hma.TakeProfitController(),hma.StopLossController());
         }
      }
   }

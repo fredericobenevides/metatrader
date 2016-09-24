@@ -9,9 +9,11 @@
 
 #resource "\\Indicators\\HiLo MA Activator.ex5"
 
-#include <MyLibs\Trades\TradesController.mqh>
-
-#include <MyLibs\HiLoMulti\Models\HiLoMaHandle.mqh>
+//#include <MyLibs\Trades\PositionController.mqh>
+//#include <MyLibs\Trades\TakeProfitController.mqh>
+//#include <MyLibs\Trades\StopLossController.mqh>
+//
+//#include <MyLibs\HiLoMulti\Models\HiLoMaHandle.mqh>
 #include <MyLibs\HiLoMulti\Controllers\HiLoController.mqh>
 
 #include <MyLibs\Test\HiLoMultiTest.mqh>
@@ -93,7 +95,7 @@ input string          InpTrade2EndData="------------------------------"; // ----
 
 //--- input parameters for Trade 3 (Trade Config)
 input string          InpTrade3Data="------------------------------"; // ------- Trade 3 (Trade's Config) -------
-input bool            InpTrade3Enabled=true;                          // Default to true to enable the Trade
+input bool            InpTrade3Enabled=false;                          // Default to true to enable the Trade
 input ENUM_TIMEFRAMES InpTrade3TimeFrame=PERIOD_M5;                   // Default TimeFrame for Trade
 input double          InpTrade3Volume=2;                              // Default volume to do trades operations
 input double          InpTrade3TakeProfit=50.0;                       // Default Take Profit (0 disable)
@@ -149,7 +151,7 @@ input string          InpTrade4EndData="------------------------------"; // ----
 
 //--- input parameters for Trade 5 (Trade Config)
 input string          InpTrade5Data="------------------------------"; // ------- Trade 5 (Trade's Config) -------
-input bool            InpTrade5Enabled=true;                          // Default to true to enable the Trade
+input bool            InpTrade5Enabled=false;                          // Default to true to enable the Trade
 input ENUM_TIMEFRAMES InpTrade5TimeFrame=PERIOD_M5;                   // Default TimeFrame for Trade
 input double          InpTrade5Volume=2;                              // Default volume to do trades operations
 input double          InpTrade5TakeProfit=50.0;                      // Default Take Profit (0 disable)
@@ -303,14 +305,25 @@ void InitConfigsForTrade1()
                                           InpAllArrowInFirstHiLo,InpAllArrowInSecondHiLo,
                                           InpAllArrowInCurrentCandle,InpAllShowHiLoLine);
 
-   CTradesController *tradesController=new CTradesController("T1");
-   tradesController.InitTrade(InpTrade1Enabled,InpTrade1Volume,InpTrade1TakeProfit,InpTrade1MaxTakeProfit,
-                              InpTrade1StopLoss,InpTrade1StopLossProfile);
-   tradesController.InitMartingale(InpTrade1Martingale,InpTrade1MaxMartingaleOperations);
-   tradesController.InitTradesTime(InpTrade1TimeStartHour,InpTrade1TimeStartMinute,
-                                   InpTrade1TimeEndHour,InpTrade1TimeEndMinute);
+   string tradesName="T1";
+   CPositionController *positionController=new CPositionController(tradesName);
+   positionController.InitTrade(InpTrade1Enabled,InpTrade1Volume);
+   positionController.InitMartingale(InpTrade1Martingale,InpTrade1MaxMartingaleOperations);
+   positionController.InitTradesTime(InpTrade1TimeStartHour,InpTrade1TimeStartMinute,
+                                     InpTrade1TimeEndHour,InpTrade1TimeEndMinute);
 
-   hiloMaTrade1.AddTradesController(tradesController);
+   CTakeProfitController *takeProfitController=new CTakeProfitController(tradesName,positionController.PositionOrder());
+   takeProfitController.InitTrade(InpTrade1TakeProfit,InpTrade1MaxTakeProfit);
+
+   CStopLossController *stopLossController=new CStopLossController(tradesName,positionController.PositionOrder());
+   takeProfitController.InitTrade(InpTrade1StopLoss,InpTrade1StopLossProfile);
+
+   positionController.InitTradesControllers(takeProfitController,stopLossController);
+
+   hiloMaTrade1.AddPositionController(positionController);
+   hiloMaTrade1.AddTakeProfitController(takeProfitController);
+   hiloMaTrade1.AddStopLossController(stopLossController);
+
    HiLoController.AddModel(hiloMaTrade1);
   }
 //+------------------------------------------------------------------+
@@ -325,14 +338,25 @@ void InitConfigsForTrade2()
                                           InpAllArrowInFirstHiLo,InpAllArrowInSecondHiLo,
                                           InpAllArrowInCurrentCandle,InpAllShowHiLoLine);
 
-   CTradesController *tradesController=new CTradesController("T2");
-   tradesController.InitTrade(InpTrade2Enabled,InpTrade2Volume,InpTrade2TakeProfit,InpTrade2MaxTakeProfit,
-                              InpTrade2StopLoss,InpTrade2StopLossProfile);
-   tradesController.InitMartingale(InpTrade2Martingale,InpTrade2MaxMartingaleOperations);
-   tradesController.InitTradesTime(InpTrade2TimeStartHour,InpTrade2TimeStartMinute,
-                                   InpTrade2TimeEndHour,InpTrade2TimeEndMinute);
+   string tradesName="T2";
+   CPositionController *positionController=new CPositionController(tradesName);
+   positionController.InitTrade(InpTrade2Enabled,InpTrade2Volume);
+   positionController.InitMartingale(InpTrade2Martingale,InpTrade2MaxMartingaleOperations);
+   positionController.InitTradesTime(InpTrade2TimeStartHour,InpTrade2TimeStartMinute,
+                                     InpTrade2TimeEndHour,InpTrade2TimeEndMinute);
 
-   hiloMaTrade2.AddTradesController(tradesController);
+   CTakeProfitController *takeProfitController=new CTakeProfitController(tradesName,positionController.PositionOrder());
+   takeProfitController.InitTrade(InpTrade2TakeProfit,InpTrade2MaxTakeProfit);
+
+   CStopLossController *stopLossController=new CStopLossController(tradesName,positionController.PositionOrder());
+   takeProfitController.InitTrade(InpTrade2StopLoss,InpTrade2StopLossProfile);
+
+   positionController.InitTradesControllers(takeProfitController,stopLossController);
+
+   hiloMaTrade2.AddPositionController(positionController);
+   hiloMaTrade2.AddTakeProfitController(takeProfitController);
+   hiloMaTrade2.AddStopLossController(stopLossController);
+
    HiLoController.AddModel(hiloMaTrade2);
   }
 //+------------------------------------------------------------------+
@@ -347,14 +371,25 @@ void InitConfigsForTrade3()
                                           InpAllArrowInFirstHiLo,InpAllArrowInSecondHiLo,
                                           InpAllArrowInCurrentCandle,InpAllShowHiLoLine);
 
-   CTradesController *tradesController=new CTradesController("T3");
-   tradesController.InitTrade(InpTrade3Enabled,InpTrade3Volume,InpTrade3TakeProfit,InpTrade3MaxTakeProfit,
-                              InpTrade3StopLoss,InpTrade3StopLossProfile);
-   tradesController.InitMartingale(InpTrade3Martingale,InpTrade3MaxMartingaleOperations);
-   tradesController.InitTradesTime(InpTrade3TimeStartHour,InpTrade3TimeStartMinute,
-                                   InpTrade3TimeEndHour,InpTrade3TimeEndMinute);
+   string tradesName="T3";
+   CPositionController *positionController=new CPositionController(tradesName);
+   positionController.InitTrade(InpTrade3Enabled,InpTrade3Volume);
+   positionController.InitMartingale(InpTrade3Martingale,InpTrade3MaxMartingaleOperations);
+   positionController.InitTradesTime(InpTrade3TimeStartHour,InpTrade3TimeStartMinute,
+                                     InpTrade3TimeEndHour,InpTrade3TimeEndMinute);
 
-   hiloMaTrade3.AddTradesController(tradesController);
+   CTakeProfitController *takeProfitController=new CTakeProfitController(tradesName,positionController.PositionOrder());
+   takeProfitController.InitTrade(InpTrade3TakeProfit,InpTrade3MaxTakeProfit);
+
+   CStopLossController *stopLossController=new CStopLossController(tradesName,positionController.PositionOrder());
+   takeProfitController.InitTrade(InpTrade3StopLoss,InpTrade3StopLossProfile);
+
+   positionController.InitTradesControllers(takeProfitController,stopLossController);
+
+   hiloMaTrade3.AddPositionController(positionController);
+   hiloMaTrade3.AddTakeProfitController(takeProfitController);
+   hiloMaTrade3.AddStopLossController(stopLossController);
+
    HiLoController.AddModel(hiloMaTrade3);
   }
 //+------------------------------------------------------------------+
@@ -369,14 +404,25 @@ void InitConfigsForTrade4()
                                           InpAllArrowInFirstHiLo,InpAllArrowInSecondHiLo,
                                           InpAllArrowInCurrentCandle,InpAllShowHiLoLine);
 
-   CTradesController *tradesController=new CTradesController("T4");
-   tradesController.InitTrade(InpTrade4Enabled,InpTrade4Volume,InpTrade4TakeProfit,InpTrade4MaxTakeProfit,
-                              InpTrade4StopLoss,InpTrade4StopLossProfile);
-   tradesController.InitMartingale(InpTrade4Martingale,InpTrade4MaxMartingaleOperations);
-   tradesController.InitTradesTime(InpTrade4TimeStartHour,InpTrade4TimeStartMinute,
-                                   InpTrade4TimeEndHour,InpTrade4TimeEndMinute);
+   string tradesName="T4";
+   CPositionController *positionController=new CPositionController(tradesName);
+   positionController.InitTrade(InpTrade4Enabled,InpTrade4Volume);
+   positionController.InitMartingale(InpTrade4Martingale,InpTrade4MaxMartingaleOperations);
+   positionController.InitTradesTime(InpTrade4TimeStartHour,InpTrade4TimeStartMinute,
+                                     InpTrade4TimeEndHour,InpTrade4TimeEndMinute);
 
-   hiloMaTrade4.AddTradesController(tradesController);
+   CTakeProfitController *takeProfitController=new CTakeProfitController(tradesName,positionController.PositionOrder());
+   takeProfitController.InitTrade(InpTrade4TakeProfit,InpTrade4MaxTakeProfit);
+
+   CStopLossController *stopLossController=new CStopLossController(tradesName,positionController.PositionOrder());
+   takeProfitController.InitTrade(InpTrade4StopLoss,InpTrade4StopLossProfile);
+
+   positionController.InitTradesControllers(takeProfitController,stopLossController);
+
+   hiloMaTrade4.AddPositionController(positionController);
+   hiloMaTrade4.AddTakeProfitController(takeProfitController);
+   hiloMaTrade4.AddStopLossController(stopLossController);
+   
    HiLoController.AddModel(hiloMaTrade4);
   }
 //+------------------------------------------------------------------+
@@ -391,14 +437,25 @@ void InitConfigsForTrade5()
                                           InpAllArrowInFirstHiLo,InpAllArrowInSecondHiLo,
                                           InpAllArrowInCurrentCandle,InpAllShowHiLoLine);
 
-   CTradesController *tradesController=new CTradesController("T5");
-   tradesController.InitTrade(InpTrade5Enabled,InpTrade5Volume,InpTrade5TakeProfit,InpTrade5MaxTakeProfit,
-                              InpTrade5StopLoss,InpTrade5StopLossProfile);
-   tradesController.InitMartingale(InpTrade5Martingale,InpTrade5MaxMartingaleOperations);
-   tradesController.InitTradesTime(InpTrade5TimeStartHour,InpTrade5TimeStartMinute,
-                                   InpTrade5TimeEndHour,InpTrade5TimeEndMinute);
+   string tradesName="T5";
+   CPositionController *positionController=new CPositionController(tradesName);
+   positionController.InitTrade(InpTrade5Enabled,InpTrade5Volume);
+   positionController.InitMartingale(InpTrade5Martingale,InpTrade5MaxMartingaleOperations);
+   positionController.InitTradesTime(InpTrade5TimeStartHour,InpTrade5TimeStartMinute,
+                                     InpTrade5TimeEndHour,InpTrade5TimeEndMinute);
 
-   hiloMaTrade5.AddTradesController(tradesController);
+   CTakeProfitController *takeProfitController=new CTakeProfitController(tradesName,positionController.PositionOrder());
+   takeProfitController.InitTrade(InpTrade5TakeProfit,InpTrade5MaxTakeProfit);
+
+   CStopLossController *stopLossController=new CStopLossController(tradesName,positionController.PositionOrder());
+   takeProfitController.InitTrade(InpTrade5StopLoss,InpTrade5StopLossProfile);
+
+   positionController.InitTradesControllers(takeProfitController,stopLossController);
+
+   hiloMaTrade5.AddPositionController(positionController);
+   hiloMaTrade5.AddTakeProfitController(takeProfitController);
+   hiloMaTrade5.AddStopLossController(stopLossController);
+
    HiLoController.AddModel(hiloMaTrade5);
   }
 //+------------------------------------------------------------------+

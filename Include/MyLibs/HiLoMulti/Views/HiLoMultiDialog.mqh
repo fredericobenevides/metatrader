@@ -18,7 +18,10 @@
 #include <Arrays\List.mqh>
 
 // my libs
-#include <MyLibs\Trades\TradesController.mqh>
+#include <MyLibs\Trades\PositionOrder.mqh>
+#include <MyLibs\Trades\TakeProfitOrder.mqh>
+#include <MyLibs\Trades\StopLossOrder.mqh>
+
 #include <MyLibs\HiLoMulti\Models\HiLoMaHandle.mqh>
 
 //--- indents and gaps
@@ -79,8 +82,8 @@ public:
    bool              OnEvent(const int id,const long &lparam,const double &dparam,const string &sparam);
    bool              ChartEvent(const int id,const long &lparam,const double &dparam,const string &sparam);
 
-   void              UpdateAllDialog(int index,CTradesController *tradesController);
-   void              UpdateEnableDisableTrades(int index,CTradesController *tradesController);
+   void              UpdateAllDialog(int index,CPositionController *positionController,CTakeProfitController *takeProfitController,CStopLossController *stopLossController);
+   void              UpdateEnableDisableTrades(int index,CPositionOrder *positionOrder);
 
 protected:
    //--- create dependent controls
@@ -151,41 +154,45 @@ bool CHiLoMultiDialog::ChartEvent(const int id,const long &lparam,const double &
 //+------------------------------------------------------------------+
 //| Update dialog based on CTrades
 //+------------------------------------------------------------------+
-void CHiLoMultiDialog::UpdateAllDialog(int index,CTradesController *tradesController)
+void CHiLoMultiDialog::UpdateAllDialog(int index,CPositionController *positionController,CTakeProfitController *takeProfitController,CStopLossController *stopLossController)
   {
-   UpdateEnableDisableTrades(index,tradesController);
+   CPositionOrder *positionOrder=positionController.PositionOrder();
+   CTakeProfitOrder *takeProfitOrder=takeProfitController.TakeProfitOrder();
+   CStopLossOrder *stopLossOrder=stopLossController.StopLossOrder();
+
+   UpdateEnableDisableTrades(index,positionOrder);
 
    CEdit *m_edit_e_volume=m_list_trade_e_volume.GetNodeAtIndex(index);
-   m_edit_e_volume.Text(DoubleToString(tradesController.PositionOrder().Volume(),0));
+   m_edit_e_volume.Text(DoubleToString(positionOrder.Volume(),0));
    m_edit_e_volume.TextAlign(ALIGN_CENTER);
 
    CEdit *m_edit_e_next_volume=m_list_trade_e_next_volume.GetNodeAtIndex(index);
-   m_edit_e_next_volume.Text(DoubleToString(tradesController.PositionOrder().NextVolume(),0));
+   m_edit_e_next_volume.Text(DoubleToString(positionOrder.NextVolume(),0));
    m_edit_e_next_volume.TextAlign(ALIGN_CENTER);
 
    CEdit *m_edit_e_take_profit=m_list_trade_e_take_profit.GetNodeAtIndex(index);
-   m_edit_e_take_profit.Text(DoubleToString(tradesController.TakeProfitOrder().Points(),0));
+   m_edit_e_take_profit.Text(DoubleToString(takeProfitOrder.Points(),0));
    m_edit_e_take_profit.TextAlign(ALIGN_CENTER);
 
    CEdit *m_edit_e_stop_loss=m_list_trade_e_stop_loss.GetNodeAtIndex(index);
-   m_edit_e_stop_loss.Text(DoubleToString(tradesController.StopLossOrder().Points(),0));
+   m_edit_e_stop_loss.Text(DoubleToString(stopLossOrder.Points(),0));
    m_edit_e_stop_loss.TextAlign(ALIGN_CENTER);
 
    CEdit *m_edit_e_mtp_status=m_list_trade_e_mtp_status.GetNodeAtIndex(index);
-   m_edit_e_mtp_status.Text(tradesController.TakeProfitOrder().MaxTakeProfitStatus());
+   m_edit_e_mtp_status.Text(takeProfitOrder.MaxTakeProfitStatus());
    m_edit_e_mtp_status.TextAlign(ALIGN_CENTER);
 
    CEdit *m_edit_e_bs_status=m_list_trade_e_bs_status.GetNodeAtIndex(index);
-   m_edit_e_bs_status.Text(tradesController.PositionOrder().BuySellOperationStatus());
+   m_edit_e_bs_status.Text(positionOrder.BuySellOperationStatus());
    m_edit_e_bs_status.TextAlign(ALIGN_CENTER);
   }
 //+------------------------------------------------------------------+
 //| Update Enable and Disable Trades
 //+------------------------------------------------------------------+
-void CHiLoMultiDialog::UpdateEnableDisableTrades(int index,CTradesController *tradesController)
+void CHiLoMultiDialog::UpdateEnableDisableTrades(int index,CPositionOrder *positionOrder)
   {
    CCheckBox *m_trade_c_enable=m_list_trade_c_enable.GetNodeAtIndex(index);
-   if(tradesController.PositionOrder().IsTradeEnable())
+   if(positionOrder.IsTradeEnable())
       m_trade_c_enable.Checked(true);
    else
       m_trade_c_enable.Checked(false);
@@ -256,7 +263,10 @@ bool CHiLoMultiDialog::CreateTradesConfig()
       int y1=int(INDENT_TOP+yGap);
 
       CHiLoMaHandle *hma=m_list_hilo_ma.GetNodeAtIndex(i);
-      CTradesController *tradesController=hma.GetTradesController();
+
+      CPositionController *positionController=hma.PositionController();
+      CTakeProfitController *takeProfitController=hma.TakeProfitController();
+      CStopLossController *stopLossController=hma.StopLossController();
 
       CLabel *m_trade_l_name=new CLabel();
       CCheckBox *m_trade_c_enable=new CCheckBox();
@@ -284,7 +294,7 @@ bool CHiLoMultiDialog::CreateTradesConfig()
 
       if(!m_trade_l_name.Create(m_chart_id,"m_trade_l_name"+IntegerToString(indexNameTrade),m_subwin,x1,y1,x2,y2))
          return false;
-      if(!m_trade_l_name.Text(tradesController.PositionOrder().Name()))
+      if(!m_trade_l_name.Text(positionController.PositionOrder().Name()))
          return false;
       if(!Add(m_trade_l_name))
          return false;
@@ -453,7 +463,7 @@ bool CHiLoMultiDialog::CreateTradesConfig()
       m_list_trade_l_bs_status.Add(m_trade_l_bs_status);
       m_list_trade_e_bs_status.Add(m_trade_e_bs_status);
 
-      UpdateAllDialog(i,tradesController);
+      UpdateAllDialog(i,positionController,takeProfitController,stopLossController);
      }
 
    return true;
@@ -466,13 +476,13 @@ void CHiLoMultiDialog::OnClickEnableDisablePositionTradeByChecked()
    for(int i=0;i<m_list_hilo_ma.Total();i++)
      {
       CHiLoMaHandle *hma=m_list_hilo_ma.GetNodeAtIndex(i);
-      CTradesController *tradesController=hma.GetTradesController();
+      CPositionOrder *positionOrder=hma.PositionController().PositionOrder();
 
       CCheckBox *m_trade_c_enable=m_list_trade_c_enable.GetNodeAtIndex(i);
       if(m_trade_c_enable.Checked())
-         tradesController.PositionOrder().EnableTrade();
+         positionOrder.EnableTrade();
       else
-         tradesController.PositionOrder().DisableTrade();
+         positionOrder.DisableTrade();
      }
   }
 //+------------------------------------------------------------------+
@@ -483,10 +493,10 @@ void CHiLoMultiDialog::OnClickEnableAllTrades()
    for(int i=0;i<m_list_hilo_ma.Total();i++)
      {
       CHiLoMaHandle *hma=m_list_hilo_ma.GetNodeAtIndex(i);
-      CTradesController *tradesController=hma.GetTradesController();
+      CPositionOrder *positionOrder=hma.PositionController().PositionOrder();
 
-      tradesController.PositionOrder().EnableTrade();
-      UpdateEnableDisableTrades(i,tradesController);
+      positionOrder.EnableTrade();
+      UpdateEnableDisableTrades(i,positionOrder);
      }
   }
 //+------------------------------------------------------------------+
@@ -497,10 +507,10 @@ void CHiLoMultiDialog::OnClickDisableAllTrades()
    for(int i=0;i<m_list_hilo_ma.Total();i++)
      {
       CHiLoMaHandle *hma=m_list_hilo_ma.GetNodeAtIndex(i);
-      CTradesController *tradesController=hma.GetTradesController();
+      CPositionOrder *positionOrder=hma.PositionController().PositionOrder();
 
-      tradesController.PositionOrder().DisableTrade();
-      UpdateEnableDisableTrades(i,tradesController);
+      positionOrder.DisableTrade();
+      UpdateEnableDisableTrades(i,positionOrder);
      }
   }
 //+------------------------------------------------------------------+
@@ -511,16 +521,17 @@ void CHiLoMultiDialog::OnClickStopAllTrades()
    for(int i=0;i<m_list_hilo_ma.Total();i++)
      {
       CHiLoMaHandle *hma=m_list_hilo_ma.GetNodeAtIndex(i);
-      CTradesController *tradesController=hma.GetTradesController();
+      CPositionController *positionController=hma.PositionController();
 
-      tradesController.PositionBuyClose();
-      tradesController.PositionSellClose();
+      positionController.BuyClose();
+      positionController.SellClose();
 
-      tradesController.PositionOrder().ResetVolumeToZero();
-      tradesController.PositionOrder().ResetNextVolumeToInitialVolume();
-      tradesController.PositionOrder().DisableTrade();
+      CPositionOrder *positionOrder=positionController.PositionOrder();
+      positionOrder.ResetVolumeToZero();
+      positionOrder.ResetNextVolumeToInitialVolume();
+      positionOrder.DisableTrade();
 
-      UpdateEnableDisableTrades(i,tradesController);
+      UpdateEnableDisableTrades(i,positionOrder);
      }
   }
 //+------------------------------------------------------------------+

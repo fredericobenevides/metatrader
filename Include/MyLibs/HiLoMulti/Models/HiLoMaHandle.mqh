@@ -9,15 +9,21 @@
 #include <Object.mqh>
 #include <Arrays\ArrayInt.mqh>
 
-#include <MyLibs\Trades\TradesController.mqh>
 #include <MyLibs\Utils\ChartUtils.mqh>
 #include <MyLibs\HiLoMulti\Models\EnumOperations.mqh>
+
+#include <MyLibs\Trades\PositionController.mqh>
+#include <MyLibs\Trades\TakeProfitController.mqh>
+#include <MyLibs\Trades\StopLossController.mqh>
 //+------------------------------------------------------------------+
 //| Model of CHiLoMaHandleHandle
 //+------------------------------------------------------------------+
 class CHiLoMaHandle : public CObject
   {
-   CTradesController *m_trades_controller;
+   CPositionController *m_position_controller;
+   CTakeProfitController *m_take_profit_controller;
+   CStopLossController *m_stop_loss_controller;
+
    CChartUtils       m_chart_utils;
 
    // hilo config
@@ -57,8 +63,13 @@ public:
    CArrayInt        *VerifyTypeOperation();
 
    // getters and setters 
-   void              AddTradesController(CTradesController *tradesController) { m_trades_controller=tradesController; }
-   CTradesController *GetTradesController() { return m_trades_controller; }
+   void              AddPositionController(CPositionController *positionController) { m_position_controller=positionController; }
+   void              AddTakeProfitController(CTakeProfitController *takeProfitController) { m_take_profit_controller=takeProfitController; }
+   void              AddStopLossController(CStopLossController *stopLossController) { m_stop_loss_controller=stopLossController; }
+
+   CPositionController *PositionController() { return m_position_controller; }
+   CTakeProfitController *TakeProfitController() { return m_take_profit_controller; }
+   CStopLossController *StopLossController() { return m_stop_loss_controller; }
   };
 //+------------------------------------------------------------------+
 //| Constructor
@@ -72,7 +83,10 @@ CHiLoMaHandle::CHiLoMaHandle(void)
 CHiLoMaHandle::~CHiLoMaHandle(void)
   {
    IndicatorRelease(m_hilo_custom_handle);
-   delete m_trades_controller;
+   
+   delete m_position_controller;
+   delete m_take_profit_controller;
+   delete m_stop_loss_controller;
   };
 //+------------------------------------------------------------------+
 //| Init HiLo's Config
