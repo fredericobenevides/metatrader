@@ -158,7 +158,6 @@ void CHiLoMultiDialog::UpdateAllDialog(int index,CPositionController *positionCo
   {
    CPositionOrder *positionOrder=positionController.PositionOrder();
    CTakeProfitOrder *takeProfitOrder=takeProfitController.TakeProfitOrder();
-   CStopLossOrder *stopLossOrder=stopLossController.StopLossOrder();
 
    UpdateEnableDisableTrades(index,positionOrder);
 
@@ -171,15 +170,15 @@ void CHiLoMultiDialog::UpdateAllDialog(int index,CPositionController *positionCo
    m_edit_e_next_volume.TextAlign(ALIGN_CENTER);
 
    CEdit *m_edit_e_take_profit=m_list_trade_e_take_profit.GetNodeAtIndex(index);
-   m_edit_e_take_profit.Text(DoubleToString(takeProfitOrder.Points(),0));
+   m_edit_e_take_profit.Text(DoubleToString(takeProfitController.TakeProfitPoints(),0));
    m_edit_e_take_profit.TextAlign(ALIGN_CENTER);
 
    CEdit *m_edit_e_stop_loss=m_list_trade_e_stop_loss.GetNodeAtIndex(index);
-   m_edit_e_stop_loss.Text(DoubleToString(stopLossOrder.Points(),0));
+   m_edit_e_stop_loss.Text(DoubleToString(stopLossController.StopLossPoints(),0));
    m_edit_e_stop_loss.TextAlign(ALIGN_CENTER);
 
    CEdit *m_edit_e_mtp_status=m_list_trade_e_mtp_status.GetNodeAtIndex(index);
-   m_edit_e_mtp_status.Text(takeProfitOrder.MaxTakeProfitStatus());
+   m_edit_e_mtp_status.Text(takeProfitController.MaxTakeProfitStatus());
    m_edit_e_mtp_status.TextAlign(ALIGN_CENTER);
 
    CEdit *m_edit_e_bs_status=m_list_trade_e_bs_status.GetNodeAtIndex(index);

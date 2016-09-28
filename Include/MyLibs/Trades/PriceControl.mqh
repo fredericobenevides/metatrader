@@ -23,7 +23,7 @@ public:
    void              Init(double priceToChange,double newPrice);
 
    double            PointsToChange() { return m_points_to_change; }
-   double            NewPoints() { return m_new_points; }
+   double            NewPoints() { return -1*m_new_points; }
 
    void              Enable() { m_enable=true; }
    void              Disable() { m_enable=false; }

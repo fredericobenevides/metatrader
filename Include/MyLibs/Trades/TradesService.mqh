@@ -24,6 +24,8 @@ private:
    string            m_sell_trade_sound_name;
    string            m_error_trade_sound_name;
 
+   string            m_last_comment_operation;
+
 public:
                      CTradesService(long magic);
 
@@ -39,6 +41,7 @@ public:
    double            OrderPrice(ulong ticket);
 
    double            RequestPrice() { return m_trade.RequestPrice(); }
+   string            LastCommentOperation() { return m_last_comment_operation; }
 
    ulong             TryToLoadPositionTicket(string methodName);
    ulong             TryToLoadOrderTicket(string methodName);
@@ -73,6 +76,7 @@ bool CTradesService::ExecuteBuyTrade(double volume,string methodName)
   {
    double price=SymbolInfoDouble(_Symbol,SYMBOL_LAST);
    string comment=methodName+" "+(string)price;
+   m_last_comment_operation=comment;
 
    if(m_trade.Buy(volume,NULL,0,0,0,comment))
      {
@@ -96,6 +100,7 @@ bool CTradesService::ExecuteSellTrade(double volume,string methodName)
   {
    double price=SymbolInfoDouble(_Symbol,SYMBOL_LAST);
    string comment=methodName+" "+(string)price;
+   m_last_comment_operation=comment;
 
    if(m_trade.Sell(volume,NULL,0,0,0,comment))
      {
@@ -123,6 +128,7 @@ bool CTradesService::ExecuteBuySellLimit(bool isOnBuyTrade,double volume,double 
       return false;
 
    string comment=methodName+" "+(string)price;
+   m_last_comment_operation=comment;
    bool executed=false;
 
    if(isOnBuyTrade)
@@ -161,6 +167,7 @@ bool CTradesService::ExecuteBuySellStop(bool isOnBuyTrade,double volume,double p
       return false;
 
    string comment=methodName+" "+(string)price;
+   m_last_comment_operation=comment;
    bool executed=false;
 
    if(isOnBuyTrade)

@@ -128,7 +128,7 @@ input ENUM_TIMEFRAMES InpTrade4TimeFrame=PERIOD_M5;                   // Default
 input double          InpTrade4Volume=3;                              // Default volume to do trades operations
 input double          InpTrade4TakeProfit=150.0;                      // Default Take Profit (0 disable)
 input int             InpTrade4MaxTakeProfit=1;                       // Default Max Take Profit  (0 disable)
-input double          InpTrade4StopLoss=180;                            // Default Stop Loss  (0 disable)
+input double          InpTrade4StopLoss=100;                            // Default Stop Loss  (0 disable)
 input int             InpTrade4MaxStopLoss=0;                         // Default Max Stop Loss  (0 disable)
 input int             InpTrade4StopLossProfile=1;                     // Default Stop Loss Profile (0 disable)
 input int             InpTrade4Martingale=2;                          // Default trade martingale for all trades
@@ -316,7 +316,7 @@ void InitConfigsForTrade1()
    takeProfitController.InitTrade(InpTrade1TakeProfit,InpTrade1MaxTakeProfit);
 
    CStopLossController *stopLossController=new CStopLossController(tradesName,positionController.PositionOrder());
-   takeProfitController.InitTrade(InpTrade1StopLoss,InpTrade1StopLossProfile);
+   stopLossController.InitTrade(InpTrade1StopLoss,InpTrade1StopLossProfile);
 
    positionController.InitTradesControllers(takeProfitController,stopLossController);
 
@@ -349,7 +349,7 @@ void InitConfigsForTrade2()
    takeProfitController.InitTrade(InpTrade2TakeProfit,InpTrade2MaxTakeProfit);
 
    CStopLossController *stopLossController=new CStopLossController(tradesName,positionController.PositionOrder());
-   takeProfitController.InitTrade(InpTrade2StopLoss,InpTrade2StopLossProfile);
+   stopLossController.InitTrade(InpTrade2StopLoss,InpTrade2StopLossProfile);
 
    positionController.InitTradesControllers(takeProfitController,stopLossController);
 
@@ -382,7 +382,7 @@ void InitConfigsForTrade3()
    takeProfitController.InitTrade(InpTrade3TakeProfit,InpTrade3MaxTakeProfit);
 
    CStopLossController *stopLossController=new CStopLossController(tradesName,positionController.PositionOrder());
-   takeProfitController.InitTrade(InpTrade3StopLoss,InpTrade3StopLossProfile);
+   stopLossController.InitTrade(InpTrade3StopLoss,InpTrade3StopLossProfile);
 
    positionController.InitTradesControllers(takeProfitController,stopLossController);
 
@@ -415,7 +415,7 @@ void InitConfigsForTrade4()
    takeProfitController.InitTrade(InpTrade4TakeProfit,InpTrade4MaxTakeProfit);
 
    CStopLossController *stopLossController=new CStopLossController(tradesName,positionController.PositionOrder());
-   takeProfitController.InitTrade(InpTrade4StopLoss,InpTrade4StopLossProfile);
+   stopLossController.InitTrade(InpTrade4StopLoss,InpTrade4StopLossProfile);
 
    positionController.InitTradesControllers(takeProfitController,stopLossController);
 
@@ -448,7 +448,7 @@ void InitConfigsForTrade5()
    takeProfitController.InitTrade(InpTrade5TakeProfit,InpTrade5MaxTakeProfit);
 
    CStopLossController *stopLossController=new CStopLossController(tradesName,positionController.PositionOrder());
-   takeProfitController.InitTrade(InpTrade5StopLoss,InpTrade5StopLossProfile);
+   stopLossController.InitTrade(InpTrade5StopLoss,InpTrade5StopLossProfile);
 
    positionController.InitTradesControllers(takeProfitController,stopLossController);
 

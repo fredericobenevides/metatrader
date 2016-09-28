@@ -41,10 +41,12 @@ public:
 
    void              AddTradesService(CTradesService *tradesService) { m_trades_service=tradesService; }
 
+   void              ExecutedClosedOperationByMetatrader();
+
    CPositionOrder    *PositionOrder() { return m_position_order; }
 
-   bool              BuyOpen();
-   bool              SellOpen();
+   bool              BuyOpen(bool initializeTpSl);
+   bool              SellOpen(bool initializeTpSl);
    bool              BuyClose();
    bool              SellClose();
 
@@ -53,6 +55,7 @@ public:
 private:
 
    bool              isTimeToOpenOperation();
+   bool              isValidToOpenOperation();
   };
 //+------------------------------------------------------------------+
 //| Constructor
@@ -66,7 +69,6 @@ CPositionController::CPositionController(string tradeName)
 //+------------------------------------------------------------------+
 CPositionController::~CPositionController()
   {
-//delete m_trades_service;
    delete m_position_order;
   }
 //+------------------------------------------------------------------+
@@ -102,18 +104,27 @@ void CPositionController::InitTradesControllers(CTakeProfitController *takeProfi
    m_stop_loss_controller=stopLossController;
   }
 //+------------------------------------------------------------------+
+//| Executed closed operation by metatrader
+//+------------------------------------------------------------------+
+void CPositionController::ExecutedClosedOperationByMetatrader()
+  {
+   m_position_order.ResetVolumeToZero();
+   m_position_order.ExecutedBuyCloseOperation();
+   m_position_order.ExecutedSellCloseOperation();
+  }
+//+------------------------------------------------------------------+
 //| Open a Buy Position Order
 //+------------------------------------------------------------------+
-bool CPositionController::BuyOpen()
+bool CPositionController::BuyOpen(bool initializeTpSl)
   {
-   if(!m_position_order.IsTradeEnable())
+   if(!isValidToOpenOperation())
       return false;
 
-   if(m_position_order.IsOrderPlaced())
-      return false;
-
-   if(!isTimeToOpenOperation())
-      return false;
+   if(initializeTpSl)
+     {
+      m_take_profit_controller.ResetToDefault();
+      m_stop_loss_controller.ResetToDefault();
+     }
 
    string name=m_position_order.BuyOpenName();
    double volume=m_position_order.OpenNewVolume();
@@ -126,7 +137,8 @@ bool CPositionController::BuyOpen()
       m_position_order.ExecutedBuyOpenOperation();
       m_position_order.SetPrice(m_trades_service.RequestPrice());
 
-      //m_stop_loss_order.RestartProfile();
+      m_take_profit_controller.SetToCreateNewTakeProfit();
+      m_stop_loss_controller.SetToCreateNewStop();
 
       result=true;
      }
@@ -138,16 +150,16 @@ bool CPositionController::BuyOpen()
 //+------------------------------------------------------------------+
 //| Open a Sell Position Order
 //+------------------------------------------------------------------+
-bool CPositionController::SellOpen()
+bool CPositionController::SellOpen(bool initializeTpSl)
   {
-   if(!m_position_order.IsTradeEnable())
+   if(!isValidToOpenOperation())
       return false;
 
-   if(m_position_order.IsOrderPlaced())
-      return false;
-
-   if(!isTimeToOpenOperation())
-      return false;
+   if(initializeTpSl)
+     {
+      m_take_profit_controller.ResetToDefault();
+      m_stop_loss_controller.ResetToDefault();
+     }
 
    string name=m_position_order.SellOpenName();
    double volume=m_position_order.OpenNewVolume();
@@ -160,7 +172,8 @@ bool CPositionController::SellOpen()
       m_position_order.ExecutedSellOpenOperation();
       m_position_order.SetPrice(m_trades_service.RequestPrice());
 
-      //m_stop_loss_order.RestartProfile();
+      m_take_profit_controller.SetToCreateNewTakeProfit();
+      m_stop_loss_controller.SetToCreateNewStop();
 
       result=true;
      }
@@ -186,8 +199,9 @@ bool CPositionController::BuyClose()
      {
       PrintFormat("%s operation executed: true",name);
       m_position_order.ExecutedBuyCloseOperation();
-      //m_take_profit_order.SetToBeDeleted();
-      //m_stop_loss_order.SetToBeDeleted();
+
+      m_take_profit_controller.SetToDeleteAllTakeProfit();
+      m_stop_loss_controller.SetToDeleteAllStopLoss();
 
       result=true;
      }
@@ -213,8 +227,9 @@ bool CPositionController::SellClose()
      {
       PrintFormat("%s operation executed: true",name);
       m_position_order.ExecutedSellCloseOperation();
-      //m_take_profit_order.SetToBeDeleted();
-      //m_stop_loss_order.SetToBeDeleted();
+
+      m_take_profit_controller.SetToDeleteAllTakeProfit();
+      m_stop_loss_controller.SetToDeleteAllStopLoss();
 
       result=true;
      }
@@ -239,5 +254,27 @@ bool CPositionController::isTimeToOpenOperation()
    datetime end=m_time.IntToDatetime(m_time_end_hour,m_time_end_minute);
 
    return m_time.TimeTradeServerBetween(start,end);
+  }
+//+------------------------------------------------------------------+
+//| Is valid to open a operation?
+//+------------------------------------------------------------------+
+bool CPositionController::isValidToOpenOperation()
+  {
+   if(!m_position_order.IsTradeEnable())
+      return false;
+
+   if(m_position_order.IsOrderPlaced())
+      return false;
+
+   if(!isTimeToOpenOperation())
+      return false;
+
+   if(m_take_profit_controller.VerifyIfHasOpenTakeProfit())
+      return false;
+
+   if(m_stop_loss_controller.VerifyIfHasOpenStop())
+      return false;
+
+   return true;
   }
 //+------------------------------------------------------------------+

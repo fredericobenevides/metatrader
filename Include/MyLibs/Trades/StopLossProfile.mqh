@@ -16,48 +16,38 @@
 class CStopLossProfile
   {
 private:
-   CPositionOrder   *m_position_order;
    CList            *m_list_price_control;
 
    int               m_profile;
-   bool              m_need_to_change;
-   bool              m_using_stop_profile;
+
+   CPriceControl    *m_last_profile_calculated;
 
 public:
-                     CStopLossProfile(int profile,CPositionOrder *positionOrder);
+                     CStopLossProfile(int profile);
                     ~CStopLossProfile();
 
-   void              VerifyIfNeedToChangeStopLoss(double currentMarketPrice);
-   void              StopLossProfileWasPlaced(void);
-   void              StopLossProfileWasRemoved(void);
+   bool              VerifyIfNeedToChangeStopLoss(bool isOnBuyTrade,double positionOrderPrice,double currentMarketPrice);
+   bool              VerifyIfExistEnabledProfiles();
+   void              SetProfileAsUsed() { m_last_profile_calculated=NULL; }
 
-   CPriceControl    *CurrentEnableProfile();
-
-   bool              IsNeedToChange() { return m_need_to_change; }
-   bool              IsUsingStopProfile() { return m_using_stop_profile; }
-
-   void              EnableAllProfiles();
-   void              DisableFirstEnabledProfile();
+   CPriceControl    *LastProfileCalculated();
 
    void              Restart();
    void              ResetToDefault();
 
 private:
    void              InitProfiles();
+
+   CPriceControl    *firstEnabledProfile();
   };
 //+------------------------------------------------------------------+
 //| Constructor
 //+------------------------------------------------------------------+
-CStopLossProfile::CStopLossProfile(int profile,CPositionOrder *positionOrder)
+CStopLossProfile::CStopLossProfile(int profile)
   {
    m_list_price_control=new CList;
 
    m_profile=profile;
-   m_position_order=positionOrder;
-
-   m_need_to_change=false;
-   m_using_stop_profile=false;
-
    InitProfiles();
   }
 //+------------------------------------------------------------------+
@@ -70,109 +60,60 @@ CStopLossProfile::~CStopLossProfile()
       CPriceControl *p=m_list_price_control.GetNodeAtIndex(i);
       delete p;
      }
+   delete m_list_price_control;
   }
 //+------------------------------------------------------------------+
 //| Verify if the current market price is at least equal to 
 //| current profile price to change the stop loss value
 //+------------------------------------------------------------------+
-void CStopLossProfile::VerifyIfNeedToChangeStopLoss(double currentMarketPrice)
+bool CStopLossProfile::VerifyIfNeedToChangeStopLoss(bool isOnBuyTrade,double positionOrderPrice,double currentMarketPrice)
   {
-   if(m_need_to_change)
-      return;
+   bool result=false;
 
    if(m_profile==0)
-      return;
+      return false;
 
-   CPriceControl *currentProfile=CurrentEnableProfile();
+   CPriceControl *currentProfile=firstEnabledProfile();
    if(currentProfile==NULL)
-      return;
+      return false;
 
-   double openPrice=m_position_order.Price();
+   double openPrice=positionOrderPrice;
 
    double diffPrice=0;
-   if(m_position_order.IsOnBuyTrade())
+   if(isOnBuyTrade)
       diffPrice=currentMarketPrice-openPrice;
    else
       diffPrice=openPrice-currentMarketPrice;
 
    if(diffPrice>=0 && diffPrice>=currentProfile.PointsToChange())
-      m_need_to_change=true;
-  }
-//+------------------------------------------------------------------+
-//| Inform that stop loss profile was placed on market
-//+------------------------------------------------------------------+
-void CStopLossProfile::StopLossProfileWasPlaced(void)
-  {
-   if(m_need_to_change)
      {
-      DisableFirstEnabledProfile();
-      m_need_to_change=false;
-      m_using_stop_profile=true;
+      currentProfile.Disable();
+      m_last_profile_calculated=currentProfile;
+      return true;
      }
+
+   return false;
   }
 //+------------------------------------------------------------------+
-//| Inform that stop loss profile was removed from market
+//| Verify if there is at least one enabled profile;
 //+------------------------------------------------------------------+
-void CStopLossProfile::StopLossProfileWasRemoved(void)
+bool CStopLossProfile::VerifyIfExistEnabledProfiles()
   {
-   if(m_using_stop_profile)
-      m_using_stop_profile=false;
+   for(int i=0;i<m_list_price_control.Total();i++)
+     {
+      CPriceControl *p=m_list_price_control.GetNodeAtIndex(i);
+      if(p.IsEnable())
+         return true;
+     }
+
+   return false;
   }
 //+------------------------------------------------------------------+
 //| Return the current enable profile
 //+------------------------------------------------------------------+
-CPriceControl *CStopLossProfile::CurrentEnableProfile()
+CPriceControl *CStopLossProfile::LastProfileCalculated(void)
   {
-   for(int i=0;i<m_list_price_control.Total();i++)
-     {
-      CPriceControl *p=m_list_price_control.GetNodeAtIndex(i);
-      if(p.IsEnable())
-         return p;
-     }
-
-   return NULL;
-  }
-//+------------------------------------------------------------------+
-//| Enable all profiles
-//+------------------------------------------------------------------+
-void CStopLossProfile::EnableAllProfiles(void)
-  {
-   for(int i=0;i<m_list_price_control.Total();i++)
-     {
-      CPriceControl *p=m_list_price_control.GetNodeAtIndex(i);
-      p.Enable();
-     }
-  }
-//+------------------------------------------------------------------+
-//| Disable the first found profile
-//+------------------------------------------------------------------+
-void CStopLossProfile::DisableFirstEnabledProfile()
-  {
-   for(int i=0;i<m_list_price_control.Total();i++)
-     {
-      CPriceControl *p=m_list_price_control.GetNodeAtIndex(i);
-      if(p.IsEnable())
-        {
-         p.Disable();
-         return;
-        }
-     }
-  }
-//+------------------------------------------------------------------+
-//| Restart profile to default
-//+------------------------------------------------------------------+
-void CStopLossProfile::Restart()
-  {
-   ResetToDefault();
-  }
-//+------------------------------------------------------------------+
-//| Reset the profile to default
-//+------------------------------------------------------------------+
-void CStopLossProfile::ResetToDefault()
-  {
-   EnableAllProfiles();
-   m_need_to_change=false;
-   m_using_stop_profile=false;
+   return m_last_profile_calculated;
   }
 //+------------------------------------------------------------------+
 //| Init the profiles
@@ -182,12 +123,30 @@ void CStopLossProfile::InitProfiles()
    if(m_profile==1)
      {
       CPriceControl *p=new CPriceControl();
-      p.Init(80,120);
+      p.Init(80,-120);
       m_list_price_control.Add(p);
 
       p=new CPriceControl();
-      p.Init(120,0);
+      p.Init(120,20);
+      m_list_price_control.Add(p);
+      
+      p=new CPriceControl();
+      p.Init(140,100);
       m_list_price_control.Add(p);
      }
+  }
+//+------------------------------------------------------------------+
+//| Return the firt enabled profile
+//+------------------------------------------------------------------+
+CPriceControl *CStopLossProfile::firstEnabledProfile()
+  {
+   for(int i=0;i<m_list_price_control.Total();i++)
+     {
+      CPriceControl *p=m_list_price_control.GetNodeAtIndex(i);
+      if(p.IsEnable())
+         return p;
+     }
+
+   return NULL;
   }
 //+------------------------------------------------------------------+
