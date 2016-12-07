@@ -39,14 +39,14 @@ input string          InpAllBuyTradeSound="dingdong";                   // The S
 
 //--- input parameters for Trade 1 (Trade Config)
 input string          InpTrade1Data="------------------------------"; // ------- Trade 1 (Trade's Config) -------
-input bool            InpTrade1Enabled=false;                          // Default to true to enable the Trade
+input bool            InpTrade1Enabled=true;                          // Default to true to enable the Trade
 input ENUM_TIMEFRAMES InpTrade1TimeFrame=PERIOD_M5;                   // Default TimeFrame for Trade
-input double          InpTrade1Volume=1;                              // Default volume to do trades operations
-input double          InpTrade1TakeProfit=120.0;                      // Default Take Profit (0 disable)
-input int             InpTrade1MaxTakeProfit=1;                       // Default Max Take Profit  (0 disable)
-input double          InpTrade1StopLoss=200;                            // Default Stop Loss  (0 disable)
+input double          InpTrade1Volume=3;                              // Default volume to do trades operations
+input double          InpTrade1TakeProfit=100.0;                      // Default Take Profit (0 disable)
+input int             InpTrade1MaxTakeProfit=3;                       // Default Max Take Profit  (0 disable)
+input double          InpTrade1StopLoss=120;                            // Default Stop Loss  (0 disable)
 input int             InpTrade1MaxStopLoss=0;                         // Default Max Stop Loss  (0 disable)
-input int             InpTrade1StopLossProfile=0;                     // Default Stop Loss Profile (0 disable)
+input int             InpTrade1StopLossProfile=3;                     // Default Stop Loss Profile (0 disable)
 input int             InpTrade1Martingale=2;                          // Default trade martingale for all trades
 input int             InpTrade1MaxMartingaleOperations=5;             // Default max operations  (0 disable)
 
@@ -61,7 +61,7 @@ input ENUM_MA_METHOD  InpTrade1MaMethod=MODE_SMA;                     // Ma Meth
 input string          InpTrade1TimeControlData="-------------------------"; // ------- Trade 1 (Time Control) -------
 input int             InpTrade1TimeStartHour=9;                       // Default hour time to start the operation
 input int             InpTrade1TimeStartMinute=5;                     // Default minute time to start the operation
-input int             InpTrade1TimeEndHour=12;                        // Default hour time to end the operation
+input int             InpTrade1TimeEndHour=16;                        // Default hour time to end the operation
 input int             InpTrade1TimeEndMinute=0;                       // Default minute time to end the operation
 input string          InpTrade1EndData="------------------------------"; // ------- End of Trade 1 -------
 
@@ -100,9 +100,9 @@ input ENUM_TIMEFRAMES InpTrade3TimeFrame=PERIOD_M5;                   // Default
 input double          InpTrade3Volume=2;                              // Default volume to do trades operations
 input double          InpTrade3TakeProfit=50.0;                       // Default Take Profit (0 disable)
 input int             InpTrade3MaxTakeProfit=2;                       // Default Max Take Profit  (0 disable)
-input double          InpTrade3StopLoss=100;                            // Default Stop Loss  (0 disable)
+input double          InpTrade3StopLoss=80;                            // Default Stop Loss  (0 disable)
 input int             InpTrade3MaxStopLoss=0;                         // Default Max Stop Loss  (0 disable)
-input int             InpTrade3StopLossProfile=0;                     // Default Stop Loss Profile (0 disable)
+input int             InpTrade3StopLossProfile=2;                     // Default Stop Loss Profile (0 disable)
 input int             InpTrade3Martingale=2;                          // Default trade martingale for all trades
 input int             InpTrade3MaxMartingaleOperations=5;             // Default max operations  (0 disable)
 
@@ -123,12 +123,12 @@ input string          InpTrade3EndData="------------------------------"; // ----
 
 //--- input parameters for Trade 4 (Trade Config)
 input string          InpTrade4Data="------------------------------"; // ------- Trade 4 (Trade's Config) -------
-input bool            InpTrade4Enabled=true;                          // Default to true to enable the Trade
+input bool            InpTrade4Enabled=false;                          // Default to true to enable the Trade
 input ENUM_TIMEFRAMES InpTrade4TimeFrame=PERIOD_M5;                   // Default TimeFrame for Trade
 input double          InpTrade4Volume=3;                              // Default volume to do trades operations
 input double          InpTrade4TakeProfit=150.0;                      // Default Take Profit (0 disable)
 input int             InpTrade4MaxTakeProfit=1;                       // Default Max Take Profit  (0 disable)
-input double          InpTrade4StopLoss=100;                            // Default Stop Loss  (0 disable)
+input double          InpTrade4StopLoss=180;                            // Default Stop Loss  (0 disable)
 input int             InpTrade4MaxStopLoss=0;                         // Default Max Stop Loss  (0 disable)
 input int             InpTrade4StopLossProfile=1;                     // Default Stop Loss Profile (0 disable)
 input int             InpTrade4Martingale=2;                          // Default trade martingale for all trades
@@ -156,9 +156,9 @@ input ENUM_TIMEFRAMES InpTrade5TimeFrame=PERIOD_M5;                   // Default
 input double          InpTrade5Volume=2;                              // Default volume to do trades operations
 input double          InpTrade5TakeProfit=50.0;                      // Default Take Profit (0 disable)
 input int             InpTrade5MaxTakeProfit=5;                       // Default Max Take Profit  (0 disable)
-input double          InpTrade5StopLoss=100;                            // Default Stop Loss  (0 disable)
+input double          InpTrade5StopLoss=80;                            // Default Stop Loss  (0 disable)
 input int             InpTrade5MaxStopLoss=0;                         // Default Max Stop Loss  (0 disable)
-input int             InpTrade5StopLossProfile=0;                     // Default Stop Loss Profile (0 disable)
+input int             InpTrade5StopLossProfile=2;                     // Default Stop Loss Profile (0 disable)
 input int             InpTrade5Martingale=2;                          // Default trade martingale for all trades
 input int             InpTrade5MaxMartingaleOperations=5;             // Default max operations  (0 disable)
 

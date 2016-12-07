@@ -129,9 +129,51 @@ void CStopLossProfile::InitProfiles()
       p=new CPriceControl();
       p.Init(120,20);
       m_list_price_control.Add(p);
-      
+
       p=new CPriceControl();
       p.Init(140,100);
+      m_list_price_control.Add(p);
+     }
+
+   if(m_profile==2)
+     {
+      CPriceControl *p=new CPriceControl();
+      p.Init(20,-50);
+      m_list_price_control.Add(p);
+
+      p=new CPriceControl();
+      p.Init(30,0);
+      m_list_price_control.Add(p);
+
+      p=new CPriceControl();
+      p.Init(40,20);
+      m_list_price_control.Add(p);
+     }
+     
+     if(m_profile==3)
+     {
+      CPriceControl *p=new CPriceControl();
+      p.Init(50,-60);
+      m_list_price_control.Add(p);
+
+      p=new CPriceControl();
+      p.Init(60,0);
+      m_list_price_control.Add(p);
+
+      p=new CPriceControl();
+      p.Init(70,20);
+      m_list_price_control.Add(p);
+      
+      p=new CPriceControl();
+      p.Init(80,40);
+      m_list_price_control.Add(p);
+      
+      p=new CPriceControl();
+      p.Init(90,60);
+      m_list_price_control.Add(p);
+      
+      p=new CPriceControl();
+      p.Init(93,80);
       m_list_price_control.Add(p);
      }
   }
