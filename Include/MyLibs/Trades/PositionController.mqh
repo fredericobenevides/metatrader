@@ -36,7 +36,6 @@ public:
 
    void              InitTrade(bool enableTrade,double initialVolume);
    void              InitMartingale(int martingale,int maxMartingaleOperations);
-   void              InitTradesTime(int startHour,int startMinute,int endHour,int endMinute);
    void              InitTradesControllers(CTakeProfitController *takeProfitController,CStopLossController *stopLossController);
 
    void              AddTradesService(CTradesService *tradesService) { m_trades_service=tradesService; }
@@ -50,12 +49,17 @@ public:
    bool              BuyClose();
    bool              SellClose();
 
+   bool              TradeStart();
+   bool              TradeStop();
+   bool              ModifyTakeProfit();
+   bool              ModifyStopLoss();
+
    void              ResetToDefault();
 
 private:
 
-   bool              isTimeToOpenOperation();
-   bool              isValidToOpenOperation();
+   bool              isValidToOpenBuyOperation();
+   bool              isValidToOpenSellOperation();
   };
 //+------------------------------------------------------------------+
 //| Constructor
@@ -76,7 +80,7 @@ CPositionController::~CPositionController()
 //+------------------------------------------------------------------+
 CPositionController::InitTrade(bool enableTrade,double initialVolume)
   {
-   m_position_order.InitTrade(enableTrade,initialVolume);
+   m_position_order.InitVolume(initialVolume);
   }
 //+------------------------------------------------------------------+
 //| Init the trades martingale
@@ -84,16 +88,6 @@ CPositionController::InitTrade(bool enableTrade,double initialVolume)
 void CPositionController::InitMartingale(int martingale,int maxMartingaleOperations)
   {
    m_position_order.InitMartingale(martingale,maxMartingaleOperations);
-  }
-//+------------------------------------------------------------------+
-//| Init Trade's Time
-//+------------------------------------------------------------------+
-void CPositionController::InitTradesTime(int startHour,int startMinute,int endHour,int endMinute)
-  {
-   m_time_start_hour=startHour;
-   m_time_start_minute=startMinute;
-   m_time_end_hour=endHour;
-   m_time_end_minute=endMinute;
   }
 //+------------------------------------------------------------------+
 //| Init controllers
@@ -117,7 +111,7 @@ void CPositionController::ExecutedClosedOperationByMetatrader()
 //+------------------------------------------------------------------+
 bool CPositionController::BuyOpen(bool initializeTpSl)
   {
-   if(!isValidToOpenOperation())
+   if(!isValidToOpenBuyOperation())
       return false;
 
    if(initializeTpSl)
@@ -152,7 +146,7 @@ bool CPositionController::BuyOpen(bool initializeTpSl)
 //+------------------------------------------------------------------+
 bool CPositionController::SellOpen(bool initializeTpSl)
   {
-   if(!isValidToOpenOperation())
+   if(!isValidToOpenSellOperation())
       return false;
 
    if(initializeTpSl)
@@ -239,6 +233,72 @@ bool CPositionController::SellClose()
    return result;
   }
 //+------------------------------------------------------------------+
+//| Start a trade                                                                
+//+------------------------------------------------------------------+
+bool CPositionController::TradeStart()
+  {
+   if(m_position_order.IsOnTradeOperation())
+     {
+      string warningMsg="START operation was NOT executed. You are already in operation!";
+      Print(warningMsg);
+      MessageBox(warningMsg,"Warning",MB_OK);
+      return false;
+     }
+
+   if(m_position_order.IsBuyTradeEnable() && m_position_order.IsSellTradeEnable())
+     {
+      string warningMsg="START operation was NOT executed. Please specify only BUY or SELL operation to use the Start operation";
+      Print(warningMsg);
+      MessageBox(warningMsg,"Warning",MB_OK);
+      return false;
+     }
+
+   if(!m_position_order.IsBuyTradeEnable() && m_position_order.IsSellTradeEnable())
+      SellOpen();
+
+   if(m_position_order.IsBuyTradeEnable() && !m_position_order.IsSellTradeEnable())
+      BuyOpen();
+
+   Print("********** Executed START operation! **********");
+   return true;
+  }
+//+------------------------------------------------------------------+
+//| Stop a trade                                                                
+//+------------------------------------------------------------------+
+bool CPositionController::TradeStop()
+  {
+   if(m_position_order.IsOnTradeOperation())
+     {
+      string warningMsg="STOP operation was NOT executed. You are not in operation!";
+      Print(warningMsg);
+      MessageBox(warningMsg,"Warning",MB_OK);
+      return false;
+     }
+
+   if(m_position_order.IsOnBuyTrade())
+      BuyClose();
+
+   if(m_position_order.IsOnSellTrade())
+      SellClose();
+
+   Print("********** Executed STOP operation! **********");
+   return true;
+  }
+//+------------------------------------------------------------------+
+//| Modify Take Profit                                                             
+//+------------------------------------------------------------------+
+bool CPositionController::ModifyTakeProfit()
+  {
+   return false;
+  }
+//+------------------------------------------------------------------+
+//| Modify Stop Loss                                                            
+//+------------------------------------------------------------------+
+bool CPositionController::ModifyStopLoss()
+  {
+   return false;
+  }
+//+------------------------------------------------------------------+
 //| Reset everything to Default
 //+------------------------------------------------------------------+
 void CPositionController::ResetToDefault()
@@ -246,27 +306,33 @@ void CPositionController::ResetToDefault()
    m_position_order.ResetToDefault();
   }
 //+------------------------------------------------------------------+
-//| Verify if can start to open new operations
-//+------------------------------------------------------------------+
-bool CPositionController::isTimeToOpenOperation()
-  {
-   datetime start=m_time.IntToDatetime(m_time_start_hour,m_time_start_minute);
-   datetime end=m_time.IntToDatetime(m_time_end_hour,m_time_end_minute);
-
-   return m_time.TimeTradeServerBetween(start,end);
-  }
-//+------------------------------------------------------------------+
 //| Is valid to open a operation?
 //+------------------------------------------------------------------+
-bool CPositionController::isValidToOpenOperation()
+bool CPositionController::isValidToOpenBuyOperation()
   {
-   if(!m_position_order.IsTradeEnable())
+   if(!m_position_order.IsBuyTradeEnable())
       return false;
 
    if(m_position_order.IsOrderPlaced())
       return false;
 
-   if(!isTimeToOpenOperation())
+   if(m_take_profit_controller.VerifyIfHasOpenTakeProfit())
+      return false;
+
+   if(m_stop_loss_controller.VerifyIfHasOpenStop())
+      return false;
+
+   return true;
+  }
+//+------------------------------------------------------------------+
+//| Is valid to open a operation?
+//+------------------------------------------------------------------+
+bool CPositionController::isValidToOpenSellOperation()
+  {
+   if(!m_position_order.IsSellTradeEnable())
+      return false;
+
+   if(m_position_order.IsOrderPlaced())
       return false;
 
    if(m_take_profit_controller.VerifyIfHasOpenTakeProfit())

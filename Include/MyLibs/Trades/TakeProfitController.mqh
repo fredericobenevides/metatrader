@@ -369,7 +369,10 @@ void CTakeProfitController::UpdateTakeProfitOperations()
 //+------------------------------------------------------------------+
 void CTakeProfitController::DisablePositionOnMaxTakeProfitOperations()
   {
-   if(m_count_take_profit_operations>=m_max_take_profit_operations)
-      m_position_order.DisableTrade();
+   if(m_count_take_profit_operations>=m_max_take_profit_operations) 
+     {
+      m_position_order.DisableBuyTrade();      
+      m_position_order.DisableSellTrade();
+     }
   }
 //+------------------------------------------------------------------+

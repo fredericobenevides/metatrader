@@ -377,10 +377,12 @@ void CHiLoController::deleteTakeProfit(CTakeProfitController *takeProfitControll
 void CHiLoController::deleteStopLoss(CStopLossController *stopLossController)
   {
    bool hasOpenStopLoss=!stopLossController.VerifyIfHasOpenStop();
-   while(!hasOpenStopLoss)
+   int limit = 0;
+   while(!hasOpenStopLoss && limit <= 10)
      {
       stopLossController.VerifyIfDeleteStopLossOrder();
       hasOpenStopLoss=!stopLossController.VerifyIfHasOpenStop();
+      limit++;
       Sleep(100);
      }
   }

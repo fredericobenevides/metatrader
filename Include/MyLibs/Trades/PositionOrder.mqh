@@ -16,8 +16,9 @@ class CPositionOrder
    string            m_sell_open_name;
    string            m_sell_close_name;
 
-   bool              m_trade_enable;
-   bool              m_initial_trade_enable;
+   bool              m_buy_trade_enable;
+   bool              m_sell_trade_enable;
+
    double            m_initial_volume;
    double            m_volume;
    double            m_next_volume;
@@ -36,7 +37,7 @@ class CPositionOrder
 
 public:
                      CPositionOrder(string tradeName);
-   void              InitTrade(bool tradeEnable,double initialVolume);
+   void              InitVolume(double initialVolume);
    void              InitMartingale(int martingale,int maxMartingaleOperations);
 
    void              ExecutedBuyOpenOperation();
@@ -46,16 +47,25 @@ public:
 
    double            OpenNewVolume();
    double            CloseVolume()          { return m_volume; }
+   double            InitialVolume()        { return m_initial_volume; }
    double            Volume()               { return m_volume; }
    double            NextVolume()           { return m_next_volume; }
    double            Price()                { return m_price; }
    void              SetPrice(double price) {  m_price=price; }
 
+   int               Martingale() { return m_martingale; }
+   int               MaxMartingaleOperations() { return m_max_martingale_operations; }
+
    double            CalculateMaxVolumeMartingaleOperations();
 
-   bool              IsTradeEnable() { return m_trade_enable; }
-   void              EnableTrade()   { m_trade_enable=true; }
-   void              DisableTrade()  { m_trade_enable=false; }
+   bool              IsBuyTradeEnable() { return m_buy_trade_enable; }
+   bool              IsSellTradeEnable() { return m_buy_trade_enable; }
+
+   void              EnableBuyTrade() { m_buy_trade_enable=true; }
+   void              EnableSellTrade() { m_sell_trade_enable=true; }
+
+   void              DisableBuyTrade() { m_buy_trade_enable=false; }
+   void              DisableSellTrade() { m_sell_trade_enable=false; }
 
    bool              IsOrderPlaced() { return m_order_placed; }
    bool              IsOnTradeOperation() { return IsOnBuyTrade() || IsOnSellTrade(); }
@@ -67,7 +77,9 @@ public:
    string            BuyCloseName()  { return m_buy_close_name; }
    string            SellOpenName()  { return m_sell_open_name; }
    string            SellCloseName() { return m_sell_close_name; }
+
    string            BuySellOperationStatus();
+   string            CurrentPositionStatus();
 
    void              ResetVolumeToZero() { m_volume=0; }
    void              ResetNextVolumeToInitialVolume() { m_next_volume=m_initial_volume; }
@@ -95,10 +107,8 @@ CPositionOrder::CPositionOrder(string tradeName)
 //+------------------------------------------------------------------+
 //| Init the base volume
 //+------------------------------------------------------------------+
-void CPositionOrder::InitTrade(bool tradeEnable,double initialVolume)
+void CPositionOrder::InitVolume(double initialVolume)
   {
-   m_trade_enable=tradeEnable;
-   m_initial_trade_enable=tradeEnable;
    m_initial_volume=initialVolume;
    m_next_volume=m_initial_volume;
    m_volume=0;
@@ -186,12 +196,33 @@ string CPositionOrder::BuySellOperationStatus()
    return "N";
   }
 //+------------------------------------------------------------------+
+//| Return the current position status with (Volume/Points/Profit)
+//+------------------------------------------------------------------+
+string CPositionOrder::CurrentPositionStatus(void)
+  {
+   double volume=PositionGetDouble(POSITION_VOLUME);
+   if(volume==0)
+      return "Volume: 0 / Profit: 0 / Pt: 0";
+
+   string sVolume=DoubleToString(m_volume,0);
+   string profit=DoubleToString(PositionGetDouble(POSITION_PROFIT),2);
+
+   int digits=(int)SymbolInfoInteger(_Symbol,SYMBOL_DIGITS);
+   double priceOpen=PositionGetDouble(POSITION_PRICE_OPEN);
+   double priceCurrent=PositionGetDouble(POSITION_PRICE_CURRENT);
+
+   double points=NormalizeDouble(priceCurrent-priceOpen,digits);
+   if(IsOnSellTrade())
+      points=NormalizeDouble(points*-1,digits);
+   string sPoints=DoubleToString(points,digits);
+
+   return StringFormat("Volume: %s / Profit: %s / Pt: %s",sVolume,profit,sPoints);
+  }
+//+------------------------------------------------------------------+
 //| Reset everything to Default
 //+------------------------------------------------------------------+
 void CPositionOrder::ResetToDefault()
   {
-   m_trade_enable=m_initial_trade_enable;
-
    m_volume=0;
    m_next_volume=m_initial_volume;
    m_price=0;
@@ -224,6 +255,9 @@ void CPositionOrder::resetNextVolumeToZeroOnMaxMartingale()
 void CPositionOrder::disableOnMaxMartingaleOperations()
   {
    if(m_volume>=m_max_volume_martingale_operations)
-      DisableTrade();
+     {
+      DisableBuyTrade();
+      DisableSellTrade();
+     }
   }
 //+------------------------------------------------------------------+

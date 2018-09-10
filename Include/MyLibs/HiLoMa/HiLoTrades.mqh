@@ -1,0 +1,276 @@
+//+------------------------------------------------------------------+
+//|                                              PanelHiloTrades.mq5 |
+//|                        Copyright 2016, MetaQuotes Software Corp. |
+//|                                             https://www.mql5.com |
+//+------------------------------------------------------------------+
+#property copyright "Frederico Benevides"
+#property link      "fredbene@gmail.com"
+//+------------------------------------------------------------------+
+//| Class to do trades based on HiLo.
+//+------------------------------------------------------------------+
+class CHiLoTrades
+  {
+private:
+   double            m_high_hilo[1];
+   double            m_low_hilo[1];
+
+   double            m_high_invalid_hilo[1];
+   double            m_low_invalid_hilo[1];
+
+   datetime          m_last_time;
+   int               m_count_take_profit;
+
+public:
+   void              Init();
+   void              OnTick(int handle,int minRatesTotal);
+   void              OnTradeTransaction(ENUM_TRADE_TRANSACTION_TYPE tradeType);
+
+   void              TradeStart(bool buy,bool sell);
+   void              TradeStop();
+
+   void              TradeBuyOpen(void);
+   void              TradeSellOpen(void);
+
+   void              TradeBuyClose(void);
+   void              TradeSellClose(void);
+
+   void              ModifyTpSl();
+   void              EventTpSlExecuted();
+
+   void              BreakEvenShow();
+   void              BreakEvenHide();
+
+   bool              IsTimeToOpenOperation();
+
+   bool              HasTimeToUpdateStatus();
+  };
+//+------------------------------------------------------------------+
+//| Constructor
+//+------------------------------------------------------------------+
+void  CHiLoTrades::Init()
+  {
+   m_count_take_profit=0;
+  }
+//+------------------------------------------------------------------+
+//| Verify is there any operation for each candle. 
+//+------------------------------------------------------------------+
+void CHiLoTrades::OnTick(int handle,int minRatesTotal)
+  {
+   if(BarsCalculated(handle)<minRatesTotal)
+      return;
+
+   if(MyTrade.IsNewBar(InpTradeTimeFrame))
+     {
+      if(CopyBuffer(handle,4,0,1,m_high_hilo)<=0)
+         return;
+
+      if(CopyBuffer(handle,5,0,1,m_low_hilo)<=0)
+         return;
+
+      if(CopyBuffer(handle,8,0,1,m_high_invalid_hilo)<=0)
+         return;
+
+      if(CopyBuffer(handle,9,0,1,m_low_invalid_hilo)<=0)
+         return;
+
+      //--- close operation if there is a valid and invalid HiLo.
+      if(m_high_hilo[0]!=EMPTY_VALUE || m_high_invalid_hilo[0]!=EMPTY_VALUE)
+         TradeBuyClose();
+
+      //--- open operation only if is a valid HiLo
+      if(m_high_hilo[0]!=EMPTY_VALUE)
+        {
+         // if close HiLo is Checked. Don't open a new operation
+         if(HiLoDialog.IsCloseHiLoChecked())
+            HiLoDialog.InitToDefaults();
+         else if(HiLoDialog.IsSellChecked())
+            TradeSellOpen();
+        }
+
+      //--- close operation if there is a valid and invalid HiLo.
+      if(m_low_hilo[0]!=EMPTY_VALUE || m_low_invalid_hilo[0]!=EMPTY_VALUE)
+         TradeSellClose();
+
+      //--- open operation only if is a valid HiLo
+      if(m_low_hilo[0]!=EMPTY_VALUE)
+        {
+         // if close HiLo is Checked. Don't open a new operation
+         if(HiLoDialog.IsCloseHiLoChecked())
+            HiLoDialog.InitToDefaults();
+         else if(HiLoDialog.IsBuyChecked())
+            TradeBuyOpen();
+        }
+     }
+
+   if(Time.HasPassedTime((int)0.4))
+      HiLoDialog.LoadVolumeStatusToLabel();
+  }
+//+------------------------------------------------------------------+
+//| Verify if has a TakeProfit or StopLoss operation                                                                 
+//+------------------------------------------------------------------+
+void CHiLoTrades::OnTradeTransaction(ENUM_TRADE_TRANSACTION_TYPE tradeType)
+  {
+   if(tradeType!=TRADE_TRANSACTION_HISTORY_ADD)
+      return;
+
+   Sleep(500);
+// verify on the current day
+   bool hadTakeProfitOnHistory=MyTrade.HadTakeProfitOnHistory(PERIOD_D1);
+   if(hadTakeProfitOnHistory)
+      EventTpSlExecuted();
+
+   bool hadStopLossOnHistory=MyTrade.HadStopLossOnHistory(PERIOD_D1);
+   if(hadStopLossOnHistory)
+      EventTpSlExecuted();
+  }
+//+------------------------------------------------------------------+
+//| Start a trade                                                                 |
+//+------------------------------------------------------------------+
+void CHiLoTrades::TradeStart(bool buy,bool sell)
+  {
+   double volume=HiLoDialog.CurrentVolume();
+   bool executed=MyTrade.TradeStart("TradeStart",buy,sell,volume);
+   if(executed)
+      ModifyTpSl();
+
+   BreakEvenShow();
+  }
+//+------------------------------------------------------------------+
+//| Stop a trade                                                                 |
+//+------------------------------------------------------------------+
+void CHiLoTrades::TradeStop()
+  {
+   bool executed=MyTrade.TradeStop("TradeStop");
+   if(executed)
+     {
+      HiLoDialog.InitToDefaults();
+      BreakEvenHide();
+     }
+  }
+//+------------------------------------------------------------------+
+//| Open a BUY operation
+//+------------------------------------------------------------------+
+void CHiLoTrades::TradeBuyOpen()
+  {
+   if(!IsTimeToOpenOperation())
+      return;
+
+   double volume=HiLoDialog.CurrentVolume();
+   if(MyTrade.TradeBuyOpen("TradeBuyOpen",volume))
+     {
+      ModifyTpSl();
+      BreakEvenShow();
+     }
+  }
+//+------------------------------------------------------------------+
+//| Open a SELL operation
+//+------------------------------------------------------------------+
+void CHiLoTrades::TradeSellOpen()
+  {
+   if(!IsTimeToOpenOperation())
+      return;
+
+   double volume=HiLoDialog.CurrentVolume();
+   if(MyTrade.TradeSellOpen("TradeSellOpen",volume))
+     {
+      ModifyTpSl();
+      BreakEvenShow();
+     }
+  }
+//+------------------------------------------------------------------+
+//| Close a BUY operation|
+//+------------------------------------------------------------------+
+void CHiLoTrades::TradeBuyClose(void)
+  {
+   if(MyTrade.TradeBuyClose("TradeBuyClose"))
+     {
+      HiLoDialog.CalculateVolumeFactor();
+      BreakEvenHide();
+     }
+  }
+//+------------------------------------------------------------------+
+//| Close a SELL operation
+//+------------------------------------------------------------------+
+void CHiLoTrades::TradeSellClose(void)
+  {
+   if(MyTrade.TradeSellClose("TradeSellClose"))
+     {
+      HiLoDialog.CalculateVolumeFactor();
+      BreakEvenHide();
+     }
+  }
+//+------------------------------------------------------------------+
+//| Modify the current position to config the StopLoss and TakeProfit
+//+------------------------------------------------------------------+
+void CHiLoTrades::ModifyTpSl(void)
+  {
+   double takeProfit=0;
+   double stopLoss=0;
+
+   bool executeModify=false;
+
+   if(HiLoDialog.IsTakeProfitChecked())
+     {
+      executeModify=true;
+      takeProfit=HiLoDialog.TakeProfit();
+     }
+
+   if(HiLoDialog.IsStopLossChecked())
+     {
+      executeModify=true;
+      stopLoss=HiLoDialog.StopLoss();
+     }
+
+   if(executeModify)
+     {
+      Sleep(500);
+      MyTrade.ModifyTpSl(stopLoss,takeProfit);
+     }
+  }
+//+------------------------------------------------------------------+
+//| If has Take Profit or Stop Loss. Reset the volumes and stop the Expert closing a current Operation.
+//+------------------------------------------------------------------+
+void CHiLoTrades::EventTpSlExecuted(void)
+  {
+   HiLoDialog.ResetVolumesToDefault();
+   MyTrade.EventTpSlExecuted();
+   BreakEvenHide();
+
+   m_count_take_profit=m_count_take_profit+1;
+
+// if close Take Profit is Checked and the count of take profit is equal to max take profit. 
+//Don't open a new operation
+   if(HiLoDialog.IsCloseTpChecked() && InpTradeMaxTakeProfit==m_count_take_profit)
+     {
+      HiLoDialog.InitToDefaults();
+      Init();
+     }
+  }
+//+------------------------------------------------------------------+
+//| Show the BreakEven on Chart                                                                 |
+//+------------------------------------------------------------------+
+void CHiLoTrades::BreakEvenShow()
+  {
+   BreakEven.Show(HiLoDialog.CurrentVolume(),InpTradePricePerVolume);
+  }
+//+------------------------------------------------------------------+
+//| Hide the BreakEven on Chart                                                                 |
+//+------------------------------------------------------------------+
+void CHiLoTrades::BreakEvenHide()
+  {
+   BreakEven.Hide();
+  }
+//+------------------------------------------------------------------+
+//| Verify if can start to open new operations
+//+------------------------------------------------------------------+
+bool CHiLoTrades::IsTimeToOpenOperation()
+  {
+   if(!InpTimeEnabled)
+      return true;
+
+   datetime start=Time.IntToDatetime(InpTimeStartHour,InpTimeStartMinute);
+   datetime end=Time.IntToDatetime(InpTimeEndHour,InpTimeEndMinute);
+
+   return Time.TimeTradeServerBetween(start,end);
+  }
+//+------------------------------------------------------------------+
