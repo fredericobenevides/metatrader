@@ -7,10 +7,10 @@
 #property link      "fredbene@gmail.com"
 #property version   "2.00"
 
-#resource "\\Indicators\\HiLo MA Activator.ex5"
+#resource "\\Indicators\\HiLo Activator.ex5"
 
 #include <MyLibs\HiLo\HiLoDialog.mqh>
-#include <MyLibs\HiLo\HiLoMALoader.mqh>
+#include <MyLibs\HiLo\HiLoLoader.mqh>
 #include <MyLibs\HiLo\HiLoTrades.mqh>
 #include <MyLibs\Trade\BreakEven.mqh>
 #include <MyLibs\Trade\MyTrade.mqh>
@@ -20,17 +20,12 @@
 
 //--- input parameters
 input string         InpHiLoData="------------------------------";    // --------------- HiLo ---------------
-input int            InpPeriod=2;                                     // Period
-input ENUM_MA_METHOD InpMaMethod=MODE_SMMA;                           // Method
+input int            InpPeriod=3;                                     // Period
+input ENUM_MA_METHOD InpMaMethod=MODE_SMA;                           // Method
 input bool           InpArrowInFirstHiLo=false;                       // Add an arrow to the first HiLo
 input bool           InpArrowInSecondHiLo=true;                       // Add an arrow to the second HiLo
 input bool           InpArrowInCurrentCandle=true;                    // Add an arrow to the current candle
 input bool           InpShowHiLoLine=false;                           // Show the line of HiLo
-
-//--- input parameters for  Moving Average
-input string         InpCmaData="------------------------------";     // ---------- Moving Average ----------
-input int            InpCmaPeriod=8;                                  // Period                     
-input ENUM_MA_METHOD InpCmaMethod=MODE_SMA;                           // Method
 
 //--- input parameters for Trades
 input string          InpTradesData="------------------------------"; // --------------- Trades ---------------
@@ -52,8 +47,8 @@ input string          InpBuyTradeSound="dingdong";                    // The Sou
 
 //--- input parameters for Time Control
 input string          InpTimeControlData="-------------------------"; // --------------- Time Control ---------------
-input bool            InpTimeEnabled=true;                            // Enable the Time Control
-input int             InpTimeStartHour=10;                            // Default hour time to start the operation
+input bool            InpTimeEnabled=false;                           // Enable the Time Control
+input int             InpTimeStartHour=9;                             // Default hour time to start the operation
 input int             InpTimeStartMinute=0;                           // Default minute time to start the operation
 input int             InpTimeEndHour=12;                              // Default hour time to end the operation
 input int             InpTimeEndMinute=0;                             // Default minute time to end the operation
@@ -67,7 +62,7 @@ input bool            InpGenerateReport=false;                        // Generat
 int first_initialization=true; // flag indicate if is the first initialization
 
 CHiLoDialog HiLoDialog;
-CHiLoMALoader HiLoMALoader;
+CHiLoLoader HiLoLoader;
 CHiLoTrades HiLoTrades;
 CBreakEven BreakEven;
 CMyTrade MyTrade;
@@ -91,7 +86,7 @@ int OnInit()
          return(INIT_FAILED);
       //--- run application
 
-      if(!HiLoMALoader.Init())
+      if(!HiLoLoader.Init())
          return(INIT_FAILED);
 
       HiLoDialog.Run();
@@ -112,7 +107,7 @@ void OnDeinit(const int reason)
    if(reason!=REASON_CHARTCHANGE)
      {
       HiLoDialog.Destroy(reason);
-      HiLoMALoader.Destroy();
+      HiLoLoader.Destroy();
 
       first_initialization=true;
      }
@@ -134,7 +129,7 @@ void OnTick()
    if(InpTestEnabled)
       Test.RunEnvTest();
 
-   HiLoMALoader.OnTick();
+   HiLoLoader.OnTick();
   }
 //+------------------------------------------------------------------+
 //| Expert chart event function                                      |
