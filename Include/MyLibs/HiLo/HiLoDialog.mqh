@@ -14,6 +14,8 @@
 #include <Controls\Edit.mqh>
 #include <Controls\SpinEdit.mqh>
 
+#include <MyLibs\Trade\MyTrade.mqh>
+
 //--- indents and gaps
 #define INDENT_LEFT                         (15)      // indent from left (with allowance for border width)
 #define INDENT_TOP                          (15)      // indent from top (with allowance for border width)

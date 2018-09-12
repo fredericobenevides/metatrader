@@ -43,6 +43,7 @@ public:
 
    bool              ExecuteBuyTrade(string methodName,double volume);
    bool              ExecuteSellTrade(string methodName,double volume);
+   void              ExecutedOnMetatrader();
 
    bool              ModifyTpSl(double stopLoss=0,double takeProfit=0);
    void              EventTpSlExecuted(void);
@@ -285,6 +286,18 @@ bool CMyTrade::ExecuteSellTrade(string methodName,double volume)
 
       return false;
      }
+  }
+//+------------------------------------------------------------------+
+//| Execute the Operation on Metatrader
+//+------------------------------------------------------------------+
+void CMyTrade::ExecutedOnMetatrader(void)
+  {
+   if(m_is_on_buy_trade)
+      m_is_on_buy_trade=false;
+
+   if(m_is_on_sell_trade)
+      m_is_on_sell_trade=false;
+
   }
 //+------------------------------------------------------------------+
 //| Modify current Take Profit / Stop Loss 

@@ -32,11 +32,11 @@ input string          InpTradesData="------------------------------"; // -------
 input ENUM_TIMEFRAMES InpTradeTimeFrame=PERIOD_CURRENT;               // Default TimeFrame
 input double          InpTradeVolume=5;                               // Default volume to do trades operations
 input int             InpTradeMaxFactorOperations=5;                  // Default max operations (Martingale^MaxOperations)*InitialVolume
-input double          InpTradeVolumeFactor=2;                         // Default trade factor (martingale)
+input double          InpTradeVolumeFactor=1;                         // Default trade factor (martingale)
 input bool            InpTradeVolumeFactorBreakEvenEnabled=false;     // Default to false to not enable calculation based on breakeven points
 input double          InpTradeVolumeFactorBreakEvenPoints=50;         // Volume Factor calculation on breakeven points
 input double          InpTradeTakeProfit=500.0;                       // Default Take Profit
-input double          InpTradeMaxTakeProfit=1;                        // Default max take profit to do on a day.
+input double          InpTradeMaxTakeProfit=0;                        // Default max take profit to do on a day (0 disable).
 input double          InpTradeStopLoss=0.0;                           // Default Stop Loss
 input double          InpTradePricePerVolume=0;                       // Default Price Per Volume
 //--- input parameters for Trades Sound
@@ -150,6 +150,6 @@ void OnTradeTransaction(
                         const MqlTradeResult&      result        // result structure
                         )
   {
-   HiLoTrades.OnTradeTransaction(trans.type);
+   HiLoTrades.OnTradeTransaction(trans.type,trans.order_type);
   }
 //+------------------------------------------------------------------+

@@ -5,6 +5,8 @@
 //+------------------------------------------------------------------+
 #property copyright "Frederico Benevides"
 #property link      "fredbene@gmail.com"
+
+#include <MyLibs\Trade\MyTrade.mqh>
 //+------------------------------------------------------------------+
 //| Class to do trades based on HiLo.
 //+------------------------------------------------------------------+
@@ -23,7 +25,7 @@ private:
 public:
    void              Init();
    void              OnTick(int handle,int minRatesTotal);
-   void              OnTradeTransaction(ENUM_TRADE_TRANSACTION_TYPE tradeType);
+   void              OnTradeTransaction(ENUM_TRADE_TRANSACTION_TYPE tradeType,ENUM_ORDER_TYPE orderType);
 
    void              TradeStart(bool buy,bool sell);
    void              TradeStop();
@@ -33,6 +35,8 @@ public:
 
    void              TradeBuyClose(void);
    void              TradeSellClose(void);
+
+   void              TradeCloseByMetatrader(void);
 
    void              ModifyTpSl();
    void              EventTpSlExecuted();
@@ -108,7 +112,7 @@ void CHiLoTrades::OnTick(int handle,int minRatesTotal)
 //+------------------------------------------------------------------+
 //| Verify if has a TakeProfit or StopLoss operation                                                                 
 //+------------------------------------------------------------------+
-void CHiLoTrades::OnTradeTransaction(ENUM_TRADE_TRANSACTION_TYPE tradeType)
+void CHiLoTrades::OnTradeTransaction(ENUM_TRADE_TRANSACTION_TYPE tradeType,ENUM_ORDER_TYPE orderType)
   {
    if(tradeType!=TRADE_TRANSACTION_HISTORY_ADD)
       return;
@@ -122,6 +126,13 @@ void CHiLoTrades::OnTradeTransaction(ENUM_TRADE_TRANSACTION_TYPE tradeType)
    bool hadStopLossOnHistory=MyTrade.HadStopLossOnHistory(PERIOD_D1);
    if(hadStopLossOnHistory)
       EventTpSlExecuted();
+
+   if(orderType==ORDER_TYPE_BUY && MyTrade.IsOnSellTrade())
+      TradeCloseByMetatrader();
+
+   if(orderType==ORDER_TYPE_SELL && MyTrade.IsOnBuyTrade())
+      TradeCloseByMetatrader();
+
   }
 //+------------------------------------------------------------------+
 //| Start a trade                                                                 |
@@ -200,6 +211,15 @@ void CHiLoTrades::TradeSellClose(void)
      }
   }
 //+------------------------------------------------------------------+
+//| Close a trade by metatrader
+//+------------------------------------------------------------------+
+void CHiLoTrades::TradeCloseByMetatrader(void)
+  {
+   MyTrade.ExecutedOnMetatrader();
+   HiLoDialog.CalculateVolumeFactor();
+   BreakEvenHide();
+  }
+//+------------------------------------------------------------------+
 //| Modify the current position to config the StopLoss and TakeProfit
 //+------------------------------------------------------------------+
 void CHiLoTrades::ModifyTpSl(void)
@@ -237,6 +257,10 @@ void CHiLoTrades::EventTpSlExecuted(void)
    BreakEvenHide();
 
    m_count_take_profit=m_count_take_profit+1;
+
+// maxtakeprofit is disable if is 0
+   if(InpTradeMaxTakeProfit==0)
+      return;
 
 // if close Take Profit is Checked and the count of take profit is equal to max take profit. 
 //Don't open a new operation
