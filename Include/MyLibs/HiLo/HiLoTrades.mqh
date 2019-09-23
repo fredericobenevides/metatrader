@@ -7,6 +7,8 @@
 #property link      "fredbene@gmail.com"
 
 #include <MyLibs\Trade\MyTrade.mqh>
+#include <MyLibs\HiLoXP\EnumOperations.mqh>
+#include <Arrays\ArrayInt.mqh>
 //+------------------------------------------------------------------+
 //| Class to do trades based on HiLo.
 //+------------------------------------------------------------------+
@@ -56,13 +58,14 @@ void  CHiLoTrades::Init()
    m_count_take_profit=0;
   }
 //+------------------------------------------------------------------+
-//| Verify is there any operation for each candle. 
+//| Verify is there any operation for each candle.
 //+------------------------------------------------------------------+
 void CHiLoTrades::OnTick(int handle,int minRatesTotal)
   {
    if(BarsCalculated(handle)<minRatesTotal)
       return;
 
+   CArrayInt *listOperations=new CArrayInt;
    if(MyTrade.IsNewBar(InpTradeTimeFrame))
      {
       if(CopyBuffer(handle,4,0,1,m_high_hilo)<=0)
@@ -77,40 +80,77 @@ void CHiLoTrades::OnTick(int handle,int minRatesTotal)
       if(CopyBuffer(handle,9,0,1,m_low_invalid_hilo)<=0)
          return;
 
-      //--- close operation if there is a valid and invalid HiLo.
-      if(m_high_hilo[0]!=EMPTY_VALUE || m_high_invalid_hilo[0]!=EMPTY_VALUE)
-         TradeBuyClose();
-
       //--- open operation only if is a valid HiLo
       if(m_high_hilo[0]!=EMPTY_VALUE)
         {
-         // if close HiLo is Checked. Don't open a new operation
-         if(HiLoDialog.IsCloseHiLoChecked())
-            HiLoDialog.InitToDefaults();
-         else if(HiLoDialog.IsSellChecked())
-            TradeSellOpen();
+         listOperations.Add(BUY_CLOSE_OPERATION);
+         listOperations.Add(SELL_OPEN_OPERATION);
         }
-
-      //--- close operation if there is a valid and invalid HiLo.
-      if(m_low_hilo[0]!=EMPTY_VALUE || m_low_invalid_hilo[0]!=EMPTY_VALUE)
-         TradeSellClose();
 
       //--- open operation only if is a valid HiLo
       if(m_low_hilo[0]!=EMPTY_VALUE)
         {
-         // if close HiLo is Checked. Don't open a new operation
-         if(HiLoDialog.IsCloseHiLoChecked())
-            HiLoDialog.InitToDefaults();
-         else if(HiLoDialog.IsBuyChecked())
-            TradeBuyOpen();
+         listOperations.Add(SELL_CLOSE_OPERATION);
+         listOperations.Add(BUY_OPEN_OPERATION);
         }
+     }
+
+   if(listOperations.Total()==0)
+     {
+      delete listOperations;
+      return;
+     }
+
+   for(int j=0; j<listOperations.Total(); j++)
+     {
+      ENUM_OPERATIONS operation=(ENUM_OPERATIONS)listOperations.At(j);
+      switch(operation)
+        {
+         case BUY_OPEN_OPERATION:
+            Print("Current candle has BUY_OPEN_OPERATION");
+            if(HiLoDialog.IsCloseHiLoChecked())
+               HiLoDialog.InitToDefaults();
+            else
+               if(HiLoDialog.IsBuyChecked())
+                  TradeBuyOpen();
+            break;
+
+         case SELL_OPEN_OPERATION:
+            Print("Current candle has SELL_OPEN_OPERATION");
+
+            // if close HiLo is Checked. Don't open a new operation
+            if(HiLoDialog.IsCloseHiLoChecked())
+               HiLoDialog.InitToDefaults();
+            else
+               if(HiLoDialog.IsSellChecked())
+                  TradeSellOpen();
+            break;
+
+         case BUY_CLOSE_OPERATION:
+            Print("Current candle has BUY_CLOSE_OPERATION");
+            TradeBuyClose();
+            break;
+         case SELL_CLOSE_OPERATION:
+            Print("Current candle has SELL_CLOSE_OPERATION");
+            TradeSellClose();
+            break;
+         default: // NO_OPERATION
+            continue;
+        }
+     }
+
+// remove this list operation
+   if(listOperations!=NULL)
+     {
+      listOperations.Shutdown();
+      delete listOperations;
      }
 
    if(Time.HasPassedTime((int)0.4))
       HiLoDialog.LoadVolumeStatusToLabel();
   }
 //+------------------------------------------------------------------+
-//| Verify if has a TakeProfit or StopLoss operation                                                                 
+//| Verify if has a TakeProfit or StopLoss operation
 //+------------------------------------------------------------------+
 void CHiLoTrades::OnTradeTransaction(ENUM_TRADE_TRANSACTION_TYPE tradeType,ENUM_ORDER_TYPE orderType)
   {
@@ -262,7 +302,7 @@ void CHiLoTrades::EventTpSlExecuted(void)
    if(InpTradeMaxTakeProfit==0)
       return;
 
-// if close Take Profit is Checked and the count of take profit is equal to max take profit. 
+// if close Take Profit is Checked and the count of take profit is equal to max take profit.
 //Don't open a new operation
    if(HiLoDialog.IsCloseTpChecked() && InpTradeMaxTakeProfit==m_count_take_profit)
      {

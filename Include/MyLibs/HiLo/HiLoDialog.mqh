@@ -228,7 +228,7 @@ void CHiLoDialog::InitToDefaults(void)
    m_checkbox_close_on_hilo.Checked(false);
    m_checkbox_close_on_tp.Checked(true);
 
-   m_checkbox_take_profit.Checked(true);
+   m_checkbox_take_profit.Checked(false);
    m_edit_take_profit.Text(DoubleToString(InpTradeTakeProfit,0));
    m_edit_stop_loss.Text(DoubleToString(InpTradeStopLoss,0));
 
