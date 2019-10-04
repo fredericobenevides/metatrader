@@ -128,11 +128,13 @@ void CHiLoTrades::OnTick(int handle,int minRatesTotal)
 
          case BUY_CLOSE_OPERATION:
             Print("Current candle has BUY_CLOSE_OPERATION");
-            TradeBuyClose();
+            if(HiLoDialog.IsBuyChecked())
+               TradeBuyClose();
             break;
          case SELL_CLOSE_OPERATION:
             Print("Current candle has SELL_CLOSE_OPERATION");
-            TradeSellClose();
+            if(HiLoDialog.IsSellChecked())
+               TradeSellClose();
             break;
          default: // NO_OPERATION
             continue;
